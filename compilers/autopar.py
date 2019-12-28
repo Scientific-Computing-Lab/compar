@@ -1,8 +1,4 @@
-import argparse
 import os
-import subprocess
-import distutils
-import time
 from compiler import Compiler
 
 class Autopar(Compiler):
