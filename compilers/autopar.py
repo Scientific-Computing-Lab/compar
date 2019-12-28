@@ -1,4 +1,5 @@
 import os
+import subprocess
 from compiler import Compiler
 
 class Autopar(Compiler):
@@ -15,9 +16,9 @@ class Autopar(Compiler):
             for root, dirs, files in os.walk(dir):
                 for name in files:
                     if os.path.splitext(name)[1] == '.c':
-                        print(name, dir)
                         self.run_autopar(name, dir, self.get_compilation_flags())
             return True
+
         except Exception as e:
             print("files in directory " + self.get_input_filename() + " failed to be parallel!")
             print(e)
@@ -25,8 +26,6 @@ class Autopar(Compiler):
 
     def run_autopar(self, f_name, dest_dir, options):
         print ("Parallelizing "+ f_name)
-        #sub_proc = subprocess.Popen(['autoPar'] + options + [f_name, f_name], cwd=dest_dir)
-        #sub_proc.wait()
+        sub_proc = subprocess.Popen(['autoPar'] + options + [f_name, f_name], cwd=dest_dir)
+        sub_proc.wait()
         print ("Done parallel work")
-
-x= Autopar(3,"dass","sdfdsf",["www"]).compile()
