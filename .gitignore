@@ -1,0 +1,16 @@
+*
+!/compilers
+/compilers/*
+!/compilers/autopar.py
+!/compilers/cetus.py
+!/compilers/compiler.py
+!/compilers/gcc.py
+!/compilers/icc.py
+!/compilers/par4all.py
+!.gitignore
+!compar.py
+!database.py
+!executor.py
+!fragmentator.py
+!timer.py
+!requirements.txt
