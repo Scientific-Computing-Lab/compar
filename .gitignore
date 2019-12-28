@@ -7,8 +7,6 @@
 !/compilers/gcc.py
 !/compilers/icc.py
 !/compilers/par4all.py
-!/compilers/scripts
-!/compilers/scripts/*
 !.gitignore
 !compar.py
 !database.py
