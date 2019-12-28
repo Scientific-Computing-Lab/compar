@@ -10,6 +10,6 @@ def assert_file_exist(file_path):
         raise FileError('File {} not exist'.format(file_path))
 
 
-def assert_file_end_with_txt(file_path):
-    if os.path.basename(file_path).split('.')[1] != 'txt':
-        raise FileError('File {} should be in txt format'.format(file_path))
+def assert_file_from_format(file_path, _format):
+    if os.path.basename(file_path).split('.')[1] != _format:
+        raise FileError('File {0} should be in {1} format'.format(file_path, _format))
