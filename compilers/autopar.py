@@ -2,30 +2,31 @@ import os
 import subprocess
 from compiler import Compiler
 
+
 class Autopar(Compiler):
 
-    def __init__(self,version,input_filename,output_filename,compilation_flags):
-        Compiler.__init__(self,version,input_filename,output_filename,compilation_flags)
+    def __init__(self, version, compilation_flags, input_file_directory, output_file_directory=None):
+        Compiler.__init__(self, version, compilation_flags, input_file_directory, output_file_directory)
 
     def compile(self):
-
         # Parallelizing
         try:
-            dir = os.path.abspath(self.get_input_filename())
+            dir = os.path.abspath(self.get_input_file_directory())
             # dir_name = os.path.basename(dir)
             for root, dirs, files in os.walk(dir):
                 for name in files:
                     if os.path.splitext(name)[1] == '.c':
-                        self.run_autopar(name, dir, self.get_compilation_flags())
+                        Autopar.run_autopar(name, dir, self.get_compilation_flags())
             return True
 
         except Exception as e:
-            print("files in directory " + self.get_input_filename() + " failed to be parallel!")
+            print("files in directory " + self.get_input_file_directory() + " failed to be parallel!")
             print(e)
             return False
 
-    def run_autopar(self, f_name, dest_dir, options):
-        print ("Parallelizing "+ f_name)
-        sub_proc = subprocess.Popen(['autoPar'] + options + [f_name, f_name], cwd=dest_dir)
+    @staticmethod
+    def run_autopar(files_dir, dest_dir, options):
+        print("Parallelizing " + files_dir)
+        sub_proc = subprocess.Popen(['autoPar'] + options + [files_dir, files_dir], cwd=dest_dir)
         sub_proc.wait()
-        print ("Done parallel work")
+        print("Done parallel work")
