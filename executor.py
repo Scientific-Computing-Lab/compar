@@ -1,13 +1,14 @@
 import os, subprocess
-
+import run_job
 
 class Job:
-    def __init__(self, file_path, binary_file_path, combination=None, sections_runtime=None):
+    def __init__(self, file_path, binary_file_path, args=None, combination=None, sections_runtime=None):
         self.file_path = file_path
         self.binary_file_path = binary_file_path
         self.combination = combination
         self.sections_runtime = sections_runtime
-         #(compiler_type,compile_flags,env_var)
+        self.args = args
+        #(compiler_type,compile_flags,env_var)
 
     def get_file_path(self):
         return self.file_path
@@ -15,13 +16,22 @@ class Job:
     def get_binary_file_path(self):
         return self.binary_file_path
 
+    def get_args(self):
+        return self.args
+
+
 
 class Executor:
-    def __init__(self, serial_job, jobs):
-        self.serial_job = serial_job
-        self.jobs = jobs
 
-    def execute_job(self):
+    @staticmethod
+    def execute_job(serial_job, jobs):
+
+       output_file=run_job.run_with_sbatch(serial_job.get_binary_file_path(),serial_job.get_args())
+       output_file_path = os.path.abspath(output_file)
+
+
+        for job in jobs:
+
         #run serial
         batch_file = self.__make_batch_file(self.serial_job.get_binary_file_path())
         n = 0
@@ -40,13 +50,3 @@ class Executor:
     def __send_to_database(self):
         pass
 
-    def __make_batch_file(self, job_dir):
-        batch_file_path = os.path.join(job_dir, 'batch_job.sh')
-        batch_file = open(batch_file_path, 'w')
-        batch_file.write(
-            '#!/bin/bash\n'
-            + '#SBATCH --exclusive\n'
-            + '$@\n'
-        )
-        batch_file.close()
-        return batch_file_path
