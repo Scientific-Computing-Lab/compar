@@ -1,6 +1,5 @@
 import os, subprocess
-import run_job
-import threading
+
 from concurrent.futures import ThreadPoolExecutor
 
 class Job:
