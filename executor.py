@@ -3,10 +3,11 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+
 class Job:
-    '''
+    """
     dir - is the name of the directory that contion the files of the job
-    '''
+    """
     def __init__(self, directory, args=None, combination=None, sections_runtime={}):
         self.directory = directory
         self.combination = combination
@@ -29,6 +30,7 @@ class Job:
     def set_sections_runtime(self, loop_name, time):
         self.sections_runtime[loop_name]=time
 
+
 class Processor:
 
     def __init__(self, job):
@@ -42,15 +44,17 @@ class Processor:
         self.analysis_output_file()
 
     def __run_with_sbatch(self, times=1, slurm_partition='grid'):
-        '''
+        """
         :param times: The number of times you want to run the Job. Default=1
         :param slurm_partition:The SLURM option . default="grid"
         :return:
         Look for an .x file inside the folder of Job (job.get_dir()).
         Send it to run on sbatch.
         Save the output files in the Job dir.
-        '''
+        """
+
         batch_file = self.__make_batch_file()
+
         for root, dirs, files in os.walk(self.get_job().get_dir()):
             for file in files:
                 if os.path.splitext(file)[1] == '.x':
@@ -78,16 +82,16 @@ class Processor:
             + '#SBATCH --exclusive\n'
             + '$@\n'
         )
+        return batch_file_path
 
     def __analysis_output_file(self):
         for root, dirs, files in os.walk(self.get_job().get_dir()):
             for file in files:
                 if os.path.splitext(file)[1] == '.txt':
-                    f = open(file, "r")
-                    for x in f:
-                        if(x == "what yoni or may choose (LOOP name #time) "):
-                            #merfassim !!!
-
+                    with open(file, 'r') as input_file:
+                        for line in input_file:
+                            line = line[line.find('#')::].replace('#', '').replace('\n', '').split(':')
+                            self.job.set_sections_runtime(line[0], line[1])
 
 
 class Executor:
