@@ -85,14 +85,14 @@ class Processor:
         return batch_file_path
 
     def __analysis_output_file(self):
-        last_string = 'loop'
+        last_string = 'loop '
         for root, dirs, files in os.walk(self.get_job().get_dir()):
             for file in files:
                 if os.path.splitext(file)[1] == '.txt':
                     try:
                         with open(file, 'r') as input_file:
                             for line in input_file:
-                                line = line[line.find(last_string) + len(last_string) + 1::].replace('\n', '').split(':')
+                                line = line[line.find(last_string) + len(last_string)::].replace('\n', '').split(':')
                                 self.job.set_sections_runtime(line[0], line[1])
                     except OSError as e:
                         raise Exception(str(e))
