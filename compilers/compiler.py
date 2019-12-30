@@ -1,8 +1,19 @@
-from abc import ABC,abstractmethod
+<<<<<<<<< Temporary merge branch 1
+from abc import ABC, abstractmethod
 
 
 class Compiler(ABC):
 
+    def __init__(self, version, input_filename, output_filename, compilation_flags):
+        self._version = version
+        self._input_filename = input_filename
+        self._output_filename = output_filename
+=========
+from abc import ABC,abstractmethod
+
+
+class Compiler(ABC):
+    
     def __init__(self, version, compilation_flags, input_file_directory, output_file_directory):
         self._version = version
         self._input_file_directory = input_file_directory
@@ -22,13 +33,13 @@ class Compiler(ABC):
 
     def get_input_file_directory(self):
         return self.input_file_directory
-
+    
     def set_input_file_directory(self, input_file_directory):
         self._input_file_directory = input_file_directory
-
+    
     def get_output_file_directory(self):
         return self.output_file_directory
-
+    
     def set__output_file_directory(self, output_file_directory):
         self._output_file_directory = output_file_directory
 
