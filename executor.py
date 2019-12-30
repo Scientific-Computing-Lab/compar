@@ -1,5 +1,6 @@
 import os, subprocess
-
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 class Job:
@@ -60,8 +61,14 @@ class Processor:
                         sub_proc = subprocess.Popen(
                             ['sbatch', '-p', slurm_partition, '-o', output_file_name, '-J', output_file_name,
                              batch_file, file_path, self.get_job().get_args()], cwd=self.get_job().get_dir())
-
                         sub_proc.wait()
+
+                        thread_name = threading.current_thread().getName()
+                        while not os.path.exists(output_file_name):
+                            print("I am thread " + str(thread_name) + " and i am going to sleep")
+                            time.sleep(30)
+                            print("I am thread " + str(thread_name) + " and i am awake!")
+                        print("I am thread " + str(thread_name) + " and i am FINISH!!!!!!")
 
     def __make_batch_file(self):
         batch_file_path = os.path.join(os.path.abspath(self.get_job().get_dir()), 'batch_job.sh')
@@ -88,7 +95,7 @@ class Executor:
     def execute_jobs(jobs, number_of_threads=4):
         pool = ThreadPoolExecutor(max_workers=number_of_threads)
         for job in jobs():
-            pool.submit(Processor(job).run())
+            pool.submit(Processor(job).run)
         pool.shutdown()
         return jobs
 
