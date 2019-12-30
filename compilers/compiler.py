@@ -1,12 +1,12 @@
-from abc import ABC, abstractmethod
+from abc import ABC,abstractmethod
 
 
 class Compiler(ABC):
 
-    def __init__(self, version, input_filename, output_filename, compilation_flags):
+    def __init__(self, version, compilation_flags, input_file_directory, output_file_directory):
         self._version = version
-        self._input_filename = input_filename
-        self._output_filename = output_filename
+        self._input_file_directory = input_file_directory
+        self._output_file_directory = output_file_directory
         self._compilation_flags = compilation_flags
 
     @abstractmethod
@@ -20,17 +20,17 @@ class Compiler(ABC):
     def set_version(self, version):
         self._version = version
 
-    def get_input_filename(self):
-        return self._input_filename
+    def get_input_file_directory(self):
+        return self.input_file_directory
 
-    def set_input_filename(self, input_filename):
-        self._input_filename = input_filename
+    def set_input_file_directory(self, input_file_directory):
+        self._input_file_directory = input_file_directory
 
-    def get_output_filename(self):
-        return self._output_filename
+    def get_output_file_directory(self):
+        return self.output_file_directory
 
-    def set__output_filename(self, output_filename):
-        self._output_filename = output_filename
+    def set__output_file_directory(self, output_file_directory):
+        self._output_file_directory = output_file_directory
 
     def get_compilation_flags(self):
         return self._compilation_flags
