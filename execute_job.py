@@ -1,36 +1,3 @@
-import os, subprocess
-import threading
-import time
-from concurrent.futures import ThreadPoolExecutor
-
-
-class Job:
-    """
-    dir - is the name of the directory that contion the files of the job
-    """
-    def __init__(self, directory, args=None, combination=None, sections_runtime={}):
-        self.directory = directory
-        self.combination = combination
-        self.sections_runtime = sections_runtime
-        self.args = args
-        #(compiler_type,compile_flags,env_var)
-
-    def get_dir(self):
-        return self.directory
-
-    def get_args(self):
-        return self.args
-
-    def get_sections_runtime(self):
-        return self.sections_runtime
-
-    def get_loop_time(self, loop_name):
-        return self.sections_runtime[loop_name]
-
-    def set_sections_runtime(self, loop_name, time):
-        self.sections_runtime[loop_name]=time
-
-
 class Execute_job:
 
     def __init__(self, job):
@@ -96,16 +63,3 @@ class Execute_job:
                                 self.job.set_sections_runtime(line[0], line[1])
                     except OSError as e:
                         raise Exception(str(e))
-
-
-class Executor:
-    @staticmethod
-    def execute_jobs(jobs, number_of_threads=4):
-        pool = ThreadPoolExecutor(max_workers=number_of_threads)
-        for job in jobs():
-            pool.submit(Processor(job).run)
-        pool.shutdown()
-        return jobs
-
-
-
