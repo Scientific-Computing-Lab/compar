@@ -16,7 +16,7 @@ class Icc(Compiler):
             for root, dirs, files in os.walk(dir):
                 for name in files:
                     if os.path.splitext(name)[1] == '.c':
-                        Icc.run_autopar(name, dir, self.get_compilation_flags())
+                        Icc.run_icc(name, dir, self.get_compilation_flags())
             return True
 
         except Exception as e:
