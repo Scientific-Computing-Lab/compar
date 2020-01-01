@@ -25,10 +25,12 @@ class CompilerToExe(Compiler):
             for root, dirs, files in os.walk(dir):
                 for name in files:
                     if os.path.splitext(name)[1] == '.c':
+                        print(name)
                         process_code = self.run_compiler(name, dir, self.get_compilation_flags())
                         if process_code == 0:
                             print("Compiling " + name)
                             success = True
+                            break
 
             if not success:
                 raise Exception("Failed To Compile!")
@@ -46,7 +48,7 @@ class CompilerToExe(Compiler):
             options = []
         try:
             sub_proc = subprocess.Popen([self.get_compiler_name()]+ ["-fopenmp"] + options + [file_name] +
-                                    ["-o" + " " + file_name+".x"], cwd=file_dir, stderr=subprocess.DEVNULL)
+                                    ["-o" + " " + self.get_input_file_directory()+".x"], cwd=file_dir, stderr=subprocess.DEVNULL)
             sub_proc.wait()
 
             return sub_proc.returncode
