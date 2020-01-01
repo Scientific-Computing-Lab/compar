@@ -16,15 +16,24 @@ class CompilerToExe(Compiler):
         self._compiler_name = compiler_name
 
     def compile(self):
+        success = False
+
         # Compiling
         try:
             dir = os.path.abspath(self.get_input_file_directory())
-            print(dir)
             # dir_name = os.path.basename(dir)
             for root, dirs, files in os.walk(dir):
                 for name in files:
                     if os.path.splitext(name)[1] == '.c':
-                        self.run_compiler(name, dir, self.get_compilation_flags())
+                        process_code = self.run_compiler(name, dir, self.get_compilation_flags())
+                        if process_code == 0:
+                            print("Compiling " + name)
+                            success = True
+
+            if not success:
+                raise Exception("Failed To Compile!")
+
+            print("Done Compile work")
             return True
 
         except Exception as e:
@@ -33,13 +42,15 @@ class CompilerToExe(Compiler):
             return False
 
     def run_compiler(self, file_name, file_dir, options):
-        print("Compiling " + file_name)
-
         if options in ["", None]:
             options = []
+        try:
+            sub_proc = subprocess.Popen([self.get_compiler_name()]+ ["-fopenmp"] + options + [file_name] +
+                                    ["-o" + " " + file_name+".x"], cwd=file_dir, stderr=subprocess.DEVNULL)
+            sub_proc.wait()
 
-        sub_proc = subprocess.Popen([self.get_compiler_name()]+ ["-fopenmp"] + options + [file_name] +
-                                    ["-o" + " " + self.get_input_file_directory()+".x"], cwd=file_dir)
-        sub_proc.wait()
-        print("Done Compile work")
+            return sub_proc.returncode
+
+        except Exception as e:
+            pass
 
