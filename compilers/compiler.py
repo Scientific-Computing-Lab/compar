@@ -21,13 +21,13 @@ class Compiler(ABC):
         self._version = version
 
     def get_input_file_directory(self):
-        return self.input_file_directory
+        return self._input_file_directory
     
     def set_input_file_directory(self, input_file_directory):
         self._input_file_directory = input_file_directory
     
     def get_output_file_directory(self):
-        return self.output_file_directory
+        return self._output_file_directory
     
     def set__output_file_directory(self, output_file_directory):
         self._output_file_directory = output_file_directory
