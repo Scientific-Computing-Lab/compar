@@ -1,5 +1,6 @@
 import os
 
+
 class Job:
     """
     * parameters :
@@ -25,12 +26,11 @@ class Job:
                                          }
     """
 
-
-    #combination=None!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    def __init__(self, directory, exec_file_args="", combination=None, ):
-        self.directory = os.path.abspath(directory)
-        self.exec_file_args = exec_file_args
-        self.combination = combination
+    # combination=None!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    def __init__(self, directory, exec_file_args="", combination=None):
+        self.set_directory_path(directory)
+        self.set_exec_file_args(exec_file_args)
+        self.set_combination(combination)
         self.job_id = ""
         self.log_file = ""
         self.job_results = {
@@ -91,7 +91,6 @@ class Job:
         raise Exception("File name: " + str(file_name) + " does not exist.")
 
     def set_file_results_loops(self, file_name, loops):
-
         for file in self.job_results['run_time_result']:
             if file['file_name'] == file_name:
                 file['loops'] = loops
@@ -99,8 +98,14 @@ class Job:
 
         raise Exception("File name: " + str(file_name) + " does not exist.")
 
-    def set_loop_in_file_results(self, file_name, loop_label, run_time, speedup):
+    def get_file_results_loops(self, file_name):
+        for file in self.job_results['run_time_result']:
+            if file['file_name'] == file_name:
+                return file['loops']
 
+        raise Exception("File name: " + str(file_name) + " does not exist.")
+
+    def set_loop_in_file_results(self, file_name, loop_label, run_time, speedup):
         for file in self.job_results['run_time_result']:
             if file['file_name'] == file_name:
 
@@ -117,36 +122,58 @@ class Job:
 
         raise Exception("File name: " + str(file_name) + " does not exist.")
 
-    def set_loop_speedup_in_file_results(self, file_name, loop_label, speedup):
-        file_or_loop_lable_dose_not_exist_flag = True
+    def get_loop_in_file_results(self, file_name, loop_label):
+        for file in self.job_results['run_time_result']:
+            if file['file_name'] == file_name:
 
+                for loop in file['loops']:
+                    if loop["loop_label"] == str(loop_label):
+                        return loop
+
+        raise Exception("File name: " + str(file_name) + " does not exist.")
+
+    def set_loop_speedup_in_file_results(self, file_name, loop_label, speedup):
         for file in self.job_results['run_time_result']:
             if file['file_name'] == file_name:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
                         loop["speedup"] = str(speedup)
-                        file_or_loop_lable_dose_not_exist_flag = False
+                        return
 
-                if file_or_loop_lable_dose_not_exist_flag:
                     raise Exception("Loop label: " + str(loop_label) + " does not exist.")
 
-        if file_or_loop_lable_dose_not_exist_flag:
             raise Exception("File name: " + str(file_name) + " does not exist.")
 
-    def set_loop_run_time_in_file_results(self, file_name, loop_label, run_time):
-        file_or_loop_lable_dose_not_exist_flag = True
-
+    def get_loop_speedup_in_file_results(self, file_name, loop_label):
         for file in self.job_results['run_time_result']:
             if file['file_name'] == file_name:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
-                        loop["speedup"] = str(run_time)
-                        file_or_loop_lable_dose_not_exist_flag = False
+                        return loop["speedup"]
 
-                if file_or_loop_lable_dose_not_exist_flag:
                     raise Exception("Loop label: " + str(loop_label) + " does not exist.")
 
-        if file_or_loop_lable_dose_not_exist_flag:
             raise Exception("File name: " + str(file_name) + " does not exist.")
 
+    def set_loop_run_time_in_file_results(self, file_name, loop_label, run_time):
+        for file in self.job_results['run_time_result']:
+            if file['file_name'] == file_name:
+                for loop in file['loops']:
+                    if loop["loop_label"] == str(loop_label):
+                        loop["run_time"] = str(run_time)
+                        return
 
+                    raise Exception("Loop label: " + str(loop_label) + " does not exist.")
+
+            raise Exception("File name: " + str(file_name) + " does not exist.")
+
+    def get_loop_run_time_in_file_results(self, file_name, loop_label):
+        for file in self.job_results['run_time_result']:
+            if file['file_name'] == file_name:
+                for loop in file['loops']:
+                    if loop["loop_label"] == str(loop_label):
+                        return loop["run_time"]
+
+                    raise Exception("Loop label: " + str(loop_label) + " does not exist.")
+
+            raise Exception("File name: " + str(file_name) + " does not exist.")
