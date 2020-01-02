@@ -11,8 +11,8 @@ class Autopar(Compiler):
     def compile(self):
         # Parallelizing
         try:
-            dir = os.path.abspath(self.get_input_file_directory())
-            # dir_name = os.path.basename(dir)
+            dir = self.get_input_file_directory()
+
             for root, dirs, files in os.walk(dir):
                 for name in files:
                     if os.path.splitext(name)[1] == '.c':
@@ -27,6 +27,6 @@ class Autopar(Compiler):
     @staticmethod
     def run_autopar(files_dir, dest_dir, options):
         print("Parallelizing " + files_dir)
-        sub_proc = subprocess.Popen(['autoPar'] + options + [files_dir, files_dir], cwd=dest_dir)
+        sub_proc = subprocess.Popen(['autoPar'] + options + ["-rose:o", files_dir, files_dir], cwd=dest_dir)
         sub_proc.wait()
         print("Done parallel work")
