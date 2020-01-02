@@ -132,33 +132,23 @@ class Fragmentator:
             }
             self.__fragments.append(loop_with_markers)
 
-    def __get_index_of_nth_occurrence(self, n, occurrence):
-        copy_of_content = self.__file_content
-        before = ''
-        for _ in range(n - 1):
-            prev_index = copy_of_content.find(occurrence) + len(occurrence)
-            before += copy_of_content[:prev_index]
-            copy_of_content = copy_of_content[prev_index:]
-        return len(before) + copy_of_content.find(occurrence)
-
     def fragment_code(self):
         self.__backup_file()
         self.__get_file_content()
         self.__find_loops()
         self.__create_list_of_fragments()
+        new_content = ''
+        rest_of_the_content = self.__file_content
         for i, loop_fragment in enumerate(self.__fragments):
+            loop_start_offset = rest_of_the_content.find(loop_fragment['loop'])
+            loop_end_offset = loop_start_offset + len(loop_fragment['loop'])
             loop_with_markers = loop_fragment['start_label'] + '\n'
             loop_with_markers += loop_fragment['loop']
             loop_with_markers += '\n' + loop_fragment['end_label']
-            if self.__occurrences_index_list[i] > 1:
-                index_in_content = self.__get_index_of_nth_occurrence(self.__occurrences_index_list[i],
-                                                                      loop_fragment['loop'])
-                new_content = ''
-                new_content += self.__file_content[:index_in_content]
-                new_content += loop_with_markers
-                new_content += self.__file_content[index_in_content + len(loop_fragment['loop']):]
-                self.__file_content = new_content
-            else:
-                self.__file_content = self.__file_content.replace(loop_fragment['loop'], loop_with_markers, 1)
+            new_content += rest_of_the_content[:loop_start_offset]
+            new_content += loop_with_markers
+            rest_of_the_content = rest_of_the_content[loop_end_offset:]
+        new_content += rest_of_the_content
+        self.__file_content = new_content
         self.__write_to_file(self.__file_content)
         return self.get_fragments()
