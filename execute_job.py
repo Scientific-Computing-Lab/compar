@@ -7,9 +7,8 @@ import time
 
 class Execute_job:
 
-    def __init__(self, job, sbatch_log_file):
+    def __init__(self, job):
         self.job = job
-        self.sbatch_log_file = sbatch_log_file
 
     def get_job(self):
         return self.job
@@ -36,16 +35,18 @@ class Execute_job:
             for file in files:
                 if os.path.splitext(file)[1] == '.x':
                     file_path = os.path.abspath(file)
-                    log_file_name = os.path.splitext(file)[0] + '_log'
-                    self.sbatch_log_file.flush()
+                    log_file_name = os.path.splitext(file)[0] + '_log_file'
+                    sbatch_log_file = os.path.splitext(file)[0] + '_sbatch_log'
+
                     sub_proc = subprocess.Popen(
-                            ['sbatch', '-p', slurm_partition, '-o', log_file_name, '-J', log_file_name,
-                             sbatch_script_file, file_path, self.get_job().get_exec_file_args()], cwd=self.get_job().get_directory_path(),
-                            stdout=self.sbatch_log_file, stderr=self.sbatch_log_file, shell=False)
+                        ['sbatch -p {0} -o {1} -J {2} {3} {4} {5} > {6}'.format(
+                            slurm_partition, log_file_name, log_file_name, sbatch_script_file, file_path,
+                            self.get_job().get_exec_file_args(), sbatch_log_file)],
+                        shell=True, cwd=self.get_job().get_dir())
                     sub_proc.wait()
 
-                    self.get_job().set_job_id(self.sbatch_log_file.readline())
-                    self.sbatch_log_file.close()
+                    with open(os.path.abspath(sbatch_log_file), 'r') as log_file:
+                        self.get_job().set_job_id(log_file.readline().replace('\n', '').split(' ')[-1])
 
                     #thread_name = threading.current_thread().getName()
                     while not os.path.exists(log_file_name):
