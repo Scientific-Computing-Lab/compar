@@ -1,7 +1,7 @@
 import os
 import re
 import subprocess
-import threading
+#import threading
 import time
 
 
@@ -17,17 +17,11 @@ class Execute_job:
     def set_job(self, job):
         self.job = job
 
-    def get_sbatch_log_file(self):
-        return str(self.log_file)
-
-    def set_sbatch_log_file(self, sbatch_log_file):
-        self.sbatch_log_file = sbatch_log_file
-
     def run(self):
         self.__run_with_sbatch()
         self.__analysis_output_file()
 
-    def __run_with_sbatch(self, times=1, slurm_partition='grid'):
+    def __run_with_sbatch(self, slurm_partition='grid'):
         """
         :param times: The number of times you want to run the Job. Default=1
         :param slurm_partition:The SLURM option . default="grid"
@@ -36,34 +30,28 @@ class Execute_job:
         Send it to run on sbatch.
         Save the output files in the Job dir.
         """
-
-
-        batch_file = self.__make_batch_file()
+        sbatch_script_file = self.__make_sbatch_script_file()
 
         for root, dirs, files in os.walk(self.get_job().get_dir()):
             for file in files:
                 if os.path.splitext(file)[1] == '.x':
-                    file_name = os.path.basename(os.path.splitext(file)[0])
                     file_path = os.path.abspath(file)
-                    for i in range(0, times):
-                        output_file_name = file_name + '_' + str(i)
-                        self.log_file.flush()
-                        sub_proc = subprocess.Popen(
-                            ['sbatch', '-p', slurm_partition, '-o', output_file_name, '-J', output_file_name,
-                             batch_file, file_path, self.get_job().get_exec_file_args()], cwd=self.get_job().get_dir(),
-                            stdout=self.log_file, stderr=self.log_file, shell=False)
-                        sub_proc.wait()
-                        self.get_job().set_job_id(self.log_file.readline())
-                        self.log_file.close()
+                    log_file_name = os.path.splitext(file)[0] + '_log'
+                    self.sbatch_log_file.flush()
+                    sub_proc = subprocess.Popen(
+                            ['sbatch', '-p', slurm_partition, '-o', log_file_name, '-J', log_file_name,
+                             sbatch_script_file, file_path, self.get_job().get_exec_file_args()], cwd=self.get_job().get_directory_path(),
+                            stdout=self.sbatch_log_file, stderr=self.sbatch_log_file, shell=False)
+                    sub_proc.wait()
 
-                        thread_name = threading.current_thread().getName()
-                        while not os.path.exists(output_file_name):
-                            print("I am thread " + str(thread_name) + " and i am going to sleep")
-                            time.sleep(30)
-                            print("I am thread " + str(thread_name) + " and i am awake!")
-                        print("I am thread " + str(thread_name) + " and i am FINISH!!!!!!")
+                    self.get_job().set_job_id(self.sbatch_log_file.readline())
+                    self.sbatch_log_file.close()
 
-    def __make_batch_file(self):
+                    #thread_name = threading.current_thread().getName()
+                    while not os.path.exists(log_file_name):
+                        time.sleep(30)
+
+    def __make_sbatch_script_file(self):
         batch_file_path = os.path.join(os.path.abspath(self.get_job().get_dir()), 'batch_job.sh')
         batch_file = open(batch_file_path, 'w')
         batch_file.write(
@@ -78,7 +66,7 @@ class Execute_job:
         for root, dirs, files in os.walk(self.get_job().get_dir()):
             for file in files:
                 if re.search("_time_results.txt$", file):
-                    file_name = file.split("_time_results.txt")[0]+".c"
+                    file_name = str(file.split("_time_results.txt")[0]) + ".c"
                     try:
                         with open(file, 'r') as input_file:
                             for line in input_file:
