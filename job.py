@@ -4,17 +4,13 @@ import os
 class Job:
     """
     * parameters :
-    job_id - Contain the jod id that come from SCLUM
+    job_id - Contain the jod id that come from Slurm
     directory - Contain the path to the directory the contains tha files of the job
-    args - Contain all the arguments of the executable file
-    combination - list of the combination that make the the job
-    sections_runtime - a dictionary that contains all loops in the source file and the time that took him
+    exec_file_args - Contain all the arguments of the executable file
+    combination - Object of the combination that make the the job
+    job_results - a dictionary that contains all loops in the source file and the time that took him
 
-    Data structures of combination: {combination_id:1234 ,
-
-
-
-    Data structures of job_data: {'combination_id' : "1234" ,
+    Data structures of job_results: {'combination_id' : "1234" ,
                                           'run_time_result': [ { 'file_name' : "1234.C" ,
                                                                  'loops' : [ { 'loop_label' : "#123"
                                                                                'run_time' : "20"
@@ -25,8 +21,9 @@ class Job:
                                                              ]
                                          }
     """
+    #TODO -REMOVE NONE FROM COMBINATION
+    #TODO - NEED TO ADD PARAMETER FOR 'Slurm' PRAMETERS
 
-    # combination=None!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     def __init__(self, directory, exec_file_args="", combination=None):
         self.set_directory_path(directory)
         self.set_exec_file_args(exec_file_args)
@@ -77,12 +74,12 @@ class Job:
     def get_job_results(self):
         return self.job_results
 
-    def set_file_results(self, file_name, loops):
+    def set_file_results(self, file_name, loops=[]):
         for file in self.job_results['run_time_result']:
             if file['file_name'] == file_name:
                 file['loops'] = loops
                 return
-        self.job_results['run_time_result'].append({'file_name': file_name, 'loops': []})
+        self.job_results['run_time_result'].append({'file_name': file_name, 'loops': loops})
 
     def get_file_results(self, file_name):
         for file in self.job_results['run_time_result']:
