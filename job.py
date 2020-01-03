@@ -25,9 +25,9 @@ class Job:
     #TODO - NEED TO ADD PARAMETER FOR 'Slurm' PRAMETERS
 
     def __init__(self, directory, exec_file_args="", combination=None):
-        self.set_directory_path(directory)
-        self.set_exec_file_args(exec_file_args)
-        self.set_combination(combination)
+        self.directory = directory
+        self.exec_file_args = exec_file_args
+        self.combination = combination
         self.job_id = ""
         self.log_file = ""
         self.job_results = {
@@ -39,7 +39,6 @@ class Job:
     def set_job_id(self, job_id):
         self.job_id = job_id
         self.job_results["job_id"] = str(job_id)
-        return self.job_id
 
     def get_job_id(self):
         return self.job_id
@@ -105,7 +104,6 @@ class Job:
     def set_loop_in_file_results(self, file_name, loop_label, run_time, speedup):
         for file in self.job_results['run_time_result']:
             if file['file_name'] == file_name:
-
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
                         loop["run_time"] = str(run_time)
