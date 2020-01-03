@@ -63,11 +63,11 @@ class Timer(object):
         self.__fragmentation = Fragmentator(self.__input_file_path)
 
     def inject_timers(self):
+        fragments = self.__fragmentation.fragment_code()
         with open(self.__input_file_path, 'r') as input_file:
             input_file_text = input_file.read()
         e.assert_file_is_empty(input_file_text)
         input_file_text = '#include <omp.h>\n{}'.format(input_file_text)
-        fragments = self.__fragmentation.fragment_code()
         for loop_fragment, label in zip(fragments, range(1, len(fragments)+1)):
             loop_with_c_code = ''
             c_code_start_time_var = 'start_time_' + str(label)
