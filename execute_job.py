@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import threading
 import time
@@ -39,7 +40,7 @@ class Execute_job:
                         self.log_file.flush()
                         sub_proc = subprocess.Popen(
                             ['sbatch', '-p', slurm_partition, '-o', output_file_name, '-J', output_file_name,
-                             batch_file, file_path, self.get_job().get_args()], cwd=self.get_job().get_dir(),
+                             batch_file, file_path, self.get_job().get_exec_file_args()], cwd=self.get_job().get_dir(),
                             stdout=self.log_file, stderr=self.log_file, shell=False)
                         sub_proc.wait()
                         self.get_job().set_job_id(self.log_file.readline())
@@ -66,11 +67,13 @@ class Execute_job:
         last_string = 'loop '
         for root, dirs, files in os.walk(self.get_job().get_dir()):
             for file in files:
-                if os.path.splitext(file)[1] == '.txt':
+                if re.search("_time_results.txt$", file):
+                    file_name = file.split("_time_results.txt")[0]+".c"
                     try:
                         with open(file, 'r') as input_file:
                             for line in input_file:
                                 line = line[line.find(last_string) + len(last_string)::].replace('\n', '').split(':')
-                                self.job.set_sections_runtime(line[0], line[1])
+                                self.get_job().set_loop_run_time_in_file_results(file_name, line[0], line[1])
+
                     except OSError as e:
                         raise Exception(str(e))
