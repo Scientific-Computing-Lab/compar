@@ -1,4 +1,4 @@
-from abc import ABC,abstractmethod
+from abc import ABC, abstractmethod
 
 
 class Compiler(ABC):
@@ -16,7 +16,7 @@ class Compiler(ABC):
 
     def get_version(self):
         return self._version
-    
+
     def set_version(self, version):
         self._version = version
 
@@ -34,6 +34,6 @@ class Compiler(ABC):
 
     def get_compilation_flags(self):
         return self._compilation_flags
-    
+
     def set_compilation_flags(self, compilation_flags):
         self._compilation_flags = compilation_flags
