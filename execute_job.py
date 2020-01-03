@@ -7,12 +7,21 @@ import time
 
 class Execute_job:
 
-    def __init__(self, job, log_file):
+    def __init__(self, job, sbatch_log_file):
         self.job = job
-        self.log_file = log_file #####
+        self.sbatch_log_file = sbatch_log_file
 
     def get_job(self):
         return self.job
+
+    def set_job(self, job):
+        self.job = job
+
+    def get_sbatch_log_file(self):
+        return str(self.log_file)
+
+    def set_sbatch_log_file(self, sbatch_log_file):
+        self.sbatch_log_file = sbatch_log_file
 
     def run(self):
         self.__run_with_sbatch()
@@ -27,6 +36,7 @@ class Execute_job:
         Send it to run on sbatch.
         Save the output files in the Job dir.
         """
+
 
         batch_file = self.__make_batch_file()
 
