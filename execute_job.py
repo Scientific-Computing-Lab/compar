@@ -6,15 +6,16 @@ import time
 
 class Execute_job:
 
-    def __init__(self, job):
+    def __init__(self, job, log_file):
         self.job = job
+        self.log_file = log_file #####
 
     def get_job(self):
         return self.job
 
     def run(self):
         self.__run_with_sbatch()
-        self.analysis_output_file()
+        self.__analysis_output_file()
 
     def __run_with_sbatch(self, times=1, slurm_partition='grid'):
         """
@@ -35,10 +36,14 @@ class Execute_job:
                     file_path = os.path.abspath(file)
                     for i in range(0, times):
                         output_file_name = file_name + '_' + str(i)
+                        self.log_file.flush()
                         sub_proc = subprocess.Popen(
                             ['sbatch', '-p', slurm_partition, '-o', output_file_name, '-J', output_file_name,
-                             batch_file, file_path, self.get_job().get_args()], cwd=self.get_job().get_dir())
+                             batch_file, file_path, self.get_job().get_args()], cwd=self.get_job().get_dir(),
+                            stdout=self.log_file, stderr=self.log_file, shell=False)
                         sub_proc.wait()
+                        self.get_job().set_job_id(self.log_file.readline())
+                        self.log_file.close()
 
                         thread_name = threading.current_thread().getName()
                         while not os.path.exists(output_file_name):
