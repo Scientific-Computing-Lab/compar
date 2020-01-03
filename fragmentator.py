@@ -90,7 +90,7 @@ class Fragmentator:
                 indent_chars = line[:current_loop['start_position_index']]
                 try:
                     first_char_after_indent = line[current_loop['start_position_index']]
-                    is_indent_only_spaces = set(indent_chars) == set(' ')
+                    is_indent_only_spaces = indent_chars == '' or set(indent_chars) == set(' ')
                     if is_indent_only_spaces and len(indent_chars) == current_loop['start_position_index']:
                         if first_char_after_indent == ' ':
                             current_loop['loop_lines'].append(line)
