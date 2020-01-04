@@ -68,9 +68,9 @@ class Timer(object):
         if '#include <omp.h>' not in input_file_text:
             input_file_text = '#include <omp.h>\n{}'.format(input_file_text)
         for label, loop_fragment in enumerate(fragments, 1):
-            c_code_start_time_var = 'start_time_' + str(label)
-            c_code_run_time_var = 'run_time_' + str(label)
-            c_code_fp_var = 'fp_' + str(label)
+            c_code_start_time_var = '____compar____start_time_' + str(label)
+            c_code_run_time_var = '____compar____run_time_' + str(label)
+            c_code_fp_var = '____compar____fp' + str(label)
             self.set_c_code_calculate_initial_time(c_code_start_time_var)
             self.set_c_code_calculate_run_time(c_code_run_time_var, c_code_start_time_var)
             self.set_c_code_write_to_file(c_code_fp_var, str(label), c_code_run_time_var)
