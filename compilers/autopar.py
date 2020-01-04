@@ -5,8 +5,8 @@ from compiler import Compiler
 
 class Autopar(Compiler):
 
-    def __init__(self, version, compilation_flags, input_file_directory, output_file_directory=None):
-        Compiler.__init__(self, version, compilation_flags, input_file_directory, output_file_directory)
+    def __init__(self, version, compilation_flags, input_file_directory, output_file_directory=None, files_list=None):
+        Compiler.__init__(self, version, compilation_flags, input_file_directory, output_file_directory, files_list)
 
     def compile(self):
         # Parallelizing
