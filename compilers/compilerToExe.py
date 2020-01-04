@@ -36,13 +36,12 @@ class CompilerToExe(Compiler):
             return False
 
     def run_compiler(self):
-        input_file_path_only = os.path.dirname(self.get_input_file_directory())
+        input_file_path_only = os.path.dirname(self.get_input_file_directory() + "/")
         dir_name = os.path.basename(input_file_path_only)
-        input_file_path = os.path.join(self.get_input_file_directory(), self.get_main_c_file())
 
         print("Compiling " + self.get_main_c_file())
         sub_proc = subprocess.Popen([self.get_compiler_name()] + ["-fopenmp"] + self.get_compilation_flags() +
-                                    [input_file_path] +["-o" + " " + dir_name + ".x"],
+                                    [self.get_main_c_file()] + ["-o" + " " + dir_name + ".x"],
                                     cwd=self.get_input_file_directory())
         sub_proc.wait()
         print("Done Compile work")
