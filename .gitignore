@@ -17,3 +17,5 @@
 !requirements.txt
 !job.py
 !execute_job.py
+!exceptions.py
+!file_formator.py
