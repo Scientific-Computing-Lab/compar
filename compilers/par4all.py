@@ -26,7 +26,7 @@ class Par4all(Compiler):
             print(e)
 
     def __run_p4a_process(self, file_path_to_compile):
-        command = ['p4a', '-v', '--log', '-O', file_path_to_compile]
+        command = ['p4a', '-v', '--log', '-O', file_path_to_compile] + super().get_compilation_flags()
         if self.__include_dirs_list:
             command += ['-I', ] + self.__include_dirs_list
         subprocess.run(command, shell=True, cwd=self.get_input_file_directory())
@@ -39,4 +39,4 @@ class Par4all(Compiler):
             file_name, extension = os.path.splitext(file_dict['file_path'])  # TODO: check if the key is correct
             name_to_replace = file_name + '.p4a' + extension
             os.rename(name_to_replace, file_dict['file_path'])  # TODO: check if the key is correct
-            self.__remove_bswap_function( file_dict['file_path'])  # TODO: check if the key is correct
+            self.__remove_bswap_function(file_dict['file_path'])  # TODO: check if the key is correct
