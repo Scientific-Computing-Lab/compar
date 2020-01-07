@@ -4,6 +4,7 @@ from compilers.autopar import Autopar
 from compilers.cetus import Cetus
 from compilers.par4all import Par4all
 
+
 class Compar:
 
     def __init__(self,
