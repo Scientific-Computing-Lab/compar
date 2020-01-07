@@ -26,17 +26,17 @@ class Parameters:
 
     def add_code_param(self, code_param):
         if code_param in self.code_params:
-            print("code param: " + str(code_param) + " already exist but has been copied.")
+            raise Exception("code param: " + str(code_param) + " already exist but has been copied.")
         self.code_params.append(code_param)
 
     def add_env_param(self, env_param):
         if env_param in self.env_params:
-            print("env param: " + str(env_param) + " already exist but has been copied.")
+            raise Exception("env param: " + str(env_param) + " already exist but has been copied.")
         self.env_params.append(env_param)
 
     def add_compilation_param(self, compilation_param):
         if compilation_param in self.compilation_params:
-            print("compilation param: " + str(compilation_param) + " already exist but has been copied.")
+            raise Exception("compilation param: " + str(compilation_param) + " already exist but has been copied.")
         self.compilation_params.append(compilation_param)
 
     def remove_code_param(self, code_param):
