@@ -38,9 +38,9 @@ class Compar:
 
         #Build compar environment-----------------------------------
         self.working_directory = working_directory
-        self.backup_files_dir = working_directory + "/backup"
-        self.original_files_dir = working_directory + "/original_files"
-        self.combinations_dir = working_directory + "/combinations"
+        self.backup_files_dir = os.path.join(working_directory, "backup")
+        self.original_files_dir = os.path.join(working_directory, "original_files")
+        self.combinations_dir = os.path.join(working_directory, "combinations")
         self.__build_compar_work_environment(input_dir)
         #-----------------------------------------------------------
 
@@ -83,15 +83,13 @@ class Compar:
         os.makedirs(self.backup_files_dir, exist_ok=True)
 
         if os.path.isdir(input_dir):
-            cmd="cp -r {0}/* {1} ".format(input_dir, self.original_files_dir)
-            subprocess.check_output(cmd, shell=True)
-            cmd = "cp -r {0}/* {1} ".format(input_dir, self.backup_files_dir)
-            subprocess.check_output(cmd, shell=True)
+            shutil.copytree(input_dir, self.original_files_dir)
+            shutil.copytree(input_dir, self.backup_files_dir)
+
         else:
-            cmd = "cp -r {0} {1} ".format(input_dir, self.original_files_dir)
-            subprocess.check_output(cmd, shell=True)
-            cmd = "cp -r {0} {1} ".format(input_dir, self.backup_files_dir)
-            subprocess.check_output(cmd, shell=True)
+            shutil.copy(input_dir,  self.original_files_dir)
+            shutil.copy(input_dir, self.backup_files_dir)
+
 
     @staticmethod
     def make_c_file_list(input_dir):
