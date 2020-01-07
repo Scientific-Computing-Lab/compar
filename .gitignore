@@ -8,6 +8,7 @@
 !/compilers/icc.py
 !/compilers/par4all.py
 !/compilers/compilerToExe.py
+!/data/*
 !.gitignore
 !compar.py
 !database.py

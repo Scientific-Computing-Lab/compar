@@ -1,19 +1,38 @@
 import pymongo;
+import collections  # From Python standard library.
+import bson
+from bson.codec_options import CodecOptions
+
 
 class database:
 
     def __init__(self):
         #TODO check if already exists
         self.connection = pymongo.MongoClient('mongodb://localhost:27017')
-        # self.static_db = self.connection['combinations']
+
+        self.static_db = self.connection['combinations']
         self.dynamic_db = self.connection['results']
 
-        # self.static_db.create_collection('combinations')
-        self.initialize_static_db("hello","bye")
+        if('combinations' not in self.static_db.collection_names()):
+            self.static_db.create_collection('combinations')
+            self.initialize_static_db("file_name", "file_directory") #TODO
+
+        if('results' not in self.dynamic_db.collection_names()):
+            self.dynamic_db.create_collection('results')
+
+
         self.current_combination_id = 0
 
     def initialize_static_db(self,file_name,file_directory):
         #TODO insert all combinations from a file with increased integer/ Check if collection named combinations exists
+        f = open(r"/Users/reuvenfarag/PycharmProjects/compar_final_project_sce/assets/data.json","r")
+        # {"compiler": "autopar",env_params: ['sd','bb',rr'],"code_params": ['nn','jj','oo'],"compiler_params": ['pp','uu'], "combination_id" : 5}
+        json = f.read()
+        my_data = bson.BSON.encode(json)
+        print(my_data)
+        self.static_db['combinations'].insert_many(f.read())
+
+
         pass
 
     def get_next_combination(self):
@@ -24,14 +43,6 @@ class database:
         self.current_combination_id += 1
         return self.current_combination
 
-    def create_new_collection(self,name):
-        try:
-            self.dynamic_db.create_collection(name)
-            return True
-        except Exception as e:
-            print("Collection named ${0} already exists".format(name))
-            print(e)
-            return False
 
     def insert_new_combination(self,collection_name,combination_result):
         try:
@@ -51,11 +62,24 @@ class database:
             print(e)
             return False
 
-    def find_optimal_loop_combination(self,collection_name,file_name,loop_id):
+    def find_optimal_loop_combination(self,collection_name,file_name,loop_label):
         # connect = self.dynamic_db[collection_name]
         # combinations = connect.find_one({"combinations_results": { "run_time_results": { "file_name": file_name}}})
-        combinations = self.dynamic_db[collection_name].find_one({"combinations_results": {"combination_id": 15}})
-        print(combinations)
+
+        best_speedup = 1
+        best_combination_id = -1
+
+        combinations = self.dynamic_db[collection_name].find({})
+        for combination in combinations:
+            for file in combination['run_time_results']:
+                if(file['file_name'] == file_name):
+                    for loop in file['loops']:
+                        if(loop['loop_label'] == loop_label):
+                            if(loop['speedup'] > best_speedup ):
+                                best_speedup = loop['speedup']
+                                best_combination_id = combination['combination_id']
+
+        return best_combination_id
 
 
     def get_combination_from_static_db(self,combination_id):
@@ -69,6 +93,7 @@ class database:
 
 x = database()
 test = x.find_optimal_loop_combination('Autopar','bin.c','l1')
+x.initialize_static_db("adsa","dasas")
 print(test)
 # x.create_new_collection('Autopar')
 # x.insert_new_combination('Autopar',{'test': 'test'})
