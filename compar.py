@@ -5,10 +5,11 @@ from compilers.cetus import Cetus
 from compilers.par4all import Par4all
 from compilers.gcc import Gcc
 from compilers.icc import Icc
+from executor import Executor
 from job import Job
 import shutil
-
 #from database import database
+
 
 class Compar:
 
@@ -17,7 +18,6 @@ class Compar:
                  input_dir,
                  binary_compiler_type,
                  binary_compiler_version,
-                 executor,
                  makefile_name="",
                  makefile_parameters=[],
                  makefile_output_files="",
@@ -31,7 +31,6 @@ class Compar:
                  slurm_parameters=""):
 
         self.binary_compiler_version = binary_compiler_version
-        self.executor = executor
         self.binary_compiler = None
         self.run_time_serial_results = {}
         self.jobs = []
@@ -119,7 +118,7 @@ class Compar:
                                            self.main_file_name, serial_dir_path)
 
         job = Job(serial_dir_path, self.main_file_parameters)
-        self.executor.execute_jobs([job, ])
+        Executor.execute_jobs([job])
 
         for file in self.c_files_list:
             run_time_result_loops = job.get_file_results_loops(file['file_name'])
