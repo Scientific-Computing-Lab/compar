@@ -6,6 +6,8 @@ from compilers.par4all import Par4all
 from compilers.gcc import Gcc
 from compilers.icc import Icc
 from job import Job
+import shutil
+
 #from database import database
 
 class Compar:
@@ -129,8 +131,4 @@ class Compar:
             file_results = job.get_file_results(file['file_name'])
             self.db.insert_new_combination('serial_' + file['file_name_'], file_results)
 
-        for root, dirs, files in os.walk(serial_dir_path, topdown=False):
-            for name in files:
-                os.remove(os.path.join(root, name))
-            for name in dirs:
-                os.rmdir(os.path.join(root, name))
+        shutil.rmtree(serial_dir_path, ignore_errors=True)
