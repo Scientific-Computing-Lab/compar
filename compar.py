@@ -3,7 +3,10 @@ import subprocess
 from compilers.autopar import Autopar
 from compilers.cetus import Cetus
 from compilers.par4all import Par4all
-
+from compilers.gcc import Gcc
+from compilers.icc import Icc
+from job import Job
+#from database import database
 
 class Compar:
 
@@ -11,6 +14,8 @@ class Compar:
                  working_directory,
                  input_dir,
                  binary_compiler_type,
+                 binary_compiler_version,
+                 executor,
                  makefile_name="",
                  makefile_parameters=[],
                  makefile_output_files="",
@@ -22,6 +27,13 @@ class Compar:
                  main_file_name="",
                  main_file_parameters="",
                  slurm_parameters=""):
+
+        self.binary_compiler_version = binary_compiler_version
+        self.executor = executor
+        self.binary_compiler = None
+        self.run_time_serial_results = {}
+        self.jobs = []
+
 
         #Build compar environment-----------------------------------
         self.working_directory = working_directory
@@ -89,3 +101,36 @@ class Compar:
                     files_list.append({"file_name": os.path.basename(file), "file_full_path": os.path.abspath(file)})
 
         return files_list
+
+    def run_serial(self):
+        serial_dir_path = os.path.join(self.combinations_dir, '/serial')
+        self.copy_sources_to_combination_folder(serial_dir_path)
+
+        if self.is_make_file:
+            pass
+        else:
+            if self.binary_compiler_type == 'icc':
+                self.binary_compiler = Icc(self.binary_compiler_version, self.user_binary_compiler_flags,
+                                           self.main_file_name, serial_dir_path)
+            elif self.binary_compiler_type == 'gcc':
+                self.binary_compiler = Gcc(self.binary_compiler_version, self.user_binary_compiler_flags,
+                                           self.main_file_name, serial_dir_path)
+
+        job = Job(serial_dir_path, self.main_file_parameters)
+        self.executor.execute_jobs([job, ])
+
+        for file in self.c_files_list:
+            run_time_result_loops = job.get_file_results_loops(file['file_name'])
+            for loop in run_time_result_loops:
+                key = file['file_name'], loop['loop_label']
+                value = loop['run_time']
+                self.run_time_serial_results[key] = value
+
+            file_results = job.get_file_results(file['file_name'])
+            self.db.insert_new_combination('serial_' + file['file_name_'], file_results)
+
+        for root, dirs, files in os.walk(serial_dir_path, topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
