@@ -17,6 +17,16 @@ class Fragmentator:
     def set_end_label(new_end_label):
         Fragmentator.__END_LOOP_LABEL_MARKER = new_end_label
 
+
+    @staticmethod
+    def get_start_label():
+        return Fragmentator.__START_LOOP_LABEL_MARKER
+
+    @staticmethod
+    def get_end_label():
+        return Fragmentator.__END_LOOP_LABEL_MARKER
+
+
     def __init__(self, file_path):
         assert_file_exist(file_path)
         self.__file_path = file_path
