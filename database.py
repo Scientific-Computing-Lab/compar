@@ -49,6 +49,10 @@ class Database:
         self.current_combination_id += 1
         return self.current_combination
 
+    def has_next_combination(self):
+        checked_combination = self.static_db[STATIC_COLLECTION_NAME].find_one({"_id": str(self.current_combination_id)})
+        return checked_combination is not None
+
     def insert_new_combination(self, combination_result):
         try:
             self.dynamic_db[self.collection_name].insert_one(combination_result)
