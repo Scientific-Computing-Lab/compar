@@ -9,6 +9,8 @@ from compilers.icc import Icc
 from exceptions import UserInputError
 from executor import Executor
 from job import Job
+from fragmentator import Fragmentator
+from timer import Timer
 import shutil
 from timer import Timer
 import exceptions as e
@@ -97,6 +99,35 @@ class Compar:
         # SLURM------------------------------------------------------
         self.slurm_parameters = slurm_parameters
         # ----------------------------------------------------------
+        self.files_loop_dict = {}
+
+    def generate_optimal_code(self):
+        #labels = []
+        optimal_loop_ids = []
+        optimal_combinations = []
+
+        for file in self.files_loop_dict.items():
+            for loop_id in range (file["num_of_loops"]):
+                start_label = Fragmentator.get_start_label()+str(loop_id)
+                #end_label = Fragmentator.get_end_label()+str(loop_id)
+                #labels.append((start_label,end_label)) #Tuple
+
+                current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'],start_label)
+                optimal_loop_ids.append(current_optimal_id)
+
+                current_optimal_combination = self.__combination_json_to_obj(self.db.get_combination_from_static_db(current_optimal_id))
+                optimal_combinations.append(current_optimal_combination)
+
+            file_full_path = self.get_file_full_path_from_c_files_list_by_file_name(file['file_name'])
+            id_injector = Timer(file_full_path)
+            id_injector.inject_timers()
+
+            #get file with injected ids/times from injected files path
+            #use compar inject_c_code_to_loop static method get file path and loop id
+            #labels = []
+            optimal_loop_ids = []
+            optimal_combinations = []
+
 
     def get_binary_compiler_version(self):
         return self.binary_compiler_version
@@ -145,11 +176,6 @@ class Compar:
                 return file['file_name']
         raise UserInputError("File full path: " + str(file_full_path) + " does not exist.")
 
-    def get_file_name_file_full_path_from_c_files_list_by_file_name(self, file_name):
-        for file in self.c_files_list:
-            if file['file_name'] == file_name:
-                return file
-        raise UserInputError("File name: " + str(file_name) + " does not exist.")
 
     def get_binary_compiler_type(self):
         return self.binary_compiler_type

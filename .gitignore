@@ -7,7 +7,8 @@
 !/compilers/gcc.py
 !/compilers/icc.py
 !/compilers/par4all.py
-!/compilers/compilerToExe.py
+!/compilers/binaryCompiler.py
+!/compilers/parallelCompiler.py
 !/data/*
 !/assets
 !/assets/*

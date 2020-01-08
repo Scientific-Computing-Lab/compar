@@ -1,14 +1,14 @@
-from compilers.compiler import Compiler
+from parallelCompiler import ParallelCompiler
 from exceptions import CompilationError
 import subprocess
 import os
 import re
 
 
-class Par4all(Compiler):
-    def __init__(self, version, compilation_flags, input_file_directory, output_file_directory=None,
-                 files_list=None, include_dirs_list=None):
-        super().__init__(version, compilation_flags, input_file_directory, output_file_directory, files_list)
+class Par4all(ParallelCompiler):
+
+    def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None, include_dirs_list=None):
+        super().__init__(version, compilation_flags, input_file_directory, file_list)
         self.__include_dirs_list = include_dirs_list
 
     @staticmethod
@@ -32,9 +32,8 @@ class Par4all(Compiler):
         subprocess.run(command, shell=True, cwd=self.get_input_file_directory())
 
     def compile(self):
-        if not self.files_list:
-            raise CompilationError('There is no file to compile')
-        for file_dict in self.files_list:
+        super().compile()
+        for file_dict in self.file_list:
             self.__run_p4a_process(file_dict['file_path'])  # TODO: check if the key is correct
             file_name, extension = os.path.splitext(file_dict['file_path'])  # TODO: check if the key is correct
             name_to_replace = file_name + '.p4a' + extension

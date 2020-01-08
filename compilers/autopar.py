@@ -1,17 +1,18 @@
 import os
 import subprocess
-from compiler import Compiler
+from parallelCompiler import ParallelCompiler
 
 
-class Autopar(Compiler):
+class Autopar(ParallelCompiler):
 
-    def __init__(self, version, compilation_flags, input_file_directory, output_file_directory=None, files_list=None):
-        Compiler.__init__(self, version, compilation_flags, input_file_directory, output_file_directory, files_list)
+    def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None):
+        super().__init__(version, compilation_flags, input_file_directory, file_list)
 
     def compile(self):
+        super().compile()
         # Parallelizing
         try:
-            for file in self.get_files_list():
+            for file in self.get_file_list():
                 Autopar.run_autopar(file["file_name"], file["file_full_path"], self.get_compilation_flags())
             return True
 
