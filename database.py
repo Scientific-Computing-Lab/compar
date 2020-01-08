@@ -1,6 +1,8 @@
 import pymongo
 from bson import json_util
 
+
+COMBINATIONS_DATA_FILE_PATH = "assets/combinations_data.json"
 STATIC_DB_NAME = "combinations"
 STATIC_COLLECTION_NAME = "combinations"
 DYNAMIC_DB_NAME = "results"
@@ -9,7 +11,7 @@ DB = "mongodb://localhost:27017"
 
 class Database:
 
-    def __init__(self, collection_name, file_path):
+    def __init__(self, collection_name):
         self.current_combination = None
         self.current_combination_id = 0
         self.collection_name = collection_name
@@ -19,20 +21,20 @@ class Database:
 
         if STATIC_COLLECTION_NAME not in self.static_db.list_collection_names():
             self.static_db.create_collection(STATIC_COLLECTION_NAME)
-            self.initialize_static_db(file_path)
+            self.initialize_static_db()
 
         if self.collection_name not in self.dynamic_db.list_collection_names():
             self.dynamic_db.create_collection(self.collection_name)
         else:
             raise Exception("results DB already has {0} name collection!".format(self.collection_name))
 
-    def initialize_static_db(self, file_path):
+    def initialize_static_db(self):
         try:
-            f = open(file_path, "r")
+            f = open(COMBINATIONS_DATA_FILE_PATH, "r")
             comb_array = json_util.loads(f.read())
             current_id = 0
             for comb in comb_array:
-                comb["_id"] = current_id
+                comb["_id"] = str(current_id)
                 self.static_db[STATIC_COLLECTION_NAME].insert_one(comb)
                 current_id += 1
             return True
@@ -43,7 +45,7 @@ class Database:
             return False
 
     def get_next_combination(self):
-        self.current_combination = self.static_db[STATIC_COLLECTION_NAME].find_one({"_id": self.current_combination_id})
+        self.current_combination = self.static_db[STATIC_COLLECTION_NAME].find_one({"_id": str(self.current_combination_id)})
         self.current_combination_id += 1
         return self.current_combination
 
@@ -67,7 +69,7 @@ class Database:
 
     def find_optimal_loop_combination(self, file_name, loop_label):
         best_speedup = 1
-        best_combination_id = -1
+        best_combination_id = 0
         combinations = self.dynamic_db[self.collection_name].find({})
         for combination in combinations:
             for file in combination['run_time_results']:
