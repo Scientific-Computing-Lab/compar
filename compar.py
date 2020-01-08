@@ -41,7 +41,7 @@ class Compar:
         self.backup_files_dir = os.path.join(working_directory, "backup")
         self.original_files_dir = os.path.join(working_directory, "original_files")
         self.combinations_dir = os.path.join(working_directory, "combinations")
-        self.__build_compar_work_environment(input_dir)
+        self.__create_directories_structure(input_dir)
         #-----------------------------------------------------------
 
         #Creating compiler variables----------------------------------
@@ -77,19 +77,31 @@ class Compar:
         self.slurm_parameters = slurm_parameters
         # ----------------------------------------------------------
 
-    def __build_compar_work_environment(self, input_dir):
+    def __create_directories_structure(self, input_dir):
         os.makedirs(self.original_files_dir, exist_ok=True)
         os.makedirs(self.combinations_dir, exist_ok=True)
         os.makedirs(self.backup_files_dir, exist_ok=True)
 
         if os.path.isdir(input_dir):
-            shutil.copytree(input_dir, self.original_files_dir)
-            shutil.copytree(input_dir, self.backup_files_dir)
-
+            self.__copy_folder_content(input_dir, self.original_files_dir)
         else:
+            # TODO: why not raise an exception?
             shutil.copy(input_dir,  self.original_files_dir)
-            shutil.copy(input_dir, self.backup_files_dir)
 
+    @staticmethod
+    def __copy_folder_content(src, dst):
+        for path in os.listdir(src):
+            if os.path.isfile(path):
+                shutil.copy(path, dst)
+            elif os.path.isdir(path):
+                shutil.copytree(path, dst)
+
+    def __copy_sources_to_combination_folder(self, combination_folder_path):
+        self.__copy_folder_content(self.original_files_dir, combination_folder_path)
+
+    @staticmethod
+    def __delete_combination_folder(combination_folder_path):
+        shutil.rmtree(combination_folder_path)
 
     @staticmethod
     def make_c_file_list(input_dir):
