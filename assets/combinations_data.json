@@ -1,0 +1,40 @@
+[
+{
+	"compiler_name": "cetus",
+	"parameters": {
+		"env_params": [
+			"sd",
+			"bb",
+			"rr"
+		],
+		"code_params": [
+			"nn",
+			"jj",
+			"oo"
+		],
+		"compilation_params": [
+			"pp",
+			"uu"
+		]
+	}
+},
+	{
+		"compiler_name": "autopar",
+		"parameters": {
+			"env_params": [
+				"sd",
+				"bb",
+				"rr"
+			],
+			"code_params": [
+				"nn",
+				"jj",
+				"oo"
+			],
+			"compilation_params": [
+				"pp",
+				"uu"
+			]
+		}
+}
+]
