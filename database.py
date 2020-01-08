@@ -13,7 +13,7 @@ class Database:
 
     def __init__(self, collection_name):
         self.current_combination = None
-        self.current_combination_id = 0
+        self.current_combination_id = 1
         self.collection_name = collection_name
         self.connection = pymongo.MongoClient(DB)
         self.static_db = self.connection[STATIC_DB_NAME]

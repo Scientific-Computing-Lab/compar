@@ -43,7 +43,7 @@ class BinaryCompiler(Compiler):
             return False
 
     def run_compiler(self):
-        input_file_path_only = os.path.dirname(self.get_input_file_directory() + "/")
+        input_file_path_only = os.path.dirname(self.get_input_file_directory() + os.path.sep)
         dir_name = os.path.basename(input_file_path_only)
 
         print("Compiling " + self.get_main_c_file())
