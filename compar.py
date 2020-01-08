@@ -8,10 +8,26 @@ from compilers.icc import Icc
 from executor import Executor
 from job import Job
 import shutil
+from timer import Timer
+import exceptions as e
 #from database import database
 
 
 class Compar:
+
+    @staticmethod
+    def inject_c_code_to_loop(c_file_path, loop_id, c_code_to_inject):
+        e.assert_file_exist(c_file_path)
+        with open(c_file_path, 'r') as input_file:
+            c_code = input_file.read()
+        e.assert_file_is_empty(c_code)
+        loop_id_with_inject_code = loop_id + '\n' + c_code_to_inject
+        c_code = c_code.replace(loop_id, loop_id_with_inject_code)
+        try:
+            with open(c_file_path, 'w') as output_file:
+                output_file.write(c_code)
+        except OSError as err:
+            raise e.FileError(str(err))
 
     def __init__(self,
                  working_directory,
@@ -34,15 +50,16 @@ class Compar:
         self.binary_compiler = None
         self.run_time_serial_results = {}
         self.jobs = []
+        self.timer = None
 
 
-        #Build compar environment-----------------------------------
+        # Build compar environment-----------------------------------
         self.working_directory = working_directory
         self.backup_files_dir = os.path.join(working_directory, "backup")
         self.original_files_dir = os.path.join(working_directory, "original_files")
         self.combinations_dir = os.path.join(working_directory, "combinations")
         self.__create_directories_structure(input_dir)
-        #-----------------------------------------------------------
+        # -----------------------------------------------------------
 
         #Creating compiler variables----------------------------------
         # TODO -fix varsion
@@ -106,10 +123,10 @@ class Compar:
     @staticmethod
     def make_c_file_list(input_dir):
         files_list = []
-        for root, dirs, files in os.walk(input_dir):
+        for path, dirs, files in os.walk(input_dir):
             for file in files:
                 if os.path.splitext(file)[1] == '.c':
-                    files_list.append({"file_name": os.path.basename(file), "file_full_path": os.path.abspath(file)})
+                    files_list.append({"file_name": file, "file_full_path": os.path.join(path, file)})
 
         return files_list
 
@@ -141,3 +158,14 @@ class Compar:
             self.db.insert_new_combination('serial_' + file['file_name_'], file_results)
 
         shutil.rmtree(serial_dir_path, ignore_errors=True)
+
+    def fragment_and_add_timers(self):
+            for c_file_dict in self.c_files_list:
+                try:
+                    self.timer = Timer(c_file_dict['file_full_path'])
+                    self.timer.inject_timers()
+                except e.FileError as err:
+                    print(str(err))
+
+
+
