@@ -7,9 +7,8 @@ import time
 
 class Execute_job:
 
-    def __init__(self, job, sbatch_log_file):
+    def __init__(self, job):
         self.job = job
-        self.sbatch_log_file = sbatch_log_file
 
     def get_job(self):
         return self.job
@@ -21,7 +20,7 @@ class Execute_job:
         self.__run_with_sbatch()
         self.__analysis_output_file()
 
-    def __run_with_sbatch(self, slurm_partition='grid'):
+    def __run_with_sbatch(self, slurm_parameters):
         """
         :param times: The number of times you want to run the Job. Default=1
         :param slurm_partition:The SLURM option . default="grid"
@@ -35,17 +34,20 @@ class Execute_job:
         for root, dirs, files in os.walk(self.get_job().get_dir()):
             for file in files:
                 if os.path.splitext(file)[1] == '.x':
-                    file_path = os.path.abspath(file)
-                    log_file_name = os.path.splitext(file)[0] + '_log'
-                    self.sbatch_log_file.flush()
-                    sub_proc = subprocess.Popen(
-                            ['sbatch', '-p', slurm_partition, '-o', log_file_name, '-J', log_file_name,
-                             sbatch_script_file, file_path, self.get_job().get_exec_file_args()], cwd=self.get_job().get_directory_path(),
-                            stdout=self.sbatch_log_file, stderr=self.sbatch_log_file, shell=False)
-                    sub_proc.wait()
+                    log_file_name = "log_"+str(os.path.basename(file))
 
-                    self.get_job().set_job_id(self.sbatch_log_file.readline())
-                    self.sbatch_log_file.close()
+                    cmd='sbatch {0} -o {1} {2} {3} {4} '\
+                        .format(slurm_parameters,
+                                log_file_name,
+                                sbatch_script_file,
+                                file,
+                                self.get_job().set_exec_file_args())
+
+                    result = subprocess.check_output(cmd, shell=True)
+                    #set job id
+                    result = re.findall('[0-9]', str(result))
+                    result = ''.join(result)
+                    self.get_job().set_job_id(result)
 
                     #thread_name = threading.current_thread().getName()
                     while not os.path.exists(log_file_name):
@@ -56,6 +58,8 @@ class Execute_job:
         batch_file = open(batch_file_path, 'w')
         batch_file.write(
             '#!/bin/bash\n'
+            + '#SBATCH --job-name=compar\n'
+            + '#SBATCH --partition=grid\n'
             + '#SBATCH --exclusive\n'
             + '$@\n'
         )
