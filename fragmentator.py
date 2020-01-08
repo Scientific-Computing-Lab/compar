@@ -42,13 +42,6 @@ class Fragmentator:
     def get_fragments(self):
         return self.__fragments
 
-    def __backup_file(self):
-        new_extension = '.bak'
-        try:
-            shutil.copy(self.__file_path, self.__file_path + new_extension)
-        except OSError as e:
-            raise FileError(str(e))
-
     def __get_file_content(self):
         # format_c_code([self.__file_path, ])
         try:
@@ -133,7 +126,6 @@ class Fragmentator:
             self.__fragments.append(loop_with_markers)
 
     def fragment_code(self):
-        self.__backup_file()
         self.__get_file_content()
         self.__find_loops()
         self.__create_list_of_fragments()
