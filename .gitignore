@@ -9,6 +9,8 @@
 !/compilers/par4all.py
 !/compilers/compilerToExe.py
 !/data/*
+!/assets
+!/assets/*
 !.gitignore
 !compar.py
 !database.py
