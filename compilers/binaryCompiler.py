@@ -1,16 +1,19 @@
 from compiler import Compiler
 import os
 import subprocess
+from exceptions import CompilationError
 
 
-class CompilerToExe(Compiler):
+class BinaryCompiler(Compiler):
 
-    def __init__(self, compiler_name, version, compilation_flags, main_c_file, input_file_directory, output_file_directory=None):
-        if compilation_flags in ["", None]:
-            compilation_flags = []
-        Compiler.__init__(self, version, compilation_flags, input_file_directory, output_file_directory)
+    def __init__(self, compiler_name, version, compilation_flags=None, input_file_directory=None, main_c_file=None):
+        super().__init__(version, compilation_flags, input_file_directory)
         self._compiler_name = compiler_name
         self._main_c_file = main_c_file
+
+    def initiate_for_new_task(self, compilation_flags, input_file_directory, main_c_file):
+        super().initiate_for_new_task(compilation_flags, input_file_directory)
+        self.set_main_c_file(self, main_c_file)
 
     def get_compiler_name(self):
         return self._compiler_name
@@ -25,6 +28,10 @@ class CompilerToExe(Compiler):
         self._main_c_file = main_c_file
 
     def compile(self):
+        if not self.get_main_c_file():
+            raise CompilationError("Missing main_file argument to compile!")
+        if not self.get_input_file_directory():
+            raise CompilationError("Missing working directory!")
         # Compiling
         try:
             self.run_compiler()
