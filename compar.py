@@ -334,7 +334,6 @@ class Compar:
                 self.run_time_serial_results[key] = value
 
             # update database
-            file_results = job.get_file_results(file['file_name'])
-            self.db.insert_new_combination('serial_' + file['file_name_'], file_results)
+            self.db.insert_new_combination(job.get_job_results())
 
         self.__delete_combination_folder(serial_dir_path)
