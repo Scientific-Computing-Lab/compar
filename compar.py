@@ -57,6 +57,7 @@ class Compar:
                  main_file_parameters="",
                  slurm_parameters=""):
 
+        self.binary_compiler = None
         self.__initialize_binary_compiler()
         self.binary_compiler_version = binary_compiler_version
         self.run_time_serial_results = {}
