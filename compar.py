@@ -57,8 +57,8 @@ class Compar:
                  main_file_parameters="",
                  slurm_parameters=""):
 
+        self.__initialize_binary_compiler()
         self.binary_compiler_version = binary_compiler_version
-        self.binary_compiler = None
         self.run_time_serial_results = {}
         self.jobs = []
         self.timer = None
@@ -115,26 +115,28 @@ class Compar:
         optimal_combinations = []
 
         for file in self.files_loop_dict.items():
-            for loop_id in range (file["num_of_loops"]):
-                start_label = Fragmentator.get_start_label()+str(loop_id)
-                end_label = Fragmentator.get_end_label()+str(loop_id)
-                labels.append((start_label,end_label)) #Tuple
+            for loop_id in range(file["num_of_loops"]):
+                start_label = Fragmentator.get_start_label() + str(loop_id)
+                end_label = Fragmentator.get_end_label() + str(loop_id)
+                labels.append((start_label, end_label))  # Tuple
 
-                current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'],start_label)
+                current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'], start_label)
                 optimal_loop_ids.append(current_optimal_id)
 
-                current_optimal_combination = self.__combination_json_to_obj(self.db.get_combination_from_static_db(current_optimal_id))
+                current_optimal_combination = self.__combination_json_to_obj(
+                    self.db.get_combination_from_static_db(current_optimal_id))
                 optimal_combinations.append(current_optimal_combination)
 
-            file_full_path = self.get_file_full_path_from_c_files_list_by_file_name(file['file_name']) #Will be replaced
-            #get file with injected ids/times from injected files path
+            file_full_path = self.get_file_full_path_from_c_files_list_by_file_name(
+                file['file_name'])  # Will be replaced
+            # get file with injected ids/times from injected files path
 
-            for index,optimal_combination in optimal_combinations:
+            for index, optimal_combination in optimal_combinations:
                 c_code_to_inject = Compar.create_c_code_to_inject(optimal_combinations.get_parameters())
 
-                #Parallelize before injection
+                # Parallelize before injection
                 label = labels[index][0]
-                Compar.inject_c_code_to_loop(file_full_path,label,c_code_to_inject)
+                Compar.inject_c_code_to_loop(file_full_path, label, c_code_to_inject)
 
             labels = []
             optimal_loop_ids = []
@@ -147,7 +149,6 @@ class Compar:
         for param in code_params:
             c_code += param + ";" + "\n"
         return c_code
-
 
     def get_binary_compiler_version(self):
         return self.binary_compiler_version
@@ -362,6 +363,13 @@ class Compar:
         }
         return compilers_map[compiler_name]
 
+    def __initialize_binary_compiler(self):
+        binary_compilers_map = {
+            Compar.ICC: Icc(version=self.binary_compiler_version),
+            Compar.GCC: Gcc(version=self.binary_compiler_version)
+        }
+        self.binary_compiler = binary_compilers_map[self.binary_compiler_type]
+
     def run_parallel_combinations(self):  # TODO: review all function
         while self.db.has_next_combination():
             combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
@@ -417,12 +425,9 @@ class Compar:
 
     def __run_binary_compiler(self, serial_dir_path):
         # TODO: make the method more generic (like parallel compiler)
-        if self.binary_compiler_type == Compar.ICC:
-            self.binary_compiler = Icc(self.binary_compiler_version, self.user_binary_compiler_flags,
-                                       serial_dir_path, self.main_file_name)
-        elif self.binary_compiler_type == Compar.GCC:
-            self.binary_compiler = Gcc(self.binary_compiler_version, self.user_binary_compiler_flags,
-                                       serial_dir_path, self.main_file_name)
+        self.binary_compiler.initiate_for_new_task(compilation_flags=self.user_binary_compiler_flags,
+                                                   input_file_directory=serial_dir_path,
+                                                   main_c_file=self.main_file_name)
         self.binary_compiler.compile()
 
     def run_serial(self):
@@ -436,8 +441,12 @@ class Compar:
         else:
             self.__run_binary_compiler(serial_dir_path)
 
-        combination = Combination('0', self.binary_compiler_type, None)
-        job = Job(serial_dir_path, self.main_file_parameters, combination)
+        combination = Combination(combination_id='0',
+                                  compiler_name=self.binary_compiler_type,
+                                  parameters=None)
+        job = Job(directory=serial_dir_path,
+                  exec_file_args=self.main_file_parameters,
+                  combination=combination)
         Executor.execute_jobs([job])  # TODO: check how to detect the dir name - remove os.walk()
 
         # update run_time_serial_results
@@ -469,4 +478,3 @@ class Compar:
         if not os.path.isdir(combination_folder_path):
             raise e.FolderError(f'Cannot create {combination_folder_path} folder')
         return combination_folder_path
-
