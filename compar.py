@@ -379,7 +379,7 @@ class Compar:
         parallel_compiler.compile()
         env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
         for file_dict in self.make_absolute_file_list(combination_folder_path):
-            for loop_id in range(1, num_of_loops + 1):  # TODO: get the num of loops
+            for loop_id in range(1, self.files_loop_dict[file_dict['file_name']] + 1):
                 loop_start_label = Fragmentator.get_start_label() + str(loop_id)
                 self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
 
