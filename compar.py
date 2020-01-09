@@ -118,7 +118,7 @@ class Compar:
             for loop_id in range(1, file["num_of_loops"]+1):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
                 end_label = Fragmentator.get_end_label()+str(loop_id)
-                current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'], start_label)
+                current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'], str(loop_id))
 
                 # if the optimal combination is the serial => do nothing
                 if current_optimal_id != 0:
