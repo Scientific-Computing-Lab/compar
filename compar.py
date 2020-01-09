@@ -382,12 +382,38 @@ class Compar:
         env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')  # TODO:
         self.inject_c_code_to_loop(c_file_path, loop_id, env_code)  # TODO:
 
+    def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None):
+        if self.is_make_file:
+            pass
+        else:
+            compilation_flags = self.get_user_binary_compiler_flags()
+            if extra_flags_list:
+                compilation_flags += extra_flags_list
+            self.binary_compiler.initiate_for_new_task(compilation_flags,
+                                                       combination_folder_path,
+                                                       self.get_main_file_name())
+            self.binary_compiler.compile()
+
+    def run_job_list(self):
+        # TODO   execute the job list and wait to the response
+        # TODO   save the result in the db
+        # TODO   delete the folders of the completed combinations
+        # TODO   clear the job list and continue to next combination
+        pass
+
     def run_parallel_combinations(self):
         while self.db.has_next_combination():
+            if len(self.jobs) >= self.__max_combinations_at_once:
+                self.run_job_list()
             combination_json = self.db.get_next_combination()
             combination_obj = self.__combination_json_to_obj(combination_json)
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
             self.parallel_compilation_of_one_combination(combination_json, combination_folder_path)
+            self.compile_combination_to_binary(combination_folder_path)
+            job = Job(combination_folder_path, self.get_main_file_parameters(), combination_obj)
+            self.jobs.append(job)
+        if self.jobs:
+            self.run_job_list()
 
     def __create_directories_structure(self, input_dir):
         os.makedirs(self.original_files_dir, exist_ok=True)
