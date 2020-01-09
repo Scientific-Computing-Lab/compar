@@ -548,13 +548,13 @@ class Compar:
         job = Job(directory=serial_dir_path,
                   exec_file_args=self.main_file_parameters,
                   combination=combination)
-        Executor.execute_jobs([job])
+        job = Executor.execute_jobs([job])
 
         # update run_time_serial_results
         for file in self.make_absolute_file_list(serial_dir_path):
             run_time_result_loops = job.get_file_results_loops(file['file_name'])
             for loop in run_time_result_loops:
-                job.set_loop_speedup_in_file_results(file_name=file, loop_label=loop['loop_label'], speedup=1.0)
+                job.set_loop_speedup_in_file_results(file_name=file['file_name'], loop_label=loop['loop_label'], speedup=1.0)
 
                 key = file['file_name'], loop['loop_label']
                 value = loop['run_time']
