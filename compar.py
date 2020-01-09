@@ -370,15 +370,24 @@ class Compar:
         }
         return compilers_map[compiler_name]
 
-    def run_parallel_combinations(self):  # TODO: review all function
+    def parallel_compilation_of_one_combination(self, combination_json, combination_folder_path):
+        combination_obj = self.__combination_json_to_obj(combination_json)
+        parallel_compiler = self.__get_parallel_compiler_by_name(combination_obj.get_compiler())
+        # TODO: combine the user flags with combination flags (we want to let the user to insert his flags??)
+        parallel_compiler.initiate_for_new_task(combination_obj.get_parameters().get_compilation_params(),
+                                                combination_folder_path,
+                                                self.make_absolute_file_list(combination_folder_path))
+        parallel_compiler.compile()
+        # TODO: iterate over all files and loops from the json and create code for each loop
+        env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')  # TODO:
+        self.inject_c_code_to_loop(c_file_path, loop_id, env_code)  # TODO:
+
+    def run_parallel_combinations(self):
         while self.db.has_next_combination():
-            combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
+            combination_json = self.db.get_next_combination()
+            combination_obj = self.__combination_json_to_obj(combination_json)
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
-            parallel_compiler = self.__get_parallel_compiler_by_name(combination_obj.get_compiler())
-            # TODO: combine the user flags with combination flags (we want to let the user to insert his flags??)
-            # TODO: initiate_for_new_task
-            # parallel_compiler.set_compilation_flags(combination_obj.get_parameters().get_compilation_params())
-            # TODO: continue
+            self.parallel_compilation_of_one_combination(combination_json, combination_folder_path)
 
     def __create_directories_structure(self, input_dir):
         os.makedirs(self.original_files_dir, exist_ok=True)
