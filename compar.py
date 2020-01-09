@@ -109,7 +109,7 @@ class Compar:
         # SLURM------------------------------------------------------
         self.slurm_parameters = slurm_parameters
         # ----------------------------------------------------------
-        self.files_loop_dict = {} #TODO get this files list
+        self.files_loop_dict = {}
 
     def generate_optimal_code(self):
         optimal_files_to_be_cut = []
