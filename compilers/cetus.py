@@ -1,5 +1,6 @@
 from parallelCompiler import ParallelCompiler
 import subprocess
+import shutil
 import os
 
 
@@ -13,8 +14,14 @@ class Cetus(ParallelCompiler):
         try:
             for file in self.get_file_list():
                 cwd_path = os.path.dirname(file["file_full_path"])
-                sub_proc = subprocess.Popen(['cetus'] + self.get_compilation_flags() + [file["file_name"]], cwd=cwd_path)
-                sub_proc.wait()
+                subprocess.run([' cetus {} {}'.format(" ".join(self.get_compilation_flags()), file["file_name"])],
+                               shell=True, cwd=cwd_path)
+                # Replace file from cetus output folder into original file folder
+                if os.path.isdir(os.path.join(cwd_path, "cetus_output")):
+                    src_file = os.path.join(cwd_path, "cetus_output", file["file_name"])
+                    dst_file = file["file_full_path"]
+                    shutil.copy(src_file, dst_file)
+                    shutil.rmtree(os.path.join(cwd_path, "cetus_output"))
             return True
 
         except Exception as e:

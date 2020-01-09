@@ -536,17 +536,17 @@ class Compar:
                   exec_file_args=self.main_file_parameters,
                   combination=combination)
         Executor.execute_jobs([job])  # TODO: check how to detect the dir name - remove os.walk()
-
         # update run_time_serial_results
         for file in self.make_absolute_file_list(serial_dir_path):
             run_time_result_loops = job.get_file_results_loops(file['file_name'])
             for loop in run_time_result_loops:
+                job.set_loop_speedup_in_file_results(file_name=file, loop_label=loop['loop_label'], speedup=1.0)
+
                 key = file['file_name'], loop['loop_label']
                 value = loop['run_time']
                 self.run_time_serial_results[key] = value
 
             # update database
-            #  TODO: add speedup 1 to all the serial loops
             self.db.insert_new_combination(job.get_job_results())
 
         self.__delete_combination_folder(serial_dir_path)
