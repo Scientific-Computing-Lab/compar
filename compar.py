@@ -139,9 +139,8 @@ class Compar:
                     }
                 )
 
-
-                # parallize files in directory combination_folder_path inject params
-                #use Yoni Method
+                # parallelize and inject
+                self.parallel_compilation_of_one_combination(current_optimal_combination,combination_folder_path)
 
 
         #copy final results into this folder
