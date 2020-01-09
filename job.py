@@ -11,7 +11,8 @@ class Job:
     job_results - a dictionary that contains all loops in the source file and the time that took him
 
     Data structures of job_results: {'_id' : "1234" ,
-                                          'run_time_results': [ { 'file_name' : "1234.C" ,
+                                    'job_id':"1232132132",
+                                    'run_time_results': [ { 'file_name' : "1234.C" ,
                                                                  'loops' : [ { 'loop_label' : "#123"
                                                                                'run_time' : "20"
                                                                                'speedup' : "1.25"
@@ -21,19 +22,17 @@ class Job:
                                                              ]
                                          }
     """
-    #TODO -REMOVE NONE FROM COMBINATION
-    #TODO - NEED TO ADD PARAMETER FOR 'Slurm' PRAMETERS
 
-    def __init__(self, directory, exec_file_args="", combination=None):
+    def __init__(self, directory, combination, exec_file_args=""):
         self.directory = directory
         self.exec_file_args = exec_file_args
         self.combination = combination
         self.job_id = ""
         self.log_file = ""
         self.job_results = {
-            # 'job_id': self.get_job_id(),
-            # '_id': str(self.get_combination().get_id()),
-            # 'run_time_results': []
+            'job_id': self.get_job_id(),
+            '_id': str(self.get_combination().get_id()),
+            'run_time_results': []
         }
 
     def set_job_id(self, job_id):
@@ -106,13 +105,13 @@ class Job:
             if file['file_name'] == file_name:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
-                        loop["run_time"] = str(run_time)
-                        loop["speedup"] = str(speedup)
+                        loop["run_time"] = run_time
+                        loop["speedup"] = speedup
                         return
 
                 file['loops'].append({"loop_label": str(loop_label),
-                                      "run_time": str(run_time),
-                                      "speedup": str(speedup)})
+                                      "run_time": run_time,
+                                      "speedup": speedup})
                 return
 
         raise Exception("File name: " + str(file_name) + " does not exist.")
@@ -132,7 +131,7 @@ class Job:
             if file['file_name'] == file_name:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
-                        loop["speedup"] = str(speedup)
+                        loop["speedup"] = speedup
                         return
 
                     raise Exception("Loop label: " + str(loop_label) + " does not exist.")
@@ -155,7 +154,7 @@ class Job:
             if file['file_name'] == file_name:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
-                        loop["run_time"] = str(run_time)
+                        loop["run_time"] = run_time
                         return
 
                     raise Exception("Loop label: " + str(loop_label) + " does not exist.")

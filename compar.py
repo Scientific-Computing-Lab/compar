@@ -115,65 +115,67 @@ class Compar:
         optimal_files_to_be_cut = []
 
         for file in self.files_loop_dict.items():
-            for loop_id in range (1,file["num_of_loops"]+1):
-
+            for loop_id in range(1, file["num_of_loops"]+1):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
                 end_label = Fragmentator.get_end_label()+str(loop_id)
+                current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'], start_label)
 
-                current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'],start_label)
-                current_optimal_combination = self.__combination_json_to_obj(self.db.get_combination_from_static_db(current_optimal_id))
+                # if the optimal combination is the serial => do nothing
+                if current_optimal_id != 0:
+                    current_optimal_combination = self.__combination_json_to_obj(self.db.get_combination_from_static_db(current_optimal_id))
 
-                combination_folder_path = self.create_combination_folder(file['file_name']+"_"+str(loop_id))
-                files_list = self.make_absolute_file_list(combination_folder_path)
+                    combination_folder_path = self.create_combination_folder(file['file_name']+"_"+str(loop_id))
+                    files_list = self.make_absolute_file_list(combination_folder_path)
 
-                # get direct file path to inject params
-                target_file_path = list(filter(lambda x: x != file['file_name'],files_list))
-                target_file_path = target_file_path[0]['file_path']
+                    # get direct file path to inject params
+                    target_file_path = list(filter(lambda x: x != file['file_name'], files_list))
+                    target_file_path = target_file_path[0]['file_path']
 
-                optimal_files_to_be_cut.append(
-                    {
-                        "file_name": file['file_name'],
-                        "start_label": start_label,
-                        "end_label": end_label,
-                        "file_path": target_file_path
-                    }
-                )
+                    optimal_files_to_be_cut.append(
+                        {
+                            "file_name": file['file_name'],
+                            "start_label": start_label,
+                            "end_label": end_label,
+                            "file_path": target_file_path
+                        }
+                    )
 
-                # parallelize and inject
-                self.parallel_compilation_of_one_combination(current_optimal_combination,combination_folder_path)
+                    # parallelize and inject
+                    self.parallel_compilation_of_one_combination(current_optimal_combination, combination_folder_path)
 
-
-        #copy final results into this folder
+        # copy final results into this folder
         final_folder_path = self.create_combination_folder("final_results")
         final_files_list = self.make_absolute_file_list(final_folder_path)
 
         for optimal_file_to_be_cut in optimal_files_to_be_cut:
-            #replace loop in c file using final_files_list
+            # replace loop in c file using final_files_list
             file_to_be_edited_path = list(filter(lambda x: x != file['file_name'], files_list))
-            file_to_be_edited_path = target_file_path[0]['file_path']
+            file_to_be_edited_path = file_to_be_edited_path[0]['file_path']
 
-            self.replace_loops_in_files(optimal_files_to_be_cut['file_path'],file_to_be_edited_path,
-                                        optimal_file_to_be_cut['start_label'],optimal_file_to_be_cut['end_label'])
+            Compar.replace_loops_in_files(optimal_files_to_be_cut['file_path'], file_to_be_edited_path,
+                                          optimal_file_to_be_cut['start_label'], optimal_file_to_be_cut['end_label'])
 
-    def get_file_content(self,file_path):
+    @staticmethod
+    def get_file_content(file_path):
         try:
             with open(file_path, 'r') as input_file:
                 return input_file.read()
         except FileNotFoundError:
             raise FileError('File {0} not exist'.format(file_path))
 
-    def replace_loops_in_files(self,origin_path,destination_path,start_label,end_label):
+    @staticmethod
+    def replace_loops_in_files(self, origin_path, destination_path, start_label, end_label):
 
-        origin_file_string = self.get_file_content(origin_path)
-        destination_file_string = self.get_file_content(destination_path)
+        origin_file_string = Compar.get_file_content(origin_path)
+        destination_file_string = Compar.get_file_content(destination_path)
 
-        origin_cut_string = re.search(start_label+"(.+?)"+end_label,origin_file_string,re.DOTALL)
+        origin_cut_string = re.search(start_label+"(.+?)"+end_label, origin_file_string, re.DOTALL)
         if origin_cut_string:
             origin_cut_string = origin_cut_string.group()
         else:
             raise Exception('cannot find loops in file')
 
-        destination_cut_string = re.search(start_label+"(.+?)"+end_label,destination_file_string,re.DOTALL)
+        destination_cut_string = re.search(start_label+"(.+?)"+end_label, destination_file_string, re.DOTALL)
         if destination_cut_string:
             destination_cut_string = origin_cut_string.group()
         else:
