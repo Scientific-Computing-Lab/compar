@@ -55,8 +55,9 @@ class Compar:
                  main_file_parameters="",
                  slurm_parameters=""):
 
-        self.binary_compiler_version = binary_compiler_version
         self.binary_compiler = None
+        self.__initialize_binary_compiler()
+        self.binary_compiler_version = binary_compiler_version
         self.run_time_serial_results = {}
         self.jobs = []
         self.__timer = None
@@ -370,6 +371,13 @@ class Compar:
         }
         return compilers_map[compiler_name]
 
+    def __initialize_binary_compiler(self):
+        binary_compilers_map = {
+            Compar.ICC: Icc(version=self.binary_compiler_version),
+            Compar.GCC: Gcc(version=self.binary_compiler_version)
+        }
+        self.binary_compiler = binary_compilers_map[self.binary_compiler_type]
+
     def parallel_compilation_of_one_combination(self, combination_json, combination_folder_path):
         combination_obj = self.__combination_json_to_obj(combination_json)
         parallel_compiler = self.__get_parallel_compiler_by_name(combination_obj.get_compiler())
@@ -460,12 +468,9 @@ class Compar:
 
     def __run_binary_compiler(self, serial_dir_path):
         # TODO: make the method more generic (like parallel compiler)
-        if self.binary_compiler_type == Compar.ICC:
-            self.binary_compiler = Icc(self.binary_compiler_version, self.user_binary_compiler_flags,
-                                       serial_dir_path, self.main_file_name)
-        elif self.binary_compiler_type == Compar.GCC:
-            self.binary_compiler = Gcc(self.binary_compiler_version, self.user_binary_compiler_flags,
-                                       serial_dir_path, self.main_file_name)
+        self.binary_compiler.initiate_for_new_task(compilation_flags=self.user_binary_compiler_flags,
+                                                   input_file_directory=serial_dir_path,
+                                                   main_c_file=self.main_file_name)
         self.binary_compiler.compile()
 
     def run_serial(self):
@@ -479,8 +484,12 @@ class Compar:
         else:
             self.__run_binary_compiler(serial_dir_path)
 
-        combination = Combination('0', self.binary_compiler_type, None)
-        job = Job(serial_dir_path, self.main_file_parameters, combination)
+        combination = Combination(combination_id='0',
+                                  compiler_name=self.binary_compiler_type,
+                                  parameters=None)
+        job = Job(directory=serial_dir_path,
+                  exec_file_args=self.main_file_parameters,
+                  combination=combination)
         Executor.execute_jobs([job])  # TODO: check how to detect the dir name - remove os.walk()
 
         # update run_time_serial_results
