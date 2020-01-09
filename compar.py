@@ -1,5 +1,4 @@
 import os
-
 from combination import Combination
 from compilers.autopar import Autopar
 from compilers.cetus import Cetus
@@ -11,7 +10,6 @@ from executor import Executor
 from job import Job
 from fragmentator import Fragmentator
 import shutil
-
 from parameters import Parameters
 from timer import Timer
 import exceptions as e
@@ -61,7 +59,7 @@ class Compar:
         self.binary_compiler = None
         self.run_time_serial_results = {}
         self.jobs = []
-        self.timer = None
+        self.__timer = None
         self.db = Database(self.__extract_working_directory_name())
         self.__max_combinations_at_once = 20
         self.__combinations_jobs_to_do = []
@@ -156,6 +154,8 @@ class Compar:
             c_code += param + ";" + "\n"
         return c_code
 
+    def get_timer(self):
+        return self.__timer
 
     def get_binary_compiler_version(self):
         return self.binary_compiler_version
@@ -500,8 +500,9 @@ class Compar:
     def fragment_and_add_timers(self):
         for c_file_dict in self.make_absolute_file_list(self.original_files_dir):
             try:
-                self.timer = Timer(c_file_dict['file_full_path'])
-                self.timer.inject_timers()
+                self.__timer = Timer(c_file_dict['file_full_path'])
+                self.__timer.inject_timers()
+                self.files_loop_dict[c_file_dict['file_name']] = self.__timer.get_number_of_loops()
             except e.FileError as err:
                 print(str(err))
 
