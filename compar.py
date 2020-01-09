@@ -114,6 +114,8 @@ class Compar:
         optimal_loop_ids = []
         optimal_combinations = []
 
+        original_files_path_dict = make_absolute_file_list()
+
         for file in self.files_loop_dict.items():
             for loop_id in range (file["num_of_loops"]):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
@@ -125,6 +127,8 @@ class Compar:
 
                 current_optimal_combination = self.__combination_json_to_obj(self.db.get_combination_from_static_db(current_optimal_id))
                 optimal_combinations.append(current_optimal_combination)
+
+
 
             file_full_path = self.get_file_full_path_from_c_files_list_by_file_name(file['file_name']) #Will be replaced
             #get file with injected ids/times from injected files path
@@ -141,10 +145,14 @@ class Compar:
             optimal_combinations = []
 
     @staticmethod
-    def create_c_code_to_inject(parameters):
-        code_params = parameters.get_code_params()
+    def create_c_code_to_inject(parameters,option):
+        if(option == "code"):
+            params = parameters.get_code_params()
+        else:
+            params = parameters.get_env_params()
+
         c_code = ""
-        for param in code_params:
+        for param in params:
             c_code += param + ";" + "\n"
         return c_code
 
