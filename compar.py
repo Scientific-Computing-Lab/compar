@@ -354,9 +354,7 @@ class Compar:
     def run_parallel_combinations(self):  # TODO: review all function
         while self.db.has_next_combination():
             combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
-            combination_folder_path = os.path.join(self.combinations_dir, combination_obj.get_combination_id())
-            os.mkdir(combination_folder_path)
-            self.__copy_folder_content(self.original_files_dir, combination_folder_path)
+            self.create_combination_folder(str(combination_obj.get_combination_id()))
             parallel_compiler = self.__get_parallel_compiler_by_name(combination_obj.get_compiler())
             # TODO: combine the user flags with combination flags (we want to let the user to insert his flags??)
             # TODO: initiate_for_new_task
@@ -453,5 +451,9 @@ class Compar:
             except e.FileError as err:
                 print(str(err))
 
-
-
+    def create_combination_folder(self, combination_folder_name):
+        combination_folder_path = os.path.join(self.combinations_dir, combination_folder_name)
+        os.mkdir(combination_folder_path)
+        self.__copy_folder_content(self.original_files_dir, combination_folder_path)
+        if not os.path.isdir(combination_folder_path):
+            raise e.FolderError(f'Cannot create {combination_folder_path} folder')
