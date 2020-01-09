@@ -10,7 +10,6 @@ from exceptions import UserInputError
 from executor import Executor
 from job import Job
 from fragmentator import Fragmentator
-from timer import Timer
 import shutil
 
 from parameters import Parameters
@@ -111,15 +110,15 @@ class Compar:
         self.files_loop_dict = {}
 
     def generate_optimal_code(self):
-        #labels = []
+        labels = []
         optimal_loop_ids = []
         optimal_combinations = []
 
         for file in self.files_loop_dict.items():
             for loop_id in range (file["num_of_loops"]):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
-                #end_label = Fragmentator.get_end_label()+str(loop_id)
-                #labels.append((start_label,end_label)) #Tuple
+                end_label = Fragmentator.get_end_label()+str(loop_id)
+                labels.append((start_label,end_label)) #Tuple
 
                 current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'],start_label)
                 optimal_loop_ids.append(current_optimal_id)
@@ -127,15 +126,27 @@ class Compar:
                 current_optimal_combination = self.__combination_json_to_obj(self.db.get_combination_from_static_db(current_optimal_id))
                 optimal_combinations.append(current_optimal_combination)
 
-            file_full_path = self.get_file_full_path_from_c_files_list_by_file_name(file['file_name'])
-            id_injector = Timer(file_full_path)
-            id_injector.inject_timers()
-
+            file_full_path = self.get_file_full_path_from_c_files_list_by_file_name(file['file_name']) #Will be replaced
             #get file with injected ids/times from injected files path
-            #use compar inject_c_code_to_loop static method get file path and loop id
-            #labels = []
+
+            for index,optimal_combination in optimal_combinations:
+                c_code_to_inject = Compar.create_c_code_to_inject(optimal_combinations.get_parameters())
+
+                #Parallelize before injection
+                label = labels[index][0]
+                Compar.inject_c_code_to_loop(file_full_path,label,c_code_to_inject)
+
+            labels = []
             optimal_loop_ids = []
             optimal_combinations = []
+
+    @staticmethod
+    def create_c_code_to_inject(parameters):
+        code_params = parameters.get_code_params()
+        c_code = ""
+        for param in code_params:
+            c_code += param + ";" + "\n"
+        return c_code
 
 
     def get_binary_compiler_version(self):
@@ -452,6 +463,4 @@ class Compar:
                 self.timer.inject_timers()
             except e.FileError as err:
                 print(str(err))
-
-
 

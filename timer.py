@@ -87,7 +87,3 @@ class Timer(object):
                 output_file.write(input_file_text)
         except OSError as err:
             raise e.FileError(str(err))
-
-
-t = Timer('test.txt')
-t.inject_timers()
