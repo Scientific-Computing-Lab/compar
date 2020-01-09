@@ -1,5 +1,4 @@
 import os
-
 from combination import Combination
 from compilers.autopar import Autopar
 from compilers.cetus import Cetus
@@ -11,7 +10,6 @@ from executor import Executor
 from job import Job
 from fragmentator import Fragmentator
 import shutil
-
 from parameters import Parameters
 from timer import Timer
 import exceptions as e
@@ -62,7 +60,7 @@ class Compar:
         self.binary_compiler_version = binary_compiler_version
         self.run_time_serial_results = {}
         self.jobs = []
-        self.timer = None
+        self.__timer = None
         self.db = Database(self.__extract_working_directory_name())
         self.__max_combinations_at_once = 20
         self.__combinations_jobs_to_do = []
@@ -157,6 +155,8 @@ class Compar:
             c_code += param + ";" + "\n"
         return c_code
 
+    def get_timer(self):
+        return self.__timer
 
     def get_binary_compiler_version(self):
         return self.binary_compiler_version
@@ -378,15 +378,50 @@ class Compar:
         }
         self.binary_compiler = binary_compilers_map[self.binary_compiler_type]
 
-    def run_parallel_combinations(self):  # TODO: review all function
+    def parallel_compilation_of_one_combination(self, combination_obj, combination_folder_path):
+        parallel_compiler = self.__get_parallel_compiler_by_name(combination_obj.get_compiler())
+        # TODO: combine the user flags with combination flags (we want to let the user to insert his flags??)
+        parallel_compiler.initiate_for_new_task(combination_obj.get_parameters().get_compilation_params(),
+                                                combination_folder_path,
+                                                self.make_absolute_file_list(combination_folder_path))
+        parallel_compiler.compile()
+        env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
+        for file_dict in self.make_absolute_file_list(combination_folder_path):
+            for loop_id in range(1, self.files_loop_dict[file_dict['file_name']] + 1):
+                loop_start_label = Fragmentator.get_start_label() + str(loop_id)
+                self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
+
+    def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None):
+        if self.is_make_file:
+            pass
+        else:
+            compilation_flags = self.get_user_binary_compiler_flags()
+            if extra_flags_list:
+                compilation_flags += extra_flags_list
+            self.binary_compiler.initiate_for_new_task(compilation_flags,
+                                                       combination_folder_path,
+                                                       self.get_main_file_name())
+            self.binary_compiler.compile()
+
+    def run_job_list(self):
+        # TODO   execute the job list and wait to the response
+        # TODO   save the result in the db
+        # TODO   delete the folders of the completed combinations
+        # TODO   clear the job list and continue to next combination
+        pass
+
+    def run_parallel_combinations(self):
         while self.db.has_next_combination():
+            if len(self.jobs) >= self.__max_combinations_at_once:
+                self.run_job_list()
             combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
-            parallel_compiler = self.__get_parallel_compiler_by_name(combination_obj.get_compiler())
-            # TODO: combine the user flags with combination flags (we want to let the user to insert his flags??)
-            # TODO: initiate_for_new_task
-            # parallel_compiler.set_compilation_flags(combination_obj.get_parameters().get_compilation_params())
-            # TODO: continue
+            self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
+            self.compile_combination_to_binary(combination_folder_path)
+            job = Job(combination_folder_path, self.get_main_file_parameters(), combination_obj)
+            self.jobs.append(job)
+        if self.jobs:
+            self.run_job_list()
 
     def __create_directories_structure(self, input_dir):
         os.makedirs(self.original_files_dir, exist_ok=True)
@@ -474,8 +509,9 @@ class Compar:
     def fragment_and_add_timers(self):
         for c_file_dict in self.make_absolute_file_list(self.original_files_dir):
             try:
-                self.timer = Timer(c_file_dict['file_full_path'])
-                self.timer.inject_timers()
+                self.__timer = Timer(c_file_dict['file_full_path'])
+                self.__timer.inject_timers()
+                self.files_loop_dict[c_file_dict['file_name']] = self.__timer.get_number_of_loops()
             except e.FileError as err:
                 print(str(err))
 

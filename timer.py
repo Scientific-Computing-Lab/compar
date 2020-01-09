@@ -12,6 +12,7 @@ class Timer(object):
         self.__c_code_calculate_initial_time = ''
         self.__c_code_calculate_run_time = ''
         self.__c_code_write_to_file = ''
+        self.__number_of_loops = 0
         self.__fragmentation = Fragmentator(file_path)
 
     def get_input_file_path(self):
@@ -31,6 +32,9 @@ class Timer(object):
 
     def get_fragmentation(self):
         return self.__fragmentation
+
+    def get_number_of_loops(self):
+        return self.__number_of_loops
 
     def set_input_file_path(self, file_path):
         e.assert_file_exist(file_path)
@@ -60,11 +64,15 @@ class Timer(object):
     def set_fragmentation(self):
         self.__fragmentation = Fragmentator(self.__input_file_path)
 
+    def set_number_of_loops(self, num_of_loops):
+        self.__number_of_loops = num_of_loops
+
     def inject_timers(self):
-        fragments = self.__fragmentation.fragment_code()
         with open(self.__input_file_path, 'r') as input_file:
             input_file_text = input_file.read()
         e.assert_file_is_empty(input_file_text)
+        fragments = self.__fragmentation.fragment_code()
+        self.set_number_of_loops(len(fragments))
         if '#include <omp.h>' not in input_file_text:
             input_file_text = '#include <omp.h>\n{}'.format(input_file_text)
         for label, loop_fragment in enumerate(fragments, 1):
