@@ -43,10 +43,10 @@ class Job:
         return self.job_id
 
     def set_directory_path(self, new_path):
-        self.directory = os.path.abspath(new_path)
+        self.directory = new_path
 
     def get_directory_path(self):
-        return os.path.abspath(self.directory)
+        return self.directory
 
     def get_directory_name(self):
         return os.path.basename(self.directory)
