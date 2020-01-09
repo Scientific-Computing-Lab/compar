@@ -370,17 +370,18 @@ class Compar:
         }
         return compilers_map[compiler_name]
 
-    def parallel_compilation_of_one_combination(self, combination_json, combination_folder_path):
-        combination_obj = self.__combination_json_to_obj(combination_json)
+    def parallel_compilation_of_one_combination(self, combination_obj, combination_folder_path):
         parallel_compiler = self.__get_parallel_compiler_by_name(combination_obj.get_compiler())
         # TODO: combine the user flags with combination flags (we want to let the user to insert his flags??)
         parallel_compiler.initiate_for_new_task(combination_obj.get_parameters().get_compilation_params(),
                                                 combination_folder_path,
                                                 self.make_absolute_file_list(combination_folder_path))
         parallel_compiler.compile()
-        # TODO: iterate over all files and loops from the json and create code for each loop
-        env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')  # TODO:
-        self.inject_c_code_to_loop(c_file_path, loop_id, env_code)  # TODO:
+        env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
+        for file_dict in self.make_absolute_file_list(combination_folder_path):
+            for loop_id in range(1, num_of_loops + 1):  # TODO: get the num of loops
+                loop_start_label = Fragmentator.get_start_label() + str(loop_id)
+                self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
 
     def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None):
         if self.is_make_file:
@@ -405,10 +406,9 @@ class Compar:
         while self.db.has_next_combination():
             if len(self.jobs) >= self.__max_combinations_at_once:
                 self.run_job_list()
-            combination_json = self.db.get_next_combination()
-            combination_obj = self.__combination_json_to_obj(combination_json)
+            combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
-            self.parallel_compilation_of_one_combination(combination_json, combination_folder_path)
+            self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
             self.compile_combination_to_binary(combination_folder_path)
             job = Job(combination_folder_path, self.get_main_file_parameters(), combination_obj)
             self.jobs.append(job)
