@@ -26,6 +26,7 @@ class Compar:
     ORIGINAL_FILES_FOLDER_NAME = "original_files"
     COMBINATIONS_FOLDER_NAME = "combinations"
     LOGS_FOLDER_NAME = 'logs'
+    NUM_OF_THREADS = 4
 
     @staticmethod
     def inject_c_code_to_loop(c_file_path, loop_id, c_code_to_inject):
@@ -66,7 +67,6 @@ class Compar:
         self.__timer = None
         self.db = Database(self.__extract_working_directory_name())
         self.__max_combinations_at_once = 20
-        self.__combinations_jobs_to_do = []
 
         # Build compar environment-----------------------------------
         self.working_directory = working_directory
@@ -448,25 +448,39 @@ class Compar:
                                                        self.get_main_file_name())
             self.binary_compiler.compile()
 
-    def run_job_list(self):
-        # TODO   execute the job list and wait to the response
-        # TODO   save the result in the db
-        # TODO   delete the folders of the completed combinations
-        # TODO   clear the job list and continue to next combination
-        pass
+    def calculate_speedups(self, job_result_dict):
+        for file_result_dict in job_result_dict['run_time_result']:
+            for loop_result_dict in file_result_dict['loops']:
+                serial_run_time_key = (file_result_dict['file_name'], loop_result_dict['loop_label'])
+                loop_serial_runtime = self.run_time_serial_results[serial_run_time_key]
+                loop_parallel_runtime = loop_result_dict['run_time']
+                try:
+                    speedup = loop_serial_runtime / loop_parallel_runtime
+                except ZeroDivisionError:
+                    speedup = 0.0
+                loop_result_dict['speedup'] = speedup
+
+    def run_and_save_job_list(self):
+        job_list = Executor.execute_jobs(self.jobs, self.NUM_OF_THREADS, self.get_slurm_parameters())
+        for job in job_list:
+            job_result_dict = job.get_job_results()
+            self.calculate_speedups(job_result_dict)
+            self.db.insert_new_combination(job_result_dict)
+            self.__delete_combination_folder(job.get_directory_path())
+        self.jobs.clear()
 
     def run_parallel_combinations(self):
         while self.db.has_next_combination():
             if len(self.jobs) >= self.__max_combinations_at_once:
-                self.run_job_list()
+                self.run_and_save_job_list()
             combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
             self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
             self.compile_combination_to_binary(combination_folder_path)
-            job = Job(combination_folder_path, self.get_main_file_parameters(), combination_obj)
+            job = Job(combination_folder_path, combination_obj, self.get_main_file_parameters())
             self.jobs.append(job)
         if self.jobs:
-            self.run_job_list()
+            self.run_and_save_job_list()
 
     def __create_directories_structure(self, input_dir):
         os.makedirs(self.original_files_dir, exist_ok=True)
@@ -512,7 +526,6 @@ class Compar:
                                            }, self.relative_c_file_list))
 
     def __run_binary_compiler(self, serial_dir_path):
-        # TODO: make the method more generic (like parallel compiler)
         self.binary_compiler.initiate_for_new_task(compilation_flags=self.user_binary_compiler_flags,
                                                    input_file_directory=serial_dir_path,
                                                    main_c_file=self.main_file_name)
@@ -535,7 +548,8 @@ class Compar:
         job = Job(directory=serial_dir_path,
                   exec_file_args=self.main_file_parameters,
                   combination=combination)
-        Executor.execute_jobs([job])  # TODO: check how to detect the dir name - remove os.walk()
+        Executor.execute_jobs([job])
+
         # update run_time_serial_results
         for file in self.make_absolute_file_list(serial_dir_path):
             run_time_result_loops = job.get_file_results_loops(file['file_name'])
