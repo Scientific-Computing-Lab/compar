@@ -72,12 +72,12 @@ class Job:
     def get_job_results(self):
         return self.job_results
 
-    def set_file_results(self, file_name, loops=[]):
+    def set_file_results(self, file_name):
         for file in self.job_results['run_time_results']:
             if file['file_name'] == file_name:
-                file['loops'] = loops
+                file['loops'] = []
                 return
-        self.job_results['run_time_results'].append({'file_name': file_name, 'loops': loops})
+        self.job_results['run_time_results'].append({'file_name': file_name, 'loops': []})
 
     def get_file_results(self, file_name):
         for file in self.job_results['run_time_results']:
@@ -90,8 +90,7 @@ class Job:
             if file['file_name'] == file_name:
                 file['loops'] = loops
                 return
-
-        raise Exception("File name: " + str(file_name) + " does not exist.")
+        self.job_results['run_time_results'].append({'file_name': file_name, 'loops': loops})
 
     def get_file_results_loops(self, file_name):
         for file in self.job_results['run_time_results']:
