@@ -49,7 +49,7 @@ class Execute_job:
         self.get_job().set_job_id(result)
 
         # thread_name = threading.current_thread().getName()
-        while not os.path.exists(log_file):
+        while not os.path.exists(log_file_path):
             time.sleep(30)
 
     def __make_sbatch_script_file(self):
@@ -70,11 +70,11 @@ class Execute_job:
             for file in files:
                 if re.search("_time_results.txt$", file):
                     file_name = str(file.split("_time_results.txt")[0]) + ".c"
+                    self.get_job().set_file_results(file_name)
                     try:
                         with open(file, 'r') as input_file:
                             for line in input_file:
                                 line = line[line.find(last_string) + len(last_string)::].replace('\n', '').split(':')
-                                self.get_job().set_loop_run_time_in_file_results(file_name, line[0], line[1])
-
+                                self.get_job().set_loop_in_file_results(file_name, line[0], line[1])
                     except OSError as e:
                         raise Exception(str(e))

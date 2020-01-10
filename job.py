@@ -31,7 +31,7 @@ class Job:
         self.log_file = ""
         self.job_results = {
             'job_id': self.get_job_id(),
-            '_id': str(self.get_combination().get_id()),
+            '_id': str(self.get_combination().get_combination_id()),
             'run_time_results': []
         }
 
@@ -100,7 +100,7 @@ class Job:
 
         raise Exception("File name: " + str(file_name) + " does not exist.")
 
-    def set_loop_in_file_results(self, file_name, loop_label, run_time, speedup):
+    def set_loop_in_file_results(self, file_name, loop_label, run_time, speedup=0):
         for file in self.job_results['run_time_results']:
             if file['file_name'] == file_name:
                 for loop in file['loops']:
