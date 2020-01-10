@@ -72,6 +72,8 @@ class Timer(object):
             input_file_text = input_file.read()
         e.assert_file_is_empty(input_file_text)
         fragments = self.__fragmentation.fragment_code()
+        with open(self.__input_file_path, 'r') as input_file:
+            input_file_text = input_file.read()
         self.set_number_of_loops(len(fragments))
         if '#include <omp.h>' not in input_file_text:
             input_file_text = '#include <omp.h>\n{}'.format(input_file_text)

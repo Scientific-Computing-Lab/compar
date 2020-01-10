@@ -60,19 +60,11 @@ class Compar:
                  slurm_parameters=""):
 
         self.binary_compiler = None
-        self.__initialize_binary_compiler()
         self.binary_compiler_version = binary_compiler_version
         self.run_time_serial_results = {}
         self.jobs = []
         self.__timer = None
         self.__max_combinations_at_once = 20
-
-        try:
-            self.db = Database(self.__extract_working_directory_name())
-        except Exception as ex:
-            print(ex)
-            print("The program will be terminated")
-            exit(1)
 
         # Build compar environment-----------------------------------
         self.working_directory = working_directory
@@ -116,6 +108,15 @@ class Compar:
         self.slurm_parameters = slurm_parameters
         # ----------------------------------------------------------
         self.files_loop_dict = {}
+
+        # INITIALIZATIONS
+        self.__initialize_binary_compiler()
+        try:
+            self.db = Database(self.__extract_working_directory_name())
+        except Exception as ex:
+            print(ex)
+            print("The program will be terminated")
+            exit(1)
 
     def generate_optimal_code(self):
         optimal_files_to_be_cut = []
@@ -409,7 +410,7 @@ class Compar:
     def __extract_working_directory_name(self):
         working_directory_name = self.working_directory
         if not os.path.isdir(working_directory_name):
-            raise UserInputError('Working Directory variable is not a directory')
+            raise UserInputError('The given directory is not a directory')
         if working_directory_name.endswith(os.path.sep):
             working_directory_name = os.path.split(working_directory_name)[0]  # remove the suffix separator
         return os.path.basename(working_directory_name)
@@ -502,11 +503,7 @@ class Compar:
 
     @staticmethod
     def __copy_folder_content(src, dst):
-        for path in os.listdir(src):
-            if os.path.isfile(path):
-                shutil.copy(path, dst)
-            elif os.path.isdir(path):
-                shutil.copytree(path, dst)
+        shutil.copytree(src, dst, dirs_exist_ok=True)
 
     def __copy_sources_to_combination_folder(self, combination_folder_path):
         self.__copy_folder_content(self.original_files_dir, combination_folder_path)
@@ -588,11 +585,4 @@ class Compar:
             raise e.FolderError(f'Cannot create {combination_folder_path} folder')
         return combination_folder_path
 
-
-def main():
-        print("Hello World!")
-
-
-if __name__ == "__main__":
-    main()
 
