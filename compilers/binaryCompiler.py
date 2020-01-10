@@ -13,7 +13,7 @@ class BinaryCompiler(Compiler):
 
     def initiate_for_new_task(self, compilation_flags, input_file_directory, main_c_file):
         super().initiate_for_new_task(compilation_flags, input_file_directory)
-        self.set_main_c_file(self, main_c_file)
+        self.set_main_c_file(main_c_file)
 
     def get_compiler_name(self):
         return self._compiler_name
