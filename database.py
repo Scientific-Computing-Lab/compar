@@ -32,11 +32,9 @@ class Database:
         try:
             f = open(COMBINATIONS_DATA_FILE_PATH, "r")
             comb_array = json_util.loads(f.read())
-            current_id = 0
-            for comb in comb_array:
+            for current_id, comb in enumerate(comb_array):
                 comb["_id"] = str(current_id)
                 self.static_db[STATIC_COLLECTION_NAME].insert_one(comb)
-                current_id += 1
             return True
 
         except Exception as e:

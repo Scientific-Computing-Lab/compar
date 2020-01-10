@@ -1,6 +1,7 @@
 import os
 import subprocess
 from compilers.parallelCompiler import ParallelCompiler
+from exceptions import CompilationError
 
 
 class Autopar(ParallelCompiler):
@@ -17,9 +18,7 @@ class Autopar(ParallelCompiler):
             return True
 
         except Exception as e:
-            print("files in directory " + self.get_input_file_directory() + " failed to be parallel!")
-            print(e)
-            return False
+            raise CompilationError(str(e) + " files in directory " + self.get_input_filename_directory() + " failed to be parallel!")
 
     @staticmethod
     def run_autopar(file_name, file_full_path, options):

@@ -38,9 +38,7 @@ class BinaryCompiler(Compiler):
             return True
 
         except Exception as e:
-            print(self.get_main_c_file() + " failed to be compiled!")
-            print(e)
-            return False
+            raise CompilationError(str(e) + " " + self.get_main_c_file() + " failed to be compiled!")
 
     def run_compiler(self):
         input_file_path_only = os.path.dirname(self.get_input_file_directory() + os.path.sep)

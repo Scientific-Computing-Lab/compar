@@ -51,12 +51,12 @@ class Compar:
                  makefile_parameters=[],
                  makefile_output_files="",
                  is_make_file=False,
-                 binary_compiler_flags="",
-                 par4all_flags="",
-                 autopar_flags="",
-                 cetus_flags="",
+                 binary_compiler_flags=[],
+                 par4all_flags=[],
+                 autopar_flags=[],
+                 cetus_flags=[],
                  main_file_name="",
-                 main_file_parameters="",
+                 main_file_parameters=[],
                  slurm_parameters=""):
 
         self.binary_compiler = None
@@ -563,9 +563,8 @@ class Compar:
                 value = loop['run_time']
                 self.run_time_serial_results[key] = value
 
-            # update database
-            self.db.insert_new_combination(job.get_job_results())
-
+        # update database
+        self.db.insert_new_combination(job.get_job_results())
         self.__delete_combination_folder(serial_dir_path)
 
     def fragment_and_add_timers(self):

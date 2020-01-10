@@ -1,4 +1,5 @@
 from compilers.parallelCompiler import ParallelCompiler
+from exceptions import CompilationError
 import subprocess
 import shutil
 import os
@@ -25,6 +26,4 @@ class Cetus(ParallelCompiler):
             return True
 
         except Exception as e:
-            print("files in directory " + self.get_input_filename_directory() + " failed to be parallel!")
-            print(e)
-            return False
+            raise CompilationError(str(e) + " files in directory " + self.get_input_filename_directory() + " failed to be parallel!")
