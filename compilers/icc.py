@@ -1,4 +1,4 @@
-from binaryCompiler import BinaryCompiler
+from compilers.binaryCompiler import BinaryCompiler
 
 
 class Icc(BinaryCompiler):

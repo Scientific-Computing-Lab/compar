@@ -193,7 +193,7 @@ class Compar:
             input_file.write(destination_file_string)
 
     @staticmethod
-    def create_c_code_to_inject(parameters,option):
+    def create_c_code_to_inject(parameters, option):
         if option == "code":
             params = parameters.get_code_params()
         elif option == "env":
@@ -587,4 +587,12 @@ class Compar:
         if not os.path.isdir(combination_folder_path):
             raise e.FolderError(f'Cannot create {combination_folder_path} folder')
         return combination_folder_path
+
+
+def main():
+        print("Hello World!")
+
+
+if __name__ == "__main__":
+    main()
 
