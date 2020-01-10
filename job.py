@@ -133,9 +133,8 @@ class Job:
                         loop["speedup"] = speedup
                         return
 
-                    raise Exception("Loop label: " + str(loop_label) + " does not exist.")
-
-            raise Exception("File name: " + str(file_name) + " does not exist.")
+                raise Exception("Loop label: " + str(loop_label) + " does not exist.")
+        raise Exception("File name: " + str(file_name) + " does not exist.")
 
     def get_loop_speedup_in_file_results(self, file_name, loop_label):
         for file in self.job_results['run_time_results']:
@@ -144,9 +143,8 @@ class Job:
                     if loop["loop_label"] == str(loop_label):
                         return loop["speedup"]
 
-                    raise Exception("Loop label: " + str(loop_label) + " does not exist.")
-
-            raise Exception("File name: " + str(file_name) + " does not exist.")
+                raise Exception("Loop label: " + str(loop_label) + " does not exist.")
+        raise Exception("File name: " + str(file_name) + " does not exist.")
 
     def set_loop_run_time_in_file_results(self, file_name, loop_label, run_time):
         for file in self.job_results['run_time_results']:
@@ -156,9 +154,8 @@ class Job:
                         loop["run_time"] = run_time
                         return
 
-                    raise Exception("Loop label: " + str(loop_label) + " does not exist.")
-
-            raise Exception("File name: " + str(file_name) + " does not exist.")
+                raise Exception("Loop label: " + str(loop_label) + " does not exist.")
+        raise Exception("File name: " + str(file_name) + " does not exist.")
 
     def get_loop_run_time_in_file_results(self, file_name, loop_label):
         for file in self.job_results['run_time_results']:
@@ -167,6 +164,5 @@ class Job:
                     if loop["loop_label"] == str(loop_label):
                         return loop["run_time"]
 
-                    raise Exception("Loop label: " + str(loop_label) + " does not exist.")
-
-            raise Exception("File name: " + str(file_name) + " does not exist.")
+                raise Exception("Loop label: " + str(loop_label) + " does not exist.")
+        raise Exception("File name: " + str(file_name) + " does not exist.")
