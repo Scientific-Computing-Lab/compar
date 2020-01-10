@@ -75,6 +75,8 @@ class Timer(object):
         self.set_number_of_loops(len(fragments))
         if '#include <omp.h>' not in input_file_text:
             input_file_text = '#include <omp.h>\n{}'.format(input_file_text)
+        if '#include <stdio.h>' not in input_file_text:
+            input_file_text = '#include <stdio.h>\n{}'.format(input_file_text)
         for label, loop_fragment in enumerate(fragments, 1):
             c_code_start_time_var = '____compar____start_time_' + str(label)
             c_code_run_time_var = '____compar____run_time_' + str(label)
