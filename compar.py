@@ -155,7 +155,7 @@ class Compar:
 
         for optimal_file_to_be_cut in optimal_files_to_be_cut:
             # replace loop in c file using final_files_list
-            file_to_be_edited_path = list(filter(lambda x: x != file['file_name'], files_list))
+            file_to_be_edited_path = list(filter(lambda x: x != file['file_name'], final_files_list))
             file_to_be_edited_path = file_to_be_edited_path[0]['file_path']
 
             Compar.replace_loops_in_files(optimal_files_to_be_cut['file_path'], file_to_be_edited_path,
@@ -170,7 +170,7 @@ class Compar:
             raise FileError('File {0} not exist'.format(file_path))
 
     @staticmethod
-    def replace_loops_in_files(self, origin_path, destination_path, start_label, end_label):
+    def replace_loops_in_files(origin_path, destination_path, start_label, end_label):
 
         origin_file_string = Compar.get_file_content(origin_path)
         destination_file_string = Compar.get_file_content(destination_path)
@@ -187,7 +187,7 @@ class Compar:
         else:
             raise Exception('cannot find loops in file')
 
-        destination_file_string.replace(destination_cut_string,origin_cut_string)
+        destination_file_string.replace(destination_cut_string, origin_cut_string)
 
         with open(destination_path,"w") as input_file:
             input_file.write(destination_file_string)
@@ -554,7 +554,6 @@ class Compar:
         job = Job(directory=serial_dir_path,
                   exec_file_args=self.main_file_parameters,
                   combination=combination)
-        job = Executor.execute_jobs([job])
         job = Executor.execute_jobs([job])
 
         # update run_time_serial_results
