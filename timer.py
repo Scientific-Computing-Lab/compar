@@ -56,7 +56,7 @@ class Timer(object):
 
     def set_c_code_write_to_file(self, fp_label, label, run_time_var):
         c_code = 'FILE *' + fp_label + ';\n' \
-                 + fp_label + ' = fopen(' + self.__time_result_file + ', "a");\n' \
+                 + fp_label + ' = fopen(\"' + self.__time_result_file + '\", "a");\n' \
                  'fprintf(' + fp_label + ', "\\nrun time of loop %d: %lf", ' \
                  + label + ', ' + run_time_var + ');\nfclose(' + fp_label + ');\n'
         self.__c_code_write_to_file = c_code
