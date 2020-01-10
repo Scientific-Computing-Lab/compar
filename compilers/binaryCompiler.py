@@ -1,4 +1,4 @@
-from compiler import Compiler
+from compilers.compiler import Compiler
 import os
 import subprocess
 from exceptions import CompilationError

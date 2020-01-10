@@ -65,8 +65,14 @@ class Compar:
         self.run_time_serial_results = {}
         self.jobs = []
         self.__timer = None
-        self.db = Database(self.__extract_working_directory_name())
         self.__max_combinations_at_once = 20
+
+        try:
+            self.db = Database(self.__extract_working_directory_name())
+        except Exception as ex:
+            print(ex)
+            print("The program will be terminated")
+            exit(1)
 
         # Build compar environment-----------------------------------
         self.working_directory = working_directory
@@ -548,6 +554,7 @@ class Compar:
         job = Job(directory=serial_dir_path,
                   exec_file_args=self.main_file_parameters,
                   combination=combination)
+        job = Executor.execute_jobs([job])
         job = Executor.execute_jobs([job])
 
         # update run_time_serial_results

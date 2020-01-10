@@ -1,4 +1,4 @@
-from parallelCompiler import ParallelCompiler
+from compilers.parallelCompiler import ParallelCompiler
 from exceptions import CompilationError
 import subprocess
 import os

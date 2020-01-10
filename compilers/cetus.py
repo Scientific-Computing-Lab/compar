@@ -1,4 +1,4 @@
-from parallelCompiler import ParallelCompiler
+from compilers.parallelCompiler import ParallelCompiler
 import subprocess
 import shutil
 import os

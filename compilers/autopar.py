@@ -1,6 +1,6 @@
 import os
 import subprocess
-from parallelCompiler import ParallelCompiler
+from compilers.parallelCompiler import ParallelCompiler
 
 
 class Autopar(ParallelCompiler):

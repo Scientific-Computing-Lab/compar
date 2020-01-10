@@ -1,5 +1,5 @@
 from abc import ABC
-from compiler import Compiler
+from compilers.compiler import Compiler
 from exceptions import CompilationError
 
 
