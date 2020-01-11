@@ -1,40 +1,131 @@
 [
-{
-	"compiler_name": "cetus",
-	"parameters": {
-		"env_params": [
-			"sd",
-			"bb",
-			"rr"
-		],
-		"code_params": [
-			"nn",
-			"jj",
-			"oo"
-		],
-		"compilation_params": [
-			"pp",
-			"uu"
-		]
-	}
-},
+	{
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(16);",
+				"omp_set_dynamic(1);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-parallelize-loops=1",
+				"-reduction=0"
+			]
+		}
+	},
+	{
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-parallelize-loops=2",
+				"-reduction=1"
+			]
+		}
+	},
+	{
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-parallelize-loops=2",
+				"-reduction=2"
+			]
+		}
+	},
 	{
 		"compiler_name": "autopar",
 		"parameters": {
 			"env_params": [
-				"sd",
-				"bb",
-				"rr"
+				"omp_set_num_threads(16);",
+				"omp_set_dynamic(1);"
 			],
 			"code_params": [
-				"nn",
-				"jj",
-				"oo"
 			],
 			"compilation_params": [
-				"pp",
-				"uu"
+				"--keep-going"
 			]
 		}
-}
+	},
+	{
+		"compiler_name": "autopar",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"--success_report_string"
+			]
+		}
+	},
+	{
+		"compiler_name": "autopar",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"--unique_indirect_index"
+			]
+		}
+	},
+		{
+		"compiler_name": "par4all",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(16);",
+				"omp_set_dynamic(1);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"--fine-grain"
+			]
+		}
+	},
+	{
+		"compiler_name": "par4all",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"--com-optimization"
+			]
+		}
+	},
+	{
+		"compiler_name": "par4all",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"--scmp"
+			]
+		}
+	}
 ]
