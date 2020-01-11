@@ -70,8 +70,8 @@ class Execute_job:
         last_string = 'loop '
         for root, dirs, files in os.walk(self.get_job().get_directory_path()):
             for file in files:
-                if re.search("_time_results.txt$", file):
-                    file_name = str(file.split("_time_results.txt")[0]) + ".c"
+                if re.search("_time_result.txt$", file):
+                    file_name = str(file.split("_time_result.txt")[0]) + ".c"
                     self.get_job().set_file_results(file_name)
                     try:
                         with open(file, 'r') as input_file:
