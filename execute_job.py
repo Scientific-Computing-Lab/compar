@@ -16,8 +16,8 @@ class Execute_job:
     def set_job(self, job):
         self.job = job
 
-    def run(self):
-        self.__run_with_sbatch()
+    def run(self, slurm_parameters):
+        self.__run_with_sbatch(slurm_parameters)
         self.__analysis_output_file()
 
     def __run_with_sbatch(self, slurm_parameters):
