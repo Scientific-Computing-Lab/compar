@@ -64,7 +64,7 @@ class Timer(object):
         file_name = Timer.__PREFIX_OUTPUT_FILE + self.__time_result_file
         c_code = 'FILE *' + fp_label + ';\n' \
                  + fp_label + ' = fopen(\"' + file_name + '\", "a");\n' \
-                 'fprintf(' + fp_label + ', "\\nrun time of loop %d: %lf", ' \
+                 'fprintf(' + fp_label + ', "run time of loop %d: %lf\\n", ' \
                  + label + ', ' + run_time_var + ');\nfclose(' + fp_label + ');\n'
         self.__c_code_write_to_file = c_code
 
