@@ -34,12 +34,12 @@ class Database:
 
     def initialize_static_db(self):
         try:
-            f = open(COMBINATIONS_DATA_FILE_PATH, "r")
-            comb_array = json_util.loads(f.read())
-            for current_id, comb in enumerate(comb_array):
-                comb["_id"] = str(current_id)
-                self.static_db[STATIC_COLLECTION_NAME].insert_one(comb)
-            return True
+            with open(COMBINATIONS_DATA_FILE_PATH, 'r') as f:
+                comb_array = json_util.loads(f.read())
+                for current_id, comb in enumerate(comb_array, 1):
+                    comb["_id"] = str(current_id)
+                    self.static_db[STATIC_COLLECTION_NAME].insert_one(comb)
+                return True
 
         except Exception as e:
             print("cannot initialize static DB!")
