@@ -46,7 +46,7 @@ class BinaryCompiler(Compiler):
 
         print("Compiling " + self.get_main_c_file())
         sub_proc = subprocess.Popen([self.get_compiler_name()] + ["-fopenmp"] + self.get_compilation_flags() +
-                                    [self.get_main_c_file()] + ["-o" + " " + dir_name + ".x"],
+                                    [self.get_main_c_file()] + ["-o" + dir_name + ".x"],
                                     cwd=self.get_input_file_directory())
         sub_proc.wait()
         print("Done Compile work")
