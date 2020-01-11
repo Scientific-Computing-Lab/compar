@@ -51,16 +51,31 @@ class Compar:
                  binary_compiler_type,
                  binary_compiler_version,
                  makefile_name="",
-                 makefile_parameters=[],
+                 makefile_parameters=None,
                  makefile_output_files="",
                  is_make_file=False,
-                 binary_compiler_flags=[],
-                 par4all_flags=[],
-                 autopar_flags=[],
-                 cetus_flags=[],
+                 binary_compiler_flags=None,
+                 par4all_flags=None,
+                 autopar_flags=None,
+                 cetus_flags=None,
                  main_file_name="",
-                 main_file_parameters=[],
-                 slurm_parameters=[]):
+                 main_file_parameters=None,
+                 slurm_parameters=None):
+
+        if not makefile_parameters:
+            makefile_parameters = []
+        if not binary_compiler_flags:
+            binary_compiler_flags = []
+        if not par4all_flags:
+            par4all_flags = []
+        if not autopar_flags:
+            autopar_flags = []
+        if not cetus_flags:
+            cetus_flags = []
+        if not main_file_parameters:
+            main_file_parameters = []
+        if not slurm_parameters:
+            slurm_parameters = []
 
         self.binary_compiler = None
         self.binary_compiler_version = binary_compiler_version
