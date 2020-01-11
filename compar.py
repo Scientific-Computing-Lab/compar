@@ -22,6 +22,9 @@ from database import Database
 class Compar:
     GCC = 'gcc'
     ICC = 'icc'
+    PAR4ALL = 'par4all'
+    CETUS = 'cetus'
+    AUTOPAR = 'autopar'
     BACKUP_FOLDER_NAME = "backup"
     ORIGINAL_FILES_FOLDER_NAME = "original_files"
     COMBINATIONS_FOLDER_NAME = "combinations"
@@ -426,12 +429,21 @@ class Compar:
         }
         self.binary_compiler = binary_compilers_map[self.binary_compiler_type]
 
+    def __copy_pips_stubs_to_folder(self, destination_folder_path):
+        pips_stubs_name = 'pips_stubs.c'
+        if pips_stubs_name not in os.listdir(destination_folder_path):
+            pips_stubs_path = os.path.join(self.working_directory, 'assets', pips_stubs_name)
+            shutil.copy(pips_stubs_path, destination_folder_path)
+
     def parallel_compilation_of_one_combination(self, combination_obj, combination_folder_path):
-        parallel_compiler = self.__get_parallel_compiler_by_name(combination_obj.get_compiler())
+        compiler_name = combination_obj.get_compiler()
+        parallel_compiler = self.__get_parallel_compiler_by_name(compiler_name)
         # TODO: combine the user flags with combination flags (we want to let the user to insert his flags??)
         parallel_compiler.initiate_for_new_task(combination_obj.get_parameters().get_compilation_params(),
                                                 combination_folder_path,
                                                 self.make_absolute_file_list(combination_folder_path))
+        if compiler_name == Compar.PAR4ALL:
+            self.__copy_pips_stubs_to_folder(combination_folder_path)
         parallel_compiler.compile()
         env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
         for file_dict in self.make_absolute_file_list(combination_folder_path):

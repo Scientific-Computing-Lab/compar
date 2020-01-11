@@ -35,11 +35,10 @@ class Par4all(ParallelCompiler):
         try:
             super().compile()
             for file_dict in self.get_file_list():
-                self.__run_p4a_process(file_dict['file_path'])  # TODO: check if the key is correct
-                file_name, extension = os.path.splitext(file_dict['file_path'])  # TODO: check if the key is correct
+                self.__run_p4a_process(file_dict['file_full_path'])
+                file_name, extension = os.path.splitext(file_dict['file_full_path'])
                 name_to_replace = file_name + '.p4a' + extension
-                os.rename(name_to_replace, file_dict['file_path'])  # TODO: check if the key is correct
-                self.__remove_bswap_function(file_dict['file_path'])  # TODO: check if the key is correct
+                os.rename(name_to_replace, file_dict['file_full_path'])
+                self.__remove_bswap_function(file_dict['file_full_path'])
         except Exception as e:
             raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() + " failed to be parallel!")
-
