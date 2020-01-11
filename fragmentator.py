@@ -1,5 +1,4 @@
 import re
-import shutil
 from exceptions import FileError
 from exceptions import assert_file_exist
 from file_formator import format_c_code
@@ -17,7 +16,6 @@ class Fragmentator:
     def set_end_label(new_end_label):
         Fragmentator.__END_LOOP_LABEL_MARKER = new_end_label
 
-
     @staticmethod
     def get_start_label():
         return Fragmentator.__START_LOOP_LABEL_MARKER
@@ -25,7 +23,6 @@ class Fragmentator:
     @staticmethod
     def get_end_label():
         return Fragmentator.__END_LOOP_LABEL_MARKER
-
 
     def __init__(self, file_path):
         assert_file_exist(file_path)
@@ -53,6 +50,7 @@ class Fragmentator:
         return self.__fragments
 
     def __get_file_content(self):
+        # TODO: uncomment
         # format_c_code([self.__file_path, ])
         try:
             with open(self.__file_path, 'r') as input_file:
