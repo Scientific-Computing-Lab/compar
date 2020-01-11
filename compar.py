@@ -422,6 +422,16 @@ class Compar:
         }
         return compilers_map[compiler_name]
 
+    def __replace_result_file_name_prefix(self, container_folder_path):
+        for c_file_dict in self.make_absolute_file_list(container_folder_path):
+            with open(c_file_dict['file_full_path'], 'r') as f:
+                file_content = f.read()
+            old_prefix = Timer.get_file_name_prefix_token()
+            new_prefix = os.path.join(container_folder_path, os.sep)
+            file_content = file_content.replace(old_prefix, new_prefix)
+            with open(c_file_dict['file_full_path'], 'w') as f:
+                f.write(file_content)
+
     def __initialize_binary_compiler(self):
         binary_compilers_map = {
             Compar.ICC: Icc(version=self.binary_compiler_version),
@@ -461,6 +471,7 @@ class Compar:
             self.binary_compiler.initiate_for_new_task(compilation_flags,
                                                        combination_folder_path,
                                                        self.get_main_file_name())
+            self.__replace_result_file_name_prefix(combination_folder_path)
             self.binary_compiler.compile()
 
     def calculate_speedups(self, job_result_dict):
@@ -549,6 +560,7 @@ class Compar:
         self.binary_compiler.initiate_for_new_task(compilation_flags=self.user_binary_compiler_flags,
                                                    input_file_directory=serial_dir_path,
                                                    main_c_file=self.main_file_name)
+        self.__replace_result_file_name_prefix(serial_dir_path)
         self.binary_compiler.compile()
 
     def run_serial(self):

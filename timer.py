@@ -5,6 +5,12 @@ import exceptions as e
 
 class Timer(object):
 
+    __PREFIX_OUTPUT_FILE = '#)$-@,(&=!+%^____,(&=__compar__@__should_+__be_+%___unique_(&!+$-=!+@%=!'
+
+    @staticmethod
+    def get_file_name_prefix_token():
+        return Timer.__PREFIX_OUTPUT_FILE
+
     def __init__(self, file_path):
         e.assert_file_exist(file_path)
         self.__input_file_path = file_path
@@ -55,8 +61,9 @@ class Timer(object):
         self.__c_code_calculate_run_time = c_code_run_time
 
     def set_c_code_write_to_file(self, fp_label, label, run_time_var):
+        file_name = Timer.__PREFIX_OUTPUT_FILE + self.__time_result_file
         c_code = 'FILE *' + fp_label + ';\n' \
-                 + fp_label + ' = fopen(\"' + self.__time_result_file + '\", "a");\n' \
+                 + fp_label + ' = fopen(\"' + file_name + '\", "a");\n' \
                  'fprintf(' + fp_label + ', "\\nrun time of loop %d: %lf", ' \
                  + label + ', ' + run_time_var + ');\nfclose(' + fp_label + ');\n'
         self.__c_code_write_to_file = c_code
