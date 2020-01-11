@@ -470,6 +470,8 @@ class Compar:
         if compiler_name == Compar.PAR4ALL:
             self.__copy_pips_stubs_to_folder(combination_folder_path)
         parallel_compiler.compile()
+        if compiler_name == Compar.PAR4ALL:
+            os.remove(os.path.join(combination_folder_path, 'pips_stubs.c'))
         env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
         for file_dict in self.make_absolute_file_list(combination_folder_path):
             for loop_id in range(1, self.files_loop_dict[file_dict['file_name']] + 1):
