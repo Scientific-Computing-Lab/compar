@@ -456,7 +456,7 @@ class Compar:
             self.binary_compiler.compile()
 
     def calculate_speedups(self, job_result_dict):
-        for file_result_dict in job_result_dict['run_time_result']:
+        for file_result_dict in job_result_dict['run_time_results']:
             for loop_result_dict in file_result_dict['loops']:
                 serial_run_time_key = (file_result_dict['file_name'], loop_result_dict['loop_label'])
                 loop_serial_runtime = self.run_time_serial_results[serial_run_time_key]
@@ -494,6 +494,7 @@ class Compar:
         os.makedirs(self.combinations_dir, exist_ok=True)
         os.makedirs(self.backup_files_dir, exist_ok=True)
         os.makedirs(self.logs_dir, exist_ok=True)
+        # TODO: create a new folder to the optimal results (code and exe file, maybe json of optimal combinations also)
 
         if os.path.isdir(input_dir):
             self.__copy_folder_content(input_dir, self.original_files_dir)
