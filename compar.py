@@ -111,12 +111,8 @@ class Compar:
 
         # INITIALIZATIONS
         self.__initialize_binary_compiler()
-        try:
-            self.db = Database(self.__extract_working_directory_name())
-        except Exception as ex:
-            print(ex)
-            print("The program will be terminated")
-            exit(1)
+        self.db = Database(self.__extract_working_directory_name())
+
 
     def generate_optimal_code(self):
         optimal_files_to_be_cut = []

@@ -1,5 +1,6 @@
 import pymongo
 from bson import json_util
+from exceptions import DatabaseError
 
 
 COMBINATIONS_DATA_FILE_PATH = "assets/combinations_data.json"
@@ -12,21 +13,24 @@ DB = "mongodb://localhost:27017"
 class Database:
 
     def __init__(self, collection_name):
-        self.current_combination = None
-        self.current_combination_id = 1
-        self.collection_name = collection_name
-        self.connection = pymongo.MongoClient(DB)
-        self.static_db = self.connection[STATIC_DB_NAME]
-        self.dynamic_db = self.connection[DYNAMIC_DB_NAME]
+        try:
+            self.current_combination = None
+            self.current_combination_id = 1
+            self.collection_name = collection_name
+            self.connection = pymongo.MongoClient(DB)
+            self.static_db = self.connection[STATIC_DB_NAME]
+            self.dynamic_db = self.connection[DYNAMIC_DB_NAME]
 
-        if STATIC_COLLECTION_NAME not in self.static_db.list_collection_names():
-            self.static_db.create_collection(STATIC_COLLECTION_NAME)
-            self.initialize_static_db()
+            if STATIC_COLLECTION_NAME not in self.static_db.list_collection_names():
+                self.static_db.create_collection(STATIC_COLLECTION_NAME)
+                self.initialize_static_db()
 
-        if self.collection_name not in self.dynamic_db.list_collection_names():
-            self.dynamic_db.create_collection(self.collection_name)
-        else:
-            raise Exception("results DB already has {0} name collection!".format(self.collection_name))
+            if self.collection_name not in self.dynamic_db.list_collection_names():
+                self.dynamic_db.create_collection(self.collection_name)
+            else:
+                raise DatabaseError("results DB already has {0} name collection!".format(self.collection_name))
+        except Exception as e:
+            raise DatabaseError(str(e) + "\nFailed to initialize DB!")
 
     def initialize_static_db(self):
         try:
