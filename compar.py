@@ -60,7 +60,7 @@ class Compar:
                  cetus_flags=[],
                  main_file_name="",
                  main_file_parameters=[],
-                 slurm_parameters=""):
+                 slurm_parameters=[]):
 
         self.binary_compiler = None
         self.binary_compiler_version = binary_compiler_version
