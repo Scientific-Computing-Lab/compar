@@ -26,4 +26,4 @@ class Cetus(ParallelCompiler):
             return True
 
         except Exception as e:
-            raise CompilationError(str(e) + " files in directory " + self.get_input_filename_directory() + " failed to be parallel!")
+            raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() + " failed to be parallel!")
