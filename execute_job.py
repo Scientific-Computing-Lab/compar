@@ -16,8 +16,8 @@ class Execute_job:
     def set_job(self, job):
         self.job = job
 
-    def run(self):
-        self.__run_with_sbatch()
+    def run(self, slurm_parameters):
+        self.__run_with_sbatch(slurm_parameters)
         self.__analysis_output_file()
 
     def __run_with_sbatch(self, slurm_parameters):
@@ -37,6 +37,7 @@ class Execute_job:
         log_file = dir_name + ".log"
         x_file_path = os.path.join(dir_path, x_file)
         log_file_path = os.path.join(dir_path, log_file)
+        slurm_parameters = " ".join(slurm_parameters)
         cmd = 'sbatch {0} -o {1} {2} {3} {4} ' \
             .format(slurm_parameters,
                     log_file_path,
@@ -51,7 +52,8 @@ class Execute_job:
         self.get_job().set_job_id(result)
 
         # thread_name = threading.current_thread().getName()
-        while not os.path.exists(log_file_path):
+        cmd = "squeue | grep {0}".format(self.get_job().get_job_id())
+        while os.system(cmd) == 0:
             time.sleep(30)
 
     def __make_sbatch_script_file(self):
@@ -70,13 +72,15 @@ class Execute_job:
         last_string = 'loop '
         for root, dirs, files in os.walk(self.get_job().get_directory_path()):
             for file in files:
-                if re.search("_time_results.txt$", file):
-                    file_name = str(file.split("_time_results.txt")[0]) + ".c"
+                if re.search("_run_time_result.txt$", file):
+                    file_name = str(file.split("_run_time_result.txt")[0]) + ".c"
+                    file_full_path = os.path.join(root, file)
                     self.get_job().set_file_results(file_name)
                     try:
-                        with open(file, 'r') as input_file:
+                        with open(file_full_path, 'r') as input_file:
                             for line in input_file:
-                                line = line[line.find(last_string) + len(last_string)::].replace('\n', '').split(':')
-                                self.get_job().set_loop_in_file_results(file_name, line[0], line[1])
+                                if ":" in line:
+                                    line = line[line.find(last_string) + len(last_string)::].replace('\n', '').split(':')
+                                    self.get_job().set_loop_in_file_results(file_name, line[0], line[1])
                     except OSError as e:
                         raise Exception(str(e))
