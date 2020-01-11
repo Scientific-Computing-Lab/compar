@@ -503,7 +503,15 @@ class Compar:
 
     @staticmethod
     def __copy_folder_content(src, dst):
-        shutil.copytree(src, dst, dirs_exist_ok=True)
+        for rel_path in os.listdir(src):
+            src_full_path = os.path.join(src, rel_path)
+            if os.path.isfile(src_full_path):
+                shutil.copy(src_full_path, dst)
+            elif os.path.isdir(src_full_path):
+                dest_path_include_new_dir = os.path.join(dst, rel_path)
+                if os.path.exists(dest_path_include_new_dir):
+                    shutil.rmtree(dest_path_include_new_dir)
+                shutil.copytree(src_full_path, dest_path_include_new_dir)
 
     def __copy_sources_to_combination_folder(self, combination_folder_path):
         self.__copy_folder_content(self.original_files_dir, combination_folder_path)
@@ -551,7 +559,7 @@ class Compar:
         job = Job(directory=serial_dir_path,
                   exec_file_args=self.main_file_parameters,
                   combination=combination)
-        job = Executor.execute_jobs([job])
+        job = Executor.execute_jobs([job])[0]
 
         # update run_time_serial_results
         for file in self.make_absolute_file_list(serial_dir_path):
