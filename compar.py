@@ -203,13 +203,14 @@ class Compar:
         else:
             raise Exception('cannot find loops in file')
 
+
         destination_cut_string = re.search(start_label+"(.+?)"+end_label, destination_file_string, re.DOTALL)
         if destination_cut_string:
-            destination_cut_string = origin_cut_string.group()
+            destination_cut_string = destination_cut_string.group()
         else:
             raise Exception('cannot find loops in file')
 
-        destination_file_string.replace(destination_cut_string, origin_cut_string)
+        destination_file_string = destination_file_string.replace(destination_cut_string, origin_cut_string)
 
         with open(destination_path,"w") as input_file:
             input_file.write(destination_file_string)
@@ -630,5 +631,3 @@ class Compar:
         if not os.path.isdir(combination_folder_path):
             raise e.FolderError(f'Cannot create {combination_folder_path} folder')
         return combination_folder_path
-
-
