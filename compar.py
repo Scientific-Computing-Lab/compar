@@ -45,6 +45,13 @@ class Compar:
         except OSError as err:
             raise e.FileError(str(err))
 
+    @staticmethod
+    def __copy_pips_stubs_to_folder(destination_folder_path):
+        pips_stubs_name = 'pips_stubs.c'
+        if pips_stubs_name not in os.listdir(destination_folder_path):
+            pips_stubs_path = os.path.join('assets', pips_stubs_name)
+            shutil.copy(pips_stubs_path, destination_folder_path)
+
     def __init__(self,
                  working_directory,
                  input_dir,
@@ -453,12 +460,6 @@ class Compar:
             Compar.GCC: Gcc(version=self.binary_compiler_version)
         }
         self.binary_compiler = binary_compilers_map[self.binary_compiler_type]
-
-    def __copy_pips_stubs_to_folder(self, destination_folder_path):
-        pips_stubs_name = 'pips_stubs.c'
-        if pips_stubs_name not in os.listdir(destination_folder_path):
-            pips_stubs_path = os.path.join(self.working_directory, 'assets', pips_stubs_name)
-            shutil.copy(pips_stubs_path, destination_folder_path)
 
     def parallel_compilation_of_one_combination(self, combination_obj, combination_folder_path):
         compiler_name = combination_obj.get_compiler()
