@@ -15,7 +15,7 @@ class Cetus(ParallelCompiler):
         try:
             for file in self.get_file_list():
                 cwd_path = os.path.dirname(file["file_full_path"])
-                subprocess.run([' cetus {} {}'.format(" ".join(self.get_compilation_flags()), file["file_name"])],
+                subprocess.run(['module load cetus; cetus {} {}'.format(" ".join(self.get_compilation_flags()), file["file_name"])],
                                shell=True, cwd=cwd_path)
                 # Replace file from cetus output folder into original file folder
                 if os.path.isdir(os.path.join(cwd_path, "cetus_output")):
