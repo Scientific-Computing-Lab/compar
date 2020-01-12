@@ -23,6 +23,6 @@ class Autopar(ParallelCompiler):
     @staticmethod
     def run_autopar(file_name, file_full_path, options):
         print("Parallelizing " + file_name)
-        sub_proc = subprocess.Popen(['autoPar'] + options + ["-rose:o", file_name, file_name], cwd=os.path.dirname(file_full_path))
-        sub_proc.wait()
+        command = ['module load autopar; autoPar {0} -rose:o {1} {2}'.format(" ".join(options), file_name, file_name)]
+        subprocess.run(command, shell=True, cwd=os.path.dirname(file_full_path))
         print("Done parallel work")

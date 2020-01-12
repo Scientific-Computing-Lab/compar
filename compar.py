@@ -45,6 +45,13 @@ class Compar:
         except OSError as err:
             raise e.FileError(str(err))
 
+    @staticmethod
+    def __copy_pips_stubs_to_folder(destination_folder_path):
+        pips_stubs_name = 'pips_stubs.c'
+        if pips_stubs_name not in os.listdir(destination_folder_path):
+            pips_stubs_path = os.path.join('assets', pips_stubs_name)
+            shutil.copy(pips_stubs_path, destination_folder_path)
+
     def __init__(self,
                  working_directory,
                  input_dir,
@@ -196,13 +203,14 @@ class Compar:
         else:
             raise Exception('cannot find loops in file')
 
+
         destination_cut_string = re.search(start_label+"(.+?)"+end_label, destination_file_string, re.DOTALL)
         if destination_cut_string:
-            destination_cut_string = origin_cut_string.group()
+            destination_cut_string = destination_cut_string.group()
         else:
             raise Exception('cannot find loops in file')
 
-        destination_file_string.replace(destination_cut_string, origin_cut_string)
+        destination_file_string = destination_file_string.replace(destination_cut_string, origin_cut_string)
 
         with open(destination_path,"w") as input_file:
             input_file.write(destination_file_string)
@@ -454,12 +462,6 @@ class Compar:
         }
         self.binary_compiler = binary_compilers_map[self.binary_compiler_type]
 
-    def __copy_pips_stubs_to_folder(self, destination_folder_path):
-        pips_stubs_name = 'pips_stubs.c'
-        if pips_stubs_name not in os.listdir(destination_folder_path):
-            pips_stubs_path = os.path.join(self.working_directory, 'assets', pips_stubs_name)
-            shutil.copy(pips_stubs_path, destination_folder_path)
-
     def parallel_compilation_of_one_combination(self, combination_obj, combination_folder_path):
         compiler_name = combination_obj.get_compiler()
         parallel_compiler = self.__get_parallel_compiler_by_name(compiler_name)
@@ -629,5 +631,3 @@ class Compar:
         if not os.path.isdir(combination_folder_path):
             raise e.FolderError(f'Cannot create {combination_folder_path} folder')
         return combination_folder_path
-
-

@@ -3,6 +3,7 @@ from exceptions import CompilationError
 import subprocess
 import os
 import re
+import shutil
 
 
 class Par4all(ParallelCompiler):
@@ -26,10 +27,19 @@ class Par4all(ParallelCompiler):
             print(e)
 
     def __run_p4a_process(self, file_path_to_compile):
-        command = ['p4a', '-v', '--log', '-O', file_path_to_compile] + super().get_compilation_flags()
+        folder_path = os.path.dirname(file_path_to_compile)
+        results_folder = os.path.join(folder_path, 'parallel_results')
+        os.mkdir(results_folder)
+        shutil.copyfile(file_path_to_compile, os.path.join(results_folder, os.path.basename(file_path_to_compile)))
+        pips_stubs_file = os.path.join(folder_path, 'pips_stubs.c')
+        if os.path.exists(pips_stubs_file):
+            shutil.copyfile(pips_stubs_file, os.path.join(results_folder, 'pips_stubs.c'))
+        files_to_compile = results_folder + os.sep + '*.c'
+        command = 'module load par4all; source $set_p4a_env; p4a -v --log -O ' + str(files_to_compile)
+        command += ' '.join(map(str, super().get_compilation_flags()))
         if self.__include_dirs_list:
-            command += ['-I', ] + self.__include_dirs_list
-        subprocess.run(command, shell=True, cwd=self.get_input_file_directory())
+            command += '-I ' + ' '.join(map(str, self.__include_dirs_list))
+        subprocess.run(command, shell=True, cwd=folder_path)
 
     def compile(self):
         try:
