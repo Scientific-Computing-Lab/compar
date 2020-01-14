@@ -4,6 +4,12 @@ import subprocess
 # import threading
 import time
 
+AMD_OPTERON_PROCESSOE_6376 = list(range(1, 15))
+INTEL_XEON_CPU_E5_2683_V4 = list(range(16, 19)) + list(range(20, 24))#no 15
+INTEL_XEON_GOLD_6130_CPU = list(range(25, 36))
+GRID = AMD_OPTERON_PROCESSOE_6376 + INTEL_XEON_CPU_E5_2683_V4
+CLUSTES = INTEL_XEON_GOLD_6130_CPU
+MIXEDP = GRID + CLUSTES
 
 class Execute_job:
 
