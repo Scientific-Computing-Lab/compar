@@ -241,7 +241,8 @@ class Compar:
 
         c_code = ""
         for param in params:
-            c_code += param + ";" + "\n"
+            if option == "env":
+                c_code += param + "\n"
         return c_code
 
     def get_timer(self):
