@@ -519,7 +519,7 @@ class Compar:
                 loop_serial_runtime = self.run_time_serial_results[serial_run_time_key]
                 loop_parallel_runtime = loop_result_dict['run_time']
                 try:
-                    speedup = loop_serial_runtime / loop_parallel_runtime
+                    speedup = float(loop_serial_runtime) / float(loop_parallel_runtime)
                 except ZeroDivisionError:
                     speedup = 0.0
                 loop_result_dict['speedup'] = speedup
