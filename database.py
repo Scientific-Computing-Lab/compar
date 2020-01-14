@@ -78,13 +78,14 @@ class Database:
         best_combination_id = 0
         combinations = self.dynamic_db[self.collection_name].find({})
         for combination in combinations:
-            for file in combination['run_time_results']:
-                if file['file_name'] == file_name:
-                    for loop in file['loops']:
-                        if loop['loop_label'] == loop_label:
-                            if loop['speedup'] > best_speedup:
-                                best_speedup = loop['speedup']
-                                best_combination_id = combination['_id']
+            if 'error' not in combination.keys():
+                for file in combination['run_time_results']:
+                    if file['file_name'] == file_name:
+                        for loop in file['loops']:
+                            if loop['loop_label'] == loop_label:
+                                if loop['speedup'] > best_speedup:
+                                    best_speedup = loop['speedup']
+                                    best_combination_id = combination['_id']
 
         return best_combination_id
 
