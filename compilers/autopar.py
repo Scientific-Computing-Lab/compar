@@ -1,7 +1,7 @@
 import os
 import subprocess
 from compilers.parallelCompiler import ParallelCompiler
-from exceptions import CompilationError
+from exceptions import CompilationError, CombinationFailure
 
 
 class Autopar(ParallelCompiler):
@@ -16,7 +16,8 @@ class Autopar(ParallelCompiler):
             for file in self.get_file_list():
                 Autopar.run_autopar(file["file_name"], file["file_full_path"], self.get_compilation_flags())
             return True
-
+        except subprocess.CalledProcessError as e:
+            raise CombinationFailure(f'autopar return with {e.returncode} code: {str(e)} : {e.output} : {e.stderr}')
         except Exception as e:
             raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() + " failed to be parallel!")
 
@@ -24,5 +25,6 @@ class Autopar(ParallelCompiler):
     def run_autopar(file_name, file_full_path, options):
         print("Parallelizing " + file_name)
         command = ['module load autopar; autoPar {0} -rose:o {1} {2}'.format(" ".join(options), file_name, file_name)]
-        subprocess.run(command, shell=True, cwd=os.path.dirname(file_full_path))
+        output = subprocess.check_output(command, shell=True, cwd=os.path.dirname(file_full_path))
+        print('autopar compilation output: ' + str(output))
         print("Done parallel work")

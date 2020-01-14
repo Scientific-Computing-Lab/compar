@@ -1,5 +1,6 @@
 import os
 import re
+from time import sleep
 
 from combination import Combination
 from compilers.autopar import Autopar
@@ -532,14 +533,31 @@ class Compar:
             self.__delete_combination_folder(job.get_directory_path())
         self.jobs.clear()
 
+    def save_combination_as_failure(self, combination_id, error_msg, combination_folder_path):
+        combination_dict = {
+            '_id': combination_id,
+            'error': error_msg
+        }
+        self.db.insert_new_combination(combination_dict)
+        sleep(1)
+        self.__delete_combination_folder(combination_folder_path)
+
     def run_parallel_combinations(self):
         while self.db.has_next_combination():
             if len(self.jobs) >= self.__max_combinations_at_once:
                 self.run_and_save_job_list()
             combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
-            self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
-            self.compile_combination_to_binary(combination_folder_path)
+            try:
+                self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
+                self.compile_combination_to_binary(combination_folder_path)
+            except e.CombinationFailure as ex:
+                self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
+                continue
+            except e.CompilationError as ex:
+                # TODO: TabError in p4a, why??? its work on the linux interpreter (/usr/bin/python3)!!!
+                self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
+                continue
             job = Job(combination_folder_path, combination_obj, self.get_main_file_parameters())
             self.jobs.append(job)
         if self.jobs:
@@ -609,7 +627,11 @@ class Compar:
         if self.is_make_file:
             pass
         else:
-            self.__run_binary_compiler(serial_dir_path)
+            try:
+                self.__run_binary_compiler(serial_dir_path)
+            except e.CombinationFailure as ex:
+                # TODO: delete all the folders and the collection from the database
+                raise e.CompilationError(str(ex))
 
         combination = Combination(combination_id='0',
                                   compiler_name=self.binary_compiler_type,

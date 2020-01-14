@@ -1,7 +1,7 @@
 from compilers.compiler import Compiler
 import os
 import subprocess
-from exceptions import CompilationError
+from exceptions import CompilationError, CombinationFailure
 
 
 class BinaryCompiler(Compiler):
@@ -36,7 +36,9 @@ class BinaryCompiler(Compiler):
         try:
             self.run_compiler()
             return True
-
+        except subprocess.CalledProcessError as ex:
+            raise CombinationFailure(self._compiler_name +
+                                     f' return with {ex.returncode} code: {str(ex)} : {ex.output} : {ex.stderr}')
         except Exception as e:
             raise CompilationError(str(e) + " " + self.get_main_c_file() + " failed to be compiled!")
 
@@ -45,8 +47,8 @@ class BinaryCompiler(Compiler):
         dir_name = os.path.basename(input_file_path_only)
 
         print("Compiling " + self.get_main_c_file())
-        sub_proc = subprocess.Popen([self.get_compiler_name()] + ["-fopenmp"] + self.get_compilation_flags() +
-                                    [self.get_main_c_file()] + ["-o"] + [dir_name + ".x"],
-                                    cwd=self.get_input_file_directory())
-        sub_proc.wait()
+        output = subprocess.check_output([self.get_compiler_name()] + ["-fopenmp"] + self.get_compilation_flags() +
+                                         [self.get_main_c_file()] + ["-o"] + [dir_name + ".x"],
+                                         cwd=self.get_input_file_directory())
+        print(self._compiler_name + ' compilation output: ' + str(output))
         print("Done Compile work")
