@@ -7,7 +7,7 @@ COMBINATIONS_DATA_FILE_PATH = "assets/combinations_data.json"
 STATIC_DB_NAME = "combinations"
 STATIC_COLLECTION_NAME = "combinations"
 DYNAMIC_DB_NAME = "results"
-DB = "mongodb://localhost:27017"
+DB = "mongodb://10.10.10.120:27017"
 
 
 class Database:
