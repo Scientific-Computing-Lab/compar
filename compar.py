@@ -32,6 +32,21 @@ class Compar:
     NUM_OF_THREADS = 4
 
     @staticmethod
+    def replace_labels(file_path, num_of_loops):
+        with open(file_path, 'r+') as f:
+            content = f.read()
+            for loop_id in range(1, num_of_loops + 1):
+                old_start_label = '/* ' + Fragmentator.get_start_label()[3:] + str(loop_id) + ' */'
+                new_start_label = Fragmentator.get_start_label() + str(loop_id)
+                old_end_label = '/* ' + Fragmentator.get_end_label()[3:] + str(loop_id) + ' */'
+                new_end_label = Fragmentator.get_end_label() + str(loop_id)
+                content = content.replace(old_start_label, new_start_label)
+                content = content.replace(old_end_label, new_end_label)
+            f.seek(0)
+            f.write(content)
+            f.truncate()
+
+    @staticmethod
     def inject_c_code_to_loop(c_file_path, loop_id, c_code_to_inject):
         e.assert_file_exist(c_file_path)
         with open(c_file_path, 'r') as input_file:
@@ -476,6 +491,8 @@ class Compar:
             os.remove(os.path.join(combination_folder_path, 'pips_stubs.c'))
         env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
         for file_dict in self.make_absolute_file_list(combination_folder_path):
+            if compiler_name == Compar.CETUS:
+                self.replace_labels(file_dict['file_full_path'], self.files_loop_dict[file_dict['file_name']])
             for loop_id in range(1, self.files_loop_dict[file_dict['file_name']] + 1):
                 loop_start_label = Fragmentator.get_start_label() + str(loop_id)
                 self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
