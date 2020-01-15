@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 # import threading
+import threading
 import time
 
 AMD_OPTERON_PROCESSOE_6376 = list(range(1, 15))
@@ -13,7 +14,8 @@ MIXEDP = GRID + CLUSTES
 
 class Execute_job:
     #TODO: need to ask if it is ok (yoel)
-    MY_BUSY_NUDE_NUMBER_LIST = []
+    MY_BUSY_NODE_NUMBER_LIST = []
+    lock = threading.Lock()
 
     def __init__(self, job):
         self.job = job
@@ -34,6 +36,21 @@ class Execute_job:
 
     def get_run_node_number(self):
         return self.run_node_number
+
+    @staticmethod
+    def get_MY_BUSY_NODE_NUMBER_LIST():
+        with Execute_job.lock:
+            return Execute_job.MY_BUSY_NODE_NUMBER_LIST
+
+    @staticmethod
+    def add_node_to_MY_BUSY_NODE_NUMBER_LIST(node_number):
+        with Execute_job.lock:
+            Execute_job.MY_BUSY_NODE_NUMBER_LIST.append(node_number)
+
+    @staticmethod
+    def remove_node_from_MY_BUSY_NODE_NUMBER_LIST(node_number):
+        with Execute_job.lock:
+            Execute_job.MY_BUSY_NODE_NUMBER_LIST.remove(node_number)
 
     @staticmethod
     def get_list_of_busy_nodes_numbers_from_squeue():
@@ -59,13 +76,13 @@ class Execute_job:
     def __get_free_node_number_list(self):
         busy_node_number_list = Execute_job.get_list_of_busy_nodes_numbers_from_squeue()
         free_node_number_list = [num for num in self.get_node_number_list() if num not in busy_node_number_list]
-        return [num for num in free_node_number_list if num not in Execute_job.MY_BUSY_NUDE_NUMBER_LIST]
+        return [num for num in free_node_number_list if num not in Execute_job.get_MY_BUSY_NUDE_NUMBER_LIST()]
 
     def __get_free_node_number(self):
         free_node_number_list = self.__get_free_node_number_list()
         if not free_node_number_list:
             # TODO: all node are busy
-            my_busy_node_number = Execute_job.MY_BUSY_NUDE_NUMBER_LIST
+            my_busy_node_number = Execute_job.get_MY_BUSY_NUDE_NUMBER_LIST()
             if not my_busy_node_number:
                 # TODO:error no node available (need to get random val a index)
                 pass
@@ -96,7 +113,7 @@ class Execute_job:
             else:
                 flag = flag + "node" + str(node_number)
             new_slurm_parameters.append(flag)
-            Execute_job.MY_BUSY_NUDE_NUMBER_LIST.append(node_number)
+            Execute_job.add_node_to_MY_BUSY_NUDE_NUMBER_LIST(node_number)
             return new_slurm_parameters
         return user_slurm_parameters.copy()
 
@@ -133,8 +150,8 @@ class Execute_job:
         while os.system(cmd) == 0:
             time.sleep(30)
             
-        if Execute_job.MY_BUSY_NUDE_NUMBER_LIST:
-            Execute_job.MY_BUSY_NUDE_NUMBER_LIST.remove(self.get_run_node_number())
+        if Execute_job.get_MY_BUSY_NUDE_NUMBER_LIST():
+            Execute_job.remove_node_from_MY_BUSY_NUDE_NUMBER_LIST(self.get_run_node_number())
 
     def __make_sbatch_script_file(self):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
@@ -161,6 +178,6 @@ class Execute_job:
                             for line in input_file:
                                 if ":" in line:
                                     line = line[line.find(last_string) + len(last_string)::].replace('\n', '').split(':')
-                                    self.get_job().set_loop_in_file_results(file_name, line[0], line[1])
+                                    self.get_job().set_loop_in_file_results(file_name, line[0], float(line[1]))
                     except OSError as e:
                         raise Exception(str(e))
