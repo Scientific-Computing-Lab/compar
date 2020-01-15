@@ -105,7 +105,8 @@ class Execute_job:
         self.__analysis_output_file()
 
     def __run_with_sbatch(self, user_slurm_parameters):
-        slurm_parameters = self.add_nodelist_flag_into_slurm(user_slurm_parameters)
+        # slurm_parameters = self.add_nodelist_flag_into_slurm(user_slurm_parameters)
+        slurm_parameters = user_slurm_parameters
         dir_path = self.get_job().get_directory_path()
         dir_name = os.path.basename(dir_path)
         sbatch_script_file = self.__make_sbatch_script_file()
