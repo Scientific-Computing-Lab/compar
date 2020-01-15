@@ -154,15 +154,14 @@ class Compar:
         self.__initialize_binary_compiler()
         self.db = Database(self.__extract_working_directory_name())
 
-
     def generate_optimal_code(self):
         optimal_files_to_be_cut = []
 
         for file in self.files_loop_dict.items():
-            for loop_id in range(1, file["num_of_loops"]+1):
+            for loop_id in range(1, file[1]+1):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
                 end_label = Fragmentator.get_end_label()+str(loop_id)
-                current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'], str(loop_id))
+                current_optimal_id = self.db.find_optimal_loop_combination(file[0], str(loop_id))
 
                 # if the optimal combination is the serial => do nothing
                 if current_optimal_id != 0:
