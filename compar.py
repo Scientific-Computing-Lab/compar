@@ -158,26 +158,26 @@ class Compar:
     def generate_optimal_code(self):
         optimal_files_to_be_cut = []
 
-        for file in self.files_loop_dict.items():
-            for loop_id in range(1, file["num_of_loops"]+1):
+        for file_name, num_of_loops in self.files_loop_dict.items():
+            for loop_id in range(1, num_of_loops+1):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
                 end_label = Fragmentator.get_end_label()+str(loop_id)
-                current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'], str(loop_id))
+                current_optimal_id = self.db.find_optimal_loop_combination(file_name, str(loop_id))
 
                 # if the optimal combination is the serial => do nothing
                 if current_optimal_id != 0:
                     current_optimal_combination = self.__combination_json_to_obj(self.db.get_combination_from_static_db(current_optimal_id))
 
-                    combination_folder_path = self.create_combination_folder(file['file_name']+"_"+str(loop_id))
+                    combination_folder_path = self.create_combination_folder(file_name+"_"+str(loop_id))
                     files_list = self.make_absolute_file_list(combination_folder_path)
 
                     # get direct file path to inject params
-                    target_file_path = list(filter(lambda x: x != file['file_name'], files_list))
+                    target_file_path = list(filter(lambda x: x is not file_name, files_list))
                     target_file_path = target_file_path[0]['file_path']
 
                     optimal_files_to_be_cut.append(
                         {
-                            "file_name": file['file_name'],
+                            "file_name": file_name,
                             "start_label": start_label,
                             "end_label": end_label,
                             "file_path": target_file_path
@@ -193,7 +193,7 @@ class Compar:
 
         for optimal_file_to_be_cut in optimal_files_to_be_cut:
             # replace loop in c file using final_files_list
-            file_to_be_edited_path = list(filter(lambda x: x != file['file_name'], final_files_list))
+            file_to_be_edited_path = list(filter(lambda x: x != optimal_file_to_be_cut['file_name'], final_files_list))
             file_to_be_edited_path = file_to_be_edited_path[0]['file_path']
 
             Compar.replace_loops_in_files(optimal_files_to_be_cut['file_path'], file_to_be_edited_path,
