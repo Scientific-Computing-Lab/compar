@@ -1,5 +1,6 @@
 import os
 import re
+from time import sleep
 
 from combination import Combination
 from compilers.autopar import Autopar
@@ -153,33 +154,32 @@ class Compar:
         self.__initialize_binary_compiler()
         self.db = Database(self.__extract_working_directory_name())
 
-
     def generate_optimal_code(self):
         optimal_files_to_be_cut = []
 
-        for file in self.files_loop_dict.items():
-            for loop_id in range(1, file["num_of_loops"]+1):
+        for file_name, num_of_loops in self.files_loop_dict.items():
+            for loop_id in range(1, num_of_loops+1):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
                 end_label = Fragmentator.get_end_label()+str(loop_id)
-                current_optimal_id = self.db.find_optimal_loop_combination(file['file_name'], str(loop_id))
+                current_optimal_id = self.db.find_optimal_loop_combination(file_name, str(loop_id))
 
                 # if the optimal combination is the serial => do nothing
                 if current_optimal_id != 0:
                     current_optimal_combination = self.__combination_json_to_obj(self.db.get_combination_from_static_db(current_optimal_id))
 
-                    combination_folder_path = self.create_combination_folder(file['file_name']+"_"+str(loop_id))
+                    combination_folder_path = self.create_combination_folder(file_name+"_"+str(loop_id))
                     files_list = self.make_absolute_file_list(combination_folder_path)
 
                     # get direct file path to inject params
-                    target_file_path = list(filter(lambda x: x != file['file_name'], files_list))
-                    target_file_path = target_file_path[0]['file_path']
+                    target_file_path = list(filter(lambda x: x is not file_name, files_list))
+                    target_file_path = target_file_path[0]['file_full_path']
 
                     optimal_files_to_be_cut.append(
                         {
-                            "file_name": file['file_name'],
+                            "file_name": file_name,
                             "start_label": start_label,
                             "end_label": end_label,
-                            "file_path": target_file_path
+                            "file_full_path": target_file_path
                         }
                     )
 
@@ -192,10 +192,10 @@ class Compar:
 
         for optimal_file_to_be_cut in optimal_files_to_be_cut:
             # replace loop in c file using final_files_list
-            file_to_be_edited_path = list(filter(lambda x: x != file['file_name'], final_files_list))
-            file_to_be_edited_path = file_to_be_edited_path[0]['file_path']
+            file_to_be_edited_path = list(filter(lambda x: x is not optimal_file_to_be_cut['file_name'], final_files_list))
+            file_to_be_edited_path = file_to_be_edited_path[0]['file_full_path']
 
-            Compar.replace_loops_in_files(optimal_files_to_be_cut['file_path'], file_to_be_edited_path,
+            Compar.replace_loops_in_files(optimal_file_to_be_cut['file_full_path'], file_to_be_edited_path,
                                           optimal_file_to_be_cut['start_label'], optimal_file_to_be_cut['end_label'])
 
     @staticmethod
@@ -518,7 +518,7 @@ class Compar:
                 loop_serial_runtime = self.run_time_serial_results[serial_run_time_key]
                 loop_parallel_runtime = loop_result_dict['run_time']
                 try:
-                    speedup = loop_serial_runtime / loop_parallel_runtime
+                    speedup = float(loop_serial_runtime) / float(loop_parallel_runtime)
                 except ZeroDivisionError:
                     speedup = 0.0
                 loop_result_dict['speedup'] = speedup
@@ -532,14 +532,31 @@ class Compar:
             self.__delete_combination_folder(job.get_directory_path())
         self.jobs.clear()
 
+    def save_combination_as_failure(self, combination_id, error_msg, combination_folder_path):
+        combination_dict = {
+            '_id': combination_id,
+            'error': error_msg
+        }
+        self.db.insert_new_combination(combination_dict)
+        sleep(1)
+        self.__delete_combination_folder(combination_folder_path)
+
     def run_parallel_combinations(self):
         while self.db.has_next_combination():
             if len(self.jobs) >= self.__max_combinations_at_once:
                 self.run_and_save_job_list()
             combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
-            self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
-            self.compile_combination_to_binary(combination_folder_path)
+            try:
+                self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
+                self.compile_combination_to_binary(combination_folder_path)
+            except e.CombinationFailure as ex:
+                self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
+                continue
+            except e.CompilationError as ex:
+                # TODO: TabError in p4a, why??? its work on the linux interpreter (/usr/bin/python3)!!!
+                self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
+                continue
             job = Job(combination_folder_path, combination_obj, self.get_main_file_parameters())
             self.jobs.append(job)
         if self.jobs:
@@ -609,7 +626,11 @@ class Compar:
         if self.is_make_file:
             pass
         else:
-            self.__run_binary_compiler(serial_dir_path)
+            try:
+                self.__run_binary_compiler(serial_dir_path)
+            except e.CombinationFailure as ex:
+                # TODO: delete all the folders and the collection from the database
+                raise e.CompilationError(str(ex))
 
         combination = Combination(combination_id='0',
                                   compiler_name=self.binary_compiler_type,

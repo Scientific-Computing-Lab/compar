@@ -1,5 +1,5 @@
 from compilers.parallelCompiler import ParallelCompiler
-from exceptions import CompilationError, FileError
+from exceptions import CompilationError, FileError, CombinationFailure
 import subprocess
 import os
 import re
@@ -62,7 +62,9 @@ class Par4all(ParallelCompiler):
             output = subprocess.check_output([command, ], shell=True, cwd=self.get_input_file_directory())
             print('par4all compilation output: ' + str(output))
         except subprocess.CalledProcessError as e:
-            raise CompilationError(f'par4all return with {e.returncode} code: {str(e)} : {e.output} : {e.stderr}')
+            raise CombinationFailure(f'par4all return with {e.returncode} code: {str(e)} : {e.output} : {e.stderr}')
+        except Exception as e:
+            raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() + " failed to be parallel!")
 
     def compile(self):
         try:
