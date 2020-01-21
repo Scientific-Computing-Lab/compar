@@ -247,7 +247,22 @@
 			"code_params": [
 			],
 			"compilation_params": [
-				"--scmp"
+				"--no_pointer_aliasing"
+			]
+		}
+	}
+	
+	{
+		"compiler_name": "par4all",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-O"
 			]
 		}
 	}
