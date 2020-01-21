@@ -10,6 +10,33 @@
 			],
 			"compilation_params": [
 				"-parallelize-loops=1",
+			]
+		}
+	},
+	{
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(16);",
+				"omp_set_dynamic(1);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-parallelize-loops=2",
+			]
+		}
+	},
+	{
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(16);",
+				"omp_set_dynamic(1);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
 				"-reduction=0"
 			]
 		}
@@ -24,7 +51,6 @@
 			"code_params": [
 			],
 			"compilation_params": [
-				"-parallelize-loops=2",
 				"-reduction=1"
 			]
 		}
@@ -39,8 +65,102 @@
 			"code_params": [
 			],
 			"compilation_params": [
-				"-parallelize-loops=2",
 				"-reduction=2"
+			]
+		}
+	},
+	{
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-privatize=0"
+			]
+		}
+	},
+	{
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-privatize=1"
+			]
+		}
+	},
+	{
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-privatize=2"
+			]
+		}
+	},
+	{
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-alias=0"
+			]
+		}
+	},
+			"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-alias=1"
+			]
+		}
+	},
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-alias=2"
+			]
+		}
+	},
+		"compiler_name": "cetus",
+		"parameters": {
+			"env_params": [
+				"omp_set_num_threads(32);",
+				"omp_set_dynamic(0);"
+			],
+			"code_params": [
+			],
+			"compilation_params": [
+				"-alias=3"
 			]
 		}
 	},
