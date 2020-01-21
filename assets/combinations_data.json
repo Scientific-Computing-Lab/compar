@@ -125,7 +125,8 @@
 			]
 		}
 	},
-			"compiler_name": "cetus",
+	{
+		"compiler_name": "cetus",
 		"parameters": {
 			"env_params": [
 				"omp_set_num_threads(32);",
@@ -138,6 +139,7 @@
 			]
 		}
 	},
+	{
 		"compiler_name": "cetus",
 		"parameters": {
 			"env_params": [
