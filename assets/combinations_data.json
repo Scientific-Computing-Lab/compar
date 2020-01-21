@@ -191,20 +191,6 @@
 			"code_params": [
 			],
 			"compilation_params": [
-				"--success_report_string"
-			]
-		}
-	},
-	{
-		"compiler_name": "autopar",
-		"parameters": {
-			"env_params": [
-				"omp_set_num_threads(32);",
-				"omp_set_dynamic(0);"
-			],
-			"code_params": [
-			],
-			"compilation_params": [
 				"--unique_indirect_index"
 			]
 		}
