@@ -153,6 +153,7 @@
 			]
 		}
 	},
+	{
 		"compiler_name": "cetus",
 		"parameters": {
 			"env_params": [
