@@ -1,8 +1,9 @@
 import pymongo
+import itertools
 from bson import json_util
 from exceptions import DatabaseError
 
-
+COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 COMBINATIONS_DATA_FILE_PATH = "assets/combinations_data.json"
 STATIC_DB_NAME = "combinations"
 STATIC_COLLECTION_NAME = "combinations"
@@ -45,6 +46,8 @@ class Database:
             print("cannot initialize static DB!")
             print(e)
             return False
+
+
 
     def get_next_combination(self):
         self.current_combination = self.static_db[STATIC_COLLECTION_NAME].find_one({"_id": str(self.current_combination_id)})
@@ -98,3 +101,100 @@ class Database:
             print(e)
         finally:
             return combination
+
+
+def generate_combinations():
+    try:
+        with open(COMPILATION_PARAMS_FILE_PATH, 'r') as f:
+            comb_array = json_util.loads(f.read())
+            for current_id, comb in enumerate(comb_array, 1):
+                print(comb["compiler"])
+                compiler = comb["compiler"]
+                essential_valued_params_list = generate_valued_params_list(comb["essential_params"]["valued"], True)
+                essential_valued_params_list = mult_lists(essential_valued_params_list)
+                essential_toggle_params_list = generate_toggle_params_list(comb["essential_params"]["toggle"], True)
+                essential_toggle_params_list = mult_lists(essential_toggle_params_list)
+
+                optional_valued_params_list = generate_valued_params_list(comb["optional_params"]["valued"])
+                optional_valued_params_list = mult_lists(optional_valued_params_list)
+                optional_toggle_params_list = generate_toggle_params_list(comb["optional_params"]["toggle"])
+                optional_toggle_params_list = mult_lists(optional_toggle_params_list)
+
+                all_combs = [essential_valued_params_list, essential_toggle_params_list, optional_valued_params_list, optional_toggle_params_list]
+                all_combs = [x for x in all_combs if x != [] and x != [""]]
+                all_combs = mult_lists(all_combs)
+
+                print(len(all_combs))
+
+                print(all_combs)
+
+                #TODO: add env flags to all combinations, create the combinations and push them to mongoDB
+
+            return True
+
+    except Exception as e:
+        print("cannot initialize static DB!")
+        print(e)
+        return False
+
+
+def generate_toggle_params_list(toggle, mandatory=False):
+    lst = []
+
+    for val in toggle:
+        lst.append(generate_toggle_params(val, mandatory))
+
+    return lst
+
+
+def generate_toggle_params(toggle, mandatory=False):
+    if not toggle:
+        return [""]
+
+    lst = []
+
+    if not mandatory:
+        lst.append("")
+
+    lst.append(toggle)
+
+    return lst
+
+
+def generate_valued_params(valued, mandatory=False):
+    if not valued:
+        return [""]
+
+    lst = []
+
+    if not mandatory:
+        lst.append("")
+
+    param = valued["param"]
+    annotation = valued["annotation"]
+
+    for val in valued["values"]:
+        lst.append(param + annotation + str(val))
+
+    return lst
+
+
+def generate_valued_params_list(valued_list, mandatory=False):
+    lst = []
+
+    for valued in valued_list:
+        lst.append(generate_valued_params(valued, mandatory))
+
+    return lst
+
+
+def mult_lists(lst):
+    mult_list = []
+    for i in itertools.product(*lst):
+        i = list(filter(None, list(i))) # remove white spaces
+        mult_list.append(" ".join(i))
+    return mult_list
+
+
+
+generate_combinations()

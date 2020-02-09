@@ -24,7 +24,7 @@ class Autopar(ParallelCompiler):
     @staticmethod
     def run_autopar(file_name, file_full_path, options):
         print("Parallelizing " + file_name)
-        command = ['module load autopar; autoPar {0} -rose:o {1} {2}'.format(" ".join(options), file_name, file_name)]
+        command = [f'module load autopar; autoPar {" ".join(options)} -c {file_name}']
         output = subprocess.check_output(command, shell=True, cwd=os.path.dirname(file_full_path))
         print('autopar compilation output: ' + str(output))
         print("Done parallel work")
