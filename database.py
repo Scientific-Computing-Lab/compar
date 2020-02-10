@@ -4,6 +4,7 @@ from bson import json_util
 from exceptions import DatabaseError
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
+ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
 COMBINATIONS_DATA_FILE_PATH = "assets/combinations_data.json"
 STATIC_DB_NAME = "combinations"
 STATIC_COLLECTION_NAME = "combinations"
@@ -105,6 +106,11 @@ class Database:
 
 def generate_combinations():
     try:
+        env_params = []
+        with open(ENVIRONMENT_PARAMS_FILE_PATH, 'r') as f:
+            env_array = json_util.loads(f.read())
+            for param in env_array:
+                env_params.append(generate_env_params(param))
         with open(COMPILATION_PARAMS_FILE_PATH, 'r') as f:
             comb_array = json_util.loads(f.read())
             for current_id, comb in enumerate(comb_array, 1):
@@ -140,10 +146,8 @@ def generate_combinations():
 
 def generate_toggle_params_list(toggle, mandatory=False):
     lst = []
-
     for val in toggle:
         lst.append(generate_toggle_params(val, mandatory))
-
     return lst
 
 
@@ -172,21 +176,26 @@ def generate_valued_params(valued, mandatory=False):
 
     param = valued["param"]
     annotation = valued["annotation"]
-
     for val in valued["values"]:
         lst.append(param + annotation + str(val))
-
     return lst
 
 
 def generate_valued_params_list(valued_list, mandatory=False):
     lst = []
-
     for valued in valued_list:
         lst.append(generate_valued_params(valued, mandatory))
-
     return lst
 
+
+def generate_env_params(param):
+    if not param:
+        return [""]
+    lst = []
+    param_name = param["param"]
+    for val in param["vals"]:
+        lst.append("{0}({1})".format(param_name, val))
+    return lst
 
 def mult_lists(lst):
     mult_list = []
