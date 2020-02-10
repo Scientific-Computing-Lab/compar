@@ -36,19 +36,16 @@ class Database:
 
     def initialize_static_db(self):
         try:
-            with open(COMBINATIONS_DATA_FILE_PATH, 'r') as f:
-                comb_array = json_util.loads(f.read())
-                for current_id, comb in enumerate(comb_array, 1):
-                    comb["_id"] = str(current_id)
-                    self.static_db[STATIC_COLLECTION_NAME].insert_one(comb)
-                return True
+            comb_array = generate_combinations()
+            for current_id, comb in enumerate(comb_array, 1):
+                comb["_id"] = str(current_id)
+                self.static_db[STATIC_COLLECTION_NAME].insert_one(comb)
+            return True
 
         except Exception as e:
             print("cannot initialize static DB!")
             print(e)
             return False
-
-
 
     def get_next_combination(self):
         self.current_combination = self.static_db[STATIC_COLLECTION_NAME].find_one({"_id": str(self.current_combination_id)})
@@ -107,14 +104,16 @@ class Database:
 def generate_combinations():
     try:
         env_params = []
+        combinations = []
         with open(ENVIRONMENT_PARAMS_FILE_PATH, 'r') as f:
             env_array = json_util.loads(f.read())
             for param in env_array:
                 env_params.append(generate_env_params(param))
+            env_params = mult_lists(env_params)
+
         with open(COMPILATION_PARAMS_FILE_PATH, 'r') as f:
             comb_array = json_util.loads(f.read())
             for current_id, comb in enumerate(comb_array, 1):
-                print(comb["compiler"])
                 compiler = comb["compiler"]
                 essential_valued_params_list = generate_valued_params_list(comb["essential_params"]["valued"], True)
                 essential_valued_params_list = mult_lists(essential_valued_params_list)
@@ -130,13 +129,23 @@ def generate_combinations():
                 all_combs = [x for x in all_combs if x != [] and x != [""]]
                 all_combs = mult_lists(all_combs)
 
-                print(len(all_combs))
+                # print(comb["compiler"])
+                # print(len(all_combs))
+                # print(all_combs)
 
-                print(all_combs)
+                for compile_comb in all_combs:
+                    for env_comb in env_params:
+                        new_comb = {
+                            "compiler_name": compiler,
+                            "parameters": {
+                                "env_params": env_comb,
+                                "code_params": [],
+                                "compilation_params": compile_comb
+                            }
+                        }
+                        combinations.append(new_comb)
 
-                #TODO: add env flags to all combinations, create the combinations and push them to mongoDB
-
-            return True
+            return combinations
 
     except Exception as e:
         print("cannot initialize static DB!")
@@ -194,7 +203,7 @@ def generate_env_params(param):
     lst = []
     param_name = param["param"]
     for val in param["vals"]:
-        lst.append("{0}({1})".format(param_name, val))
+        lst.append("{0}({1});".format(param_name, val))
     return lst
 
 def mult_lists(lst):
@@ -206,4 +215,4 @@ def mult_lists(lst):
 
 
 
-generate_combinations()
+# print(generate_combinations())
