@@ -45,7 +45,7 @@ class Database:
         except Exception as e:
             print("cannot initialize static DB!")
             print(e)
-            return False
+            raise DatabaseError()
 
     def get_next_combination(self):
         self.current_combination = self.static_db[STATIC_COLLECTION_NAME].find_one({"_id": str(self.current_combination_id)})
@@ -102,55 +102,53 @@ class Database:
 
 
 def generate_combinations():
-    try:
-        env_params = []
-        combinations = []
-        with open(ENVIRONMENT_PARAMS_FILE_PATH, 'r') as f:
-            env_array = json_util.loads(f.read())
-            for param in env_array:
-                env_params.append(generate_env_params(param))
-            env_params = mult_lists(env_params)
+    env_params = []
+    combinations = []
+    with open(ENVIRONMENT_PARAMS_FILE_PATH, 'r') as f:
+        env_array = json_util.loads(f.read())
+        for param in env_array:
+            env_params.append(generate_env_params(param))
+        env_params = mult_lists(env_params)
 
-        with open(COMPILATION_PARAMS_FILE_PATH, 'r') as f:
-            comb_array = json_util.loads(f.read())
-            for current_id, comb in enumerate(comb_array, 1):
-                compiler = comb["compiler"]
-                essential_valued_params_list = generate_valued_params_list(comb["essential_params"]["valued"], True)
-                essential_valued_params_list = mult_lists(essential_valued_params_list)
-                essential_toggle_params_list = generate_toggle_params_list(comb["essential_params"]["toggle"], True)
-                essential_toggle_params_list = mult_lists(essential_toggle_params_list)
+    with open(COMPILATION_PARAMS_FILE_PATH, 'r') as f:
+        comb_array = json_util.loads(f.read())
+        for comb in comb_array:
+            compiler = comb["compiler"]
+            essential_valued_params_list = generate_valued_params_list(comb["essential_params"]["valued"], True)
+            essential_valued_params_list = mult_lists(essential_valued_params_list)
+            essential_toggle_params_list = generate_toggle_params_list(comb["essential_params"]["toggle"], True)
+            essential_toggle_params_list = mult_lists(essential_toggle_params_list)
 
-                optional_valued_params_list = generate_valued_params_list(comb["optional_params"]["valued"])
-                optional_valued_params_list = mult_lists(optional_valued_params_list)
-                optional_toggle_params_list = generate_toggle_params_list(comb["optional_params"]["toggle"])
-                optional_toggle_params_list = mult_lists(optional_toggle_params_list)
+            optional_valued_params_list = generate_valued_params_list(comb["optional_params"]["valued"])
+            optional_valued_params_list = mult_lists(optional_valued_params_list)
+            optional_toggle_params_list = generate_toggle_params_list(comb["optional_params"]["toggle"])
+            optional_toggle_params_list = mult_lists(optional_toggle_params_list)
 
-                all_combs = [essential_valued_params_list, essential_toggle_params_list, optional_valued_params_list, optional_toggle_params_list]
-                all_combs = [x for x in all_combs if x != [] and x != [""]]
-                all_combs = mult_lists(all_combs)
+            all_combs = [essential_valued_params_list, essential_toggle_params_list, optional_valued_params_list, optional_toggle_params_list]
+            all_combs = [x for x in all_combs if x != []]
+            all_combs = mult_lists(all_combs)
 
-                # print(comb["compiler"])
-                # print(len(all_combs))
-                # print(all_combs)
-
-                for compile_comb in all_combs:
-                    for env_comb in env_params:
-                        new_comb = {
-                            "compiler_name": compiler,
-                            "parameters": {
-                                "env_params": env_comb,
-                                "code_params": [],
-                                "compilation_params": compile_comb
-                            }
+            for compile_comb in all_combs:
+                for env_comb in env_params:
+                    if not env_comb:
+                        curr_env_comb = []
+                    else:
+                        curr_env_comb = env_comb.split(" ")
+                    if not compile_comb:
+                        curr_compile_comb = []
+                    else:
+                        curr_compile_comb = compile_comb.split(" ")
+                    new_comb = {
+                        "compiler_name": compiler,
+                        "parameters": {
+                            "env_params": curr_env_comb,
+                            "code_params": [],
+                            "compilation_params": curr_compile_comb
                         }
-                        combinations.append(new_comb)
+                    }
+                    combinations.append(new_comb)
+        return combinations
 
-            return combinations
-
-    except Exception as e:
-        print("cannot initialize static DB!")
-        print(e)
-        return False
 
 
 def generate_toggle_params_list(toggle, mandatory=False):
@@ -165,12 +163,9 @@ def generate_toggle_params(toggle, mandatory=False):
         return [""]
 
     lst = []
-
     if not mandatory:
         lst.append("")
-
     lst.append(toggle)
-
     return lst
 
 
@@ -179,7 +174,6 @@ def generate_valued_params(valued, mandatory=False):
         return [""]
 
     lst = []
-
     if not mandatory:
         lst.append("")
 
@@ -206,13 +200,10 @@ def generate_env_params(param):
         lst.append("{0}({1});".format(param_name, val))
     return lst
 
+
 def mult_lists(lst):
     mult_list = []
     for i in itertools.product(*lst):
-        i = list(filter(None, list(i))) # remove white spaces
+        i = list(filter(None, list(i)))  # remove white spaces
         mult_list.append(" ".join(i))
     return mult_list
-
-
-
-# print(generate_combinations())
