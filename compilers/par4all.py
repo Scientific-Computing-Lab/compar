@@ -54,10 +54,17 @@ class Par4all(ParallelCompiler):
         pips_stub_path = os.path.join(self.get_input_file_directory(), 'pips_stubs.c')
         if os.path.exists(pips_stub_path):
             files_to_compile.append(pips_stub_path)
-        command = 'module load par4all && source $set_p4a_env && p4a -v -O  ' + ' '.join(files_to_compile)
+        try:
+            previous_path = os.environ['PATH']
+        except KeyError:
+            previous_path = ''
+        command = 'export PATH=/usr/bin/python3:$PATH'
+        command += ' && module load par4all && source $set_p4a_env'
+        command += ' && p4a -v -O  ' + ' '.join(files_to_compile)
         command += ' '.join(map(str, super().get_compilation_flags()))
         if self.__include_dirs_list:
             command += '-I ' + ' '.join(map(str, self.__include_dirs_list))
+        command += ' && export PATH=' + previous_path
         try:
             output = subprocess.check_output([command, ], shell=True, cwd=self.get_input_file_directory())
             print('par4all compilation output: ' + str(output))
