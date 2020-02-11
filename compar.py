@@ -670,3 +670,17 @@ class Compar:
         if not os.path.isdir(combination_folder_path):
             raise e.FolderError(f'Cannot create {combination_folder_path} folder')
         return combination_folder_path
+
+    def remove_timer_code(self, container_folder_path):
+        for c_file_dict in self.make_absolute_file_list(container_folder_path):
+            try:
+                with open(c_file_dict['file_full_path'], 'r') as f:
+                    content = f.read()
+                for loop_id in range(1, self.files_loop_dict[c_file_dict['file_name']] + 1):
+                    # TODO: replace prefix and postfix of loop timer code (variable and file)
+                    pass
+                with open(c_file_dict['file_full_path'], 'w') as f:
+                    f.write(content)
+            except Exception as ex:
+                raise e.FileError('exception in Compar.remove_timer_code: {}'.format(
+                    c_file_dict['file_full_path']) + str(ex))
