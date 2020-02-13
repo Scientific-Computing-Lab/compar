@@ -5,19 +5,49 @@ import exceptions as e
 
 class Timer(object):
 
+    COMPAR_VAR_PREFIX = '____compar____'
     __PREFIX_OUTPUT_FILE = '#)$-@,(&=!+%^____,(&=__compar__@__should_+__be_+%___unique_(&!+$-=!+@%=!'
+    DECL_START_TIME_VAR_CODE = 'double ' + COMPAR_VAR_PREFIX + 'start_time_{};\n'
+    DECL_RUN_TIME_VAR_CODE = 'double ' + COMPAR_VAR_PREFIX + 'run_time_{};\n'
+    DECL_FILE_POINTER_VAR_CODE = 'FILE *' + COMPAR_VAR_PREFIX + 'fp{};\n'
+    INIT_START_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'start_time_{} = omp_get_wtime();\n'
+    INIT_RUN_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'run_time_{} = omp_get_wtime() - ' +\
+                             COMPAR_VAR_PREFIX + 'start_time_{};\n'
+    WRITE_TO_FILE_CODE = COMPAR_VAR_PREFIX + 'fp{} = fopen(\"' + __PREFIX_OUTPUT_FILE + '{}\", \"a\");\n'
+    WRITE_TO_FILE_CODE += 'fprintf(' + COMPAR_VAR_PREFIX + 'fp{}, \"run time of loop %d: %lf\\n\", {}, ' + \
+                          COMPAR_VAR_PREFIX + 'run_time_{});\n'
+    WRITE_TO_FILE_CODE += 'fclose(' + COMPAR_VAR_PREFIX + 'fp{});\n'
 
     @staticmethod
     def get_file_name_prefix_token():
         return Timer.__PREFIX_OUTPUT_FILE
 
+    @staticmethod
+    def get_declarations_code(label):
+        declaration_code = '\n'
+        declaration_code += Timer.DECL_START_TIME_VAR_CODE.format(label)
+        declaration_code += Timer.DECL_RUN_TIME_VAR_CODE.format(label)
+        declaration_code += Timer.DECL_FILE_POINTER_VAR_CODE.format(label)
+        return declaration_code
+
+    @staticmethod
+    def get_prefix_loop_code(label):
+        prefix_loop_code = '\n'
+        prefix_loop_code += Timer.get_declarations_code(label)
+        prefix_loop_code += Timer.INIT_START_TIME_VAR_CODE.format(label)
+        return prefix_loop_code
+
+    @staticmethod
+    def get_suffix_loop_code(label, file_name):
+        suffix_loop_code = '\n'
+        suffix_loop_code += Timer.INIT_RUN_TIME_VAR_CODE.format(label)
+        suffix_loop_code += Timer.WRITE_TO_FILE_CODE.format(label, file_name, label, label, label, label)
+        return suffix_loop_code
+
     def __init__(self, file_path):
         e.assert_file_exist(file_path)
         self.__input_file_path = file_path
         self.__time_result_file = os.path.basename(file_path).split('.')[0] + '_run_time_result.txt'
-        self.__c_code_calculate_initial_time = ''
-        self.__c_code_calculate_run_time = ''
-        self.__c_code_write_to_file = ''
         self.__number_of_loops = 0
         self.__fragmentation = Fragmentator(file_path)
 
@@ -26,15 +56,6 @@ class Timer(object):
 
     def get_time_result_file(self):
         return self.__time_result_file
-
-    def get_c_code_calculate_initial_time(self):
-        return self.__c_code_calculate_initial_time
-
-    def get_c_code_calculate_run_time(self):
-        return self.__c_code_calculate_run_time
-
-    def get_c_code_write_to_file(self):
-        return self.__c_code_write_to_file
 
     def get_fragmentation(self):
         return self.__fragmentation
@@ -49,24 +70,6 @@ class Timer(object):
     def set_time_result_file(self, time_result_file):
         e.assert_file_from_format(time_result_file, 'txt')
         self.__time_result_file = time_result_file
-
-    def set_c_code_calculate_initial_time(self, start_time_label):
-        c_code_initial_time = '\ndouble ' + start_time_label + ';\n' \
-                 + start_time_label + ' = omp_get_wtime();\n'
-        self.__c_code_calculate_initial_time = c_code_initial_time
-
-    def set_c_code_calculate_run_time(self, run_time_label, start_time_label):
-        c_code_run_time = '\ndouble ' + run_time_label + ';\n' \
-                 + run_time_label + ' = omp_get_wtime() - ' + start_time_label + ';\n'
-        self.__c_code_calculate_run_time = c_code_run_time
-
-    def set_c_code_write_to_file(self, fp_label, label, run_time_var):
-        file_name = Timer.__PREFIX_OUTPUT_FILE + self.__time_result_file
-        c_code = 'FILE *' + fp_label + ';\n' \
-                 + fp_label + ' = fopen(\"' + file_name + '\", "a");\n' \
-                 'fprintf(' + fp_label + ', "run time of loop %d: %lf\\n", ' \
-                 + label + ', ' + run_time_var + ');\nfclose(' + fp_label + ');\n'
-        self.__c_code_write_to_file = c_code
 
     def set_fragmentation(self):
         self.__fragmentation = Fragmentator(self.__input_file_path)
@@ -85,15 +88,11 @@ class Timer(object):
         if '#include <stdio.h>' not in input_file_text:
             input_file_text = '#include <stdio.h>\n{}'.format(input_file_text)
         for label, loop_fragment in enumerate(fragments, 1):
-            c_code_start_time_var = '____compar____start_time_' + str(label)
-            c_code_run_time_var = '____compar____run_time_' + str(label)
-            c_code_fp_var = '____compar____fp' + str(label)
-            self.set_c_code_calculate_initial_time(c_code_start_time_var)
-            self.set_c_code_calculate_run_time(c_code_run_time_var, c_code_start_time_var)
-            self.set_c_code_write_to_file(c_code_fp_var, str(label), c_code_run_time_var)
-            loop_with_c_code = loop_fragment['start_label'] + self.__c_code_calculate_initial_time
+            prefix_code = self.get_prefix_loop_code(str(label))
+            suffix_code = self.get_suffix_loop_code(str(label), self.__input_file_path)
+            loop_with_c_code = loop_fragment['start_label'] + prefix_code
             loop_with_c_code += loop_fragment['loop']
-            loop_with_c_code += self.__c_code_calculate_run_time + self.__c_code_write_to_file
+            loop_with_c_code += suffix_code
             loop_with_c_code += loop_fragment['end_label'] + '\n'
             loop_to_replace = loop_fragment['start_label'] + '\n'
             loop_to_replace += loop_fragment['loop']
