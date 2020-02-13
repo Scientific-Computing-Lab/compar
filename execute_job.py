@@ -65,11 +65,23 @@ class Execute_job:
     def __get_free_node_number(self):
         free_node_number_list = self.__get_free_node_number_list()
         if not free_node_number_list:
-            # TODO: all node are busy
+            # all INTEL nodes are busy so choose from my busy node
             my_busy_node_number = Execute_job.MY_BUSY_NUDE_NUMBER_LIST
             if not my_busy_node_number:
-                # TODO:error no node available (need to get random val a index)
-                pass
+                # no INTEL nodes are available change to AMD
+                self.node_number_list = AMD_OPTERON_PROCESSOE_6376
+                #new call to get new AMD node list
+                my_busy_node_number = self.__get_free_node_number_list()
+                if not my_busy_node_number:
+                    # no INTEL and AMD nodes are available change to INTEL and wait
+                    self.node_number_list = INTEL_XEON_CPU_E5_2683_V4
+                    # new call to get new INTEL node list
+                    my_busy_node_number = self.__get_free_node_number_list()
+                    while not my_busy_node_number:
+                        print("All nodes are occupide.")
+                        time.sleep(30)
+                        my_busy_node_number = self.__get_free_node_number_list()
+                       
             return my_busy_node_number[0]
 
         return free_node_number_list[0]
