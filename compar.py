@@ -678,6 +678,8 @@ class Compar:
                     content = f.read()
                 for loop_id in range(1, self.files_loop_dict[c_file_dict['file_name']] + 1):
                     # TODO: replace prefix and postfix of loop timer code (variable and file)
+                    # TODO: get the tokens from the Timer class
+                    # re.sub('double ____compar____[^;]*;', '', content, re.DOTALL)
                     pass
                 with open(c_file_dict['file_full_path'], 'w') as f:
                     f.write(content)
