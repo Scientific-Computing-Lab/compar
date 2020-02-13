@@ -7,7 +7,6 @@ COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
 COMBINATIONS_DATA_FILE_PATH = "assets/combinations_data.json"
 STATIC_DB_NAME = "combinations"
-STATIC_COLLECTION_NAME = "combinations"
 DYNAMIC_DB_NAME = "results"
 DB = "mongodb://10.10.10.120:27017"
 
@@ -23,8 +22,8 @@ class Database:
             self.static_db = self.connection[STATIC_DB_NAME]
             self.dynamic_db = self.connection[DYNAMIC_DB_NAME]
 
-            if STATIC_COLLECTION_NAME not in self.static_db.list_collection_names():
-                self.static_db.create_collection(STATIC_COLLECTION_NAME)
+            if self.collection_name not in self.static_db.list_collection_names():
+                self.static_db.create_collection(self.collection_name)
                 self.initialize_static_db()
 
             if self.collection_name not in self.dynamic_db.list_collection_names():
@@ -39,7 +38,7 @@ class Database:
             comb_array = generate_combinations()
             for current_id, comb in enumerate(comb_array, 1):
                 comb["_id"] = str(current_id)
-                self.static_db[STATIC_COLLECTION_NAME].insert_one(comb)
+                self.static_db[self.collection_name].insert_one(comb)
             return True
 
         except Exception as e:
@@ -48,12 +47,12 @@ class Database:
             raise DatabaseError()
 
     def get_next_combination(self):
-        self.current_combination = self.static_db[STATIC_COLLECTION_NAME].find_one({"_id": str(self.current_combination_id)})
+        self.current_combination = self.static_db[self.collection_name].find_one({"_id": str(self.current_combination_id)})
         self.current_combination_id += 1
         return self.current_combination
 
     def has_next_combination(self):
-        checked_combination = self.static_db[STATIC_COLLECTION_NAME].find_one({"_id": str(self.current_combination_id)})
+        checked_combination = self.static_db[self.collection_name].find_one({"_id": str(self.current_combination_id)})
         return checked_combination is not None
 
     def insert_new_combination(self, combination_result):
@@ -93,7 +92,7 @@ class Database:
     def get_combination_from_static_db(self, combination_id):
         combination = None
         try:
-            combination = self.static_db[STATIC_COLLECTION_NAME].find_one({"_id": combination_id})
+            combination = self.static_db[self.collection_name].find_one({"_id": combination_id})
         except Exception as e:
             print("Could not find combination")
             print(e)
@@ -148,7 +147,6 @@ def generate_combinations():
                     }
                     combinations.append(new_comb)
         return combinations
-
 
 
 def generate_toggle_params_list(toggle, mandatory=False):

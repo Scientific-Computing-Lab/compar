@@ -14,7 +14,7 @@ MIXEDP = GRID + CLUSTES
 
 class Execute_job:
     #TODO: need to ask if it is ok (yoel)
-    MY_BUSY_NUDE_NUMBER_LIST = []
+    MY_BUSY_NODE_NUMBER_LIST = []
 
     def __init__(self, job):
         self.job = job
@@ -60,13 +60,13 @@ class Execute_job:
     def __get_free_node_number_list(self):
         busy_node_number_list = Execute_job.get_list_of_busy_nodes_numbers_from_squeue()
         free_node_number_list = [num for num in self.get_node_number_list() if num not in busy_node_number_list]
-        return [num for num in free_node_number_list if num not in Execute_job.MY_BUSY_NUDE_NUMBER_LIST]
+        return [num for num in free_node_number_list if num not in Execute_job.MY_BUSY_NODE_NUMBER_LIST]
 
     def __get_free_node_number(self):
         free_node_number_list = self.__get_free_node_number_list()
         if not free_node_number_list:
             # all INTEL nodes are busy so choose from my busy node
-            my_busy_node_number = Execute_job.MY_BUSY_NUDE_NUMBER_LIST
+            my_busy_node_number = Execute_job.MY_BUSY_NODE_NUMBER_LIST
             if not my_busy_node_number:
                 # no INTEL nodes are available change to AMD
                 self.node_number_list = AMD_OPTERON_PROCESSOE_6376
@@ -109,7 +109,7 @@ class Execute_job:
             else:
                 flag = flag + "node" + str(node_number)
             new_slurm_parameters.append(flag)
-            Execute_job.MY_BUSY_NUDE_NUMBER_LIST.append(node_number)
+            Execute_job.MY_BUSY_NODE_NUMBER_LIST.append(node_number)
             return new_slurm_parameters
         return user_slurm_parameters.copy()
 
@@ -147,8 +147,8 @@ class Execute_job:
         while os.system(cmd) == 0:
             time.sleep(30)
             
-        if Execute_job.MY_BUSY_NUDE_NUMBER_LIST:
-            Execute_job.MY_BUSY_NUDE_NUMBER_LIST.remove(self.get_run_node_number())
+        if Execute_job.MY_BUSY_NODE_NUMBER_LIST:
+            Execute_job.MY_BUSY_NODE_NUMBER_LIST.remove(self.get_run_node_number())
 
     def __make_sbatch_script_file(self):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
