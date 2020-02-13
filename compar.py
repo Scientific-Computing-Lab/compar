@@ -656,12 +656,9 @@ class Compar:
 
     def fragment_and_add_timers(self):
         for c_file_dict in self.make_absolute_file_list(self.original_files_dir):
-            try:
-                self.__timer = Timer(c_file_dict['file_full_path'])
-                self.__timer.inject_timers()
-                self.files_loop_dict[c_file_dict['file_name']] = self.__timer.get_number_of_loops()
-            except e.FileError as err:
-                print(str(err))
+            self.__timer = Timer(c_file_dict['file_full_path'])
+            self.__timer.inject_timers()
+            self.files_loop_dict[c_file_dict['file_name']] = self.__timer.get_number_of_loops()
 
     def create_combination_folder(self, combination_folder_name):
         combination_folder_path = os.path.join(self.combinations_dir, combination_folder_name)
