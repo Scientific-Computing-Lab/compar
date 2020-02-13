@@ -3,6 +3,7 @@ import re
 import subprocess
 # import threading
 import time
+from exceptions import FileError
 
 AMD_OPTERON_PROCESSOE_6376 = list(range(1, 15))
 INTEL_XEON_CPU_E5_2683_V4 = list(range(16, 19)) + list(range(20, 24))#no 15
@@ -164,4 +165,4 @@ class Execute_job:
                                     line = line[line.find(last_string) + len(last_string)::].replace('\n', '').split(':')
                                     self.get_job().set_loop_in_file_results(file_name, line[0], line[1])
                     except OSError as e:
-                        raise Exception(str(e))
+                        raise FileError(str(e))
