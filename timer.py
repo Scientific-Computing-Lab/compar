@@ -41,7 +41,7 @@ class Timer(object):
     @staticmethod
     def get_suffix_loop_code(label, file_name):
         suffix_loop_code = '\n'
-        suffix_loop_code += Timer.INIT_RUN_TIME_VAR_CODE.format(label)
+        suffix_loop_code += Timer.INIT_RUN_TIME_VAR_CODE.format(label, label)
         suffix_loop_code += Timer.WRITE_TO_FILE_CODE.format(label, file_name, label, label, label, label)
         return suffix_loop_code
 
