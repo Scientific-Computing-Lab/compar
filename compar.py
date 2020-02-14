@@ -193,7 +193,7 @@ class Compar:
                     self.parallel_compilation_of_one_combination(current_optimal_combination, combination_folder_path)
 
         # copy final results into this folder
-        final_folder_path = self.create_combination_folder("final_results")
+        final_folder_path = self.create_combination_folder("final_results", base_dir=self.working_directory)
         final_files_list = self.make_absolute_file_list(final_folder_path)
 
         for optimal_file_to_be_cut in optimal_files_to_be_cut:
@@ -670,8 +670,10 @@ class Compar:
             self.__timer.inject_timers()
             self.files_loop_dict[c_file_dict['file_name']] = self.__timer.get_number_of_loops()
 
-    def create_combination_folder(self, combination_folder_name):
-        combination_folder_path = os.path.join(self.combinations_dir, combination_folder_name)
+    def create_combination_folder(self, combination_folder_name, base_dir=None):
+        if not base_dir:
+            base_dir = self.combinations_dir
+        combination_folder_path = os.path.join(base_dir, combination_folder_name)
         os.mkdir(combination_folder_path)
         self.__copy_folder_content(self.original_files_dir, combination_folder_path)
         if not os.path.isdir(combination_folder_path):
