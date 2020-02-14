@@ -10,6 +10,7 @@ from compilers.gcc import Gcc
 from compilers.icc import Icc
 from exceptions import UserInputError
 from executor import Executor
+from file_formator import format_c_code
 from job import Job
 from fragmentator import Fragmentator
 import shutil
@@ -67,6 +68,11 @@ class Compar:
         if pips_stubs_name not in os.listdir(destination_folder_path):
             pips_stubs_path = os.path.join('assets', pips_stubs_name)
             shutil.copy(pips_stubs_path, destination_folder_path)
+
+    @staticmethod
+    def format_c_files(list_of_file_paths):
+        for file_path in list_of_file_paths:
+            format_c_code([file_path, ])
 
     def __init__(self,
                  working_directory,
@@ -198,6 +204,9 @@ class Compar:
             Compar.replace_loops_in_files(optimal_file_to_be_cut['file_full_path'], file_to_be_edited_path,
                                           optimal_file_to_be_cut['start_label'], optimal_file_to_be_cut['end_label'])
 
+        # format all optimal files
+        self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
+
     @staticmethod
     def get_file_content(file_path):
         try:
@@ -218,7 +227,6 @@ class Compar:
         else:
             raise Exception('cannot find loops in file')
 
-
         destination_cut_string = re.search(start_label+"(.+?)"+end_label, destination_file_string, re.DOTALL)
         if destination_cut_string:
             destination_cut_string = destination_cut_string.group()
@@ -227,7 +235,7 @@ class Compar:
 
         destination_file_string = destination_file_string.replace(destination_cut_string, origin_cut_string)
 
-        with open(destination_path,"w") as input_file:
+        with open(destination_path, "w") as input_file:
             input_file.write(destination_file_string)
 
     @staticmethod
