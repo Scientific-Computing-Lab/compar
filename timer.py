@@ -6,6 +6,7 @@ import exceptions as e
 class Timer(object):
 
     COMPAR_VAR_PREFIX = '____compar____'
+    # WARNING! '__PREFIX_OUTPUT_FILE' var cannot contains semicolon!
     __PREFIX_OUTPUT_FILE = '#)$-@,(&=!+%^____,(&=__compar__@__should_+__be_+%___unique_(&!+$-=!+@%=!'
     DECL_START_TIME_VAR_CODE = 'double ' + COMPAR_VAR_PREFIX + 'start_time_{};\n'
     DECL_RUN_TIME_VAR_CODE = 'double ' + COMPAR_VAR_PREFIX + 'run_time_{};\n'
@@ -47,7 +48,8 @@ class Timer(object):
     def __init__(self, file_path):
         e.assert_file_exist(file_path)
         self.__input_file_path = file_path
-        self.__time_result_file = os.path.basename(file_path).split('.')[0] + '_run_time_result.txt'
+        self.__time_result_file = str(os.path.basename(file_path).split('.')[0]) + '_run_time_result.txt'
+        self.__time_result_file = self.__time_result_file.replace(';', '')  # the file name cannot contains semicolon
         self.__number_of_loops = 0
         self.__fragmentation = Fragmentator(file_path)
 
@@ -89,7 +91,7 @@ class Timer(object):
             input_file_text = '#include <stdio.h>\n{}'.format(input_file_text)
         for label, loop_fragment in enumerate(fragments, 1):
             prefix_code = self.get_prefix_loop_code(str(label))
-            suffix_code = self.get_suffix_loop_code(str(label), self.__input_file_path)
+            suffix_code = self.get_suffix_loop_code(str(label), self.__time_result_file)
             loop_with_c_code = loop_fragment['start_label'] + prefix_code
             loop_with_c_code += loop_fragment['loop']
             loop_with_c_code += suffix_code

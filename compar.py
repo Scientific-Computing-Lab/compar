@@ -668,6 +668,28 @@ class Compar:
             raise e.FolderError(f'Cannot create {combination_folder_path} folder')
         return combination_folder_path
 
+    @staticmethod
+    def remove_declaration_code(content):
+        run_time_vars_regex = rf'double[ ]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
+        file_pointer_vars_regex = rf'FILE[ ]*\*[ ]*{Timer.COMPAR_VAR_PREFIX}[^;]+;'
+        content = re.sub(run_time_vars_regex, '', content, re.DOTALL)
+        content = re.sub(file_pointer_vars_regex, '', content, re.DOTALL)
+        return content
+
+    @staticmethod
+    def remove_run_time_calculation_code_code(content):
+        return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+;', '', content, re.DOTALL)
+
+    @staticmethod
+    def remove_writing_to_file_code(content):
+        fopen_regex = rf'{Timer.COMPAR_VAR_PREFIX}[^;]+fopen[^;]+{Timer.get_file_name_prefix_token()}[^;]+;'
+        fprintf_regex = rf'fprintf[^;]{Timer.COMPAR_VAR_PREFIX}[^;];'
+        fclose_regex = rf'fclose[^;]{Timer.COMPAR_VAR_PREFIX}[^;];'
+        content = re.sub(fopen_regex, '', content, re.DOTALL)
+        content = re.sub(fprintf_regex, '', content, re.DOTALL)
+        content = re.sub(fclose_regex, '', content, re.DOTALL)
+        return content
+
     def remove_timer_code(self, container_folder_path):
         for c_file_dict in self.make_absolute_file_list(container_folder_path):
             try:
@@ -675,9 +697,9 @@ class Compar:
                     content = f.read()
                 for loop_id in range(1, self.files_loop_dict[c_file_dict['file_name']] + 1):
                     # TODO: replace prefix and postfix of loop timer code (variable and file)
-                    # TODO: get the tokens from the Timer class
-                    # re.sub('double ____compar____[^;]*;', '', content, re.DOTALL)
-                    pass
+                    content = self.remove_declaration_code(content)
+                    content = self.remove_run_time_calculation_code_code(content)
+                    content = self.remove_writing_to_file_code(content)
                 with open(c_file_dict['file_full_path'], 'w') as f:
                     f.write(content)
             except Exception as ex:
