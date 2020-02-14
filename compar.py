@@ -696,7 +696,6 @@ class Compar:
                 with open(c_file_dict['file_full_path'], 'r') as f:
                     content = f.read()
                 for loop_id in range(1, self.files_loop_dict[c_file_dict['file_name']] + 1):
-                    # TODO: replace prefix and postfix of loop timer code (variable and file)
                     content = self.remove_declaration_code(content)
                     content = self.remove_run_time_calculation_code_code(content)
                     content = self.remove_writing_to_file_code(content)
