@@ -96,6 +96,10 @@ class Timer(object):
             loop_with_c_code += loop_fragment['loop']
             loop_with_c_code += suffix_code
             loop_with_c_code += loop_fragment['end_label'] + '\n'
+
+            if 'return' in loop_with_c_code:
+                loop_with_c_code = loop_with_c_code.replace('return', suffix_code + '\nreturn')
+
             loop_to_replace = loop_fragment['start_label'] + '\n'
             loop_to_replace += loop_fragment['loop']
             loop_to_replace += '\n' + loop_fragment['end_label']
