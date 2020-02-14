@@ -204,6 +204,8 @@ class Compar:
             Compar.replace_loops_in_files(optimal_file_to_be_cut['file_full_path'], file_to_be_edited_path,
                                           optimal_file_to_be_cut['start_label'], optimal_file_to_be_cut['end_label'])
 
+        self.remove_timer_code(final_folder_path)
+
         # format all optimal files
         self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
 
@@ -686,13 +688,13 @@ class Compar:
 
     @staticmethod
     def remove_run_time_calculation_code_code(content):
-        return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+;', '', content, re.DOTALL)
+        return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, re.DOTALL)
 
     @staticmethod
     def remove_writing_to_file_code(content):
-        fopen_regex = rf'{Timer.COMPAR_VAR_PREFIX}[^;]+fopen[^;]+{Timer.get_file_name_prefix_token()}[^;]+;'
-        fprintf_regex = rf'fprintf[^;]{Timer.COMPAR_VAR_PREFIX}[^;];'
-        fclose_regex = rf'fclose[^;]{Timer.COMPAR_VAR_PREFIX}[^;];'
+        fopen_regex = rf'{Timer.COMPAR_VAR_PREFIX}[^;]+fopen[^;]+{re.escape(Timer.get_file_name_prefix_token())}[^;]+;'
+        fprintf_regex = rf'fprintf[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
+        fclose_regex = rf'fclose[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
         content = re.sub(fopen_regex, '', content, re.DOTALL)
         content = re.sub(fprintf_regex, '', content, re.DOTALL)
         content = re.sub(fclose_regex, '', content, re.DOTALL)
@@ -703,10 +705,9 @@ class Compar:
             try:
                 with open(c_file_dict['file_full_path'], 'r') as f:
                     content = f.read()
-                for loop_id in range(1, self.files_loop_dict[c_file_dict['file_name']] + 1):
-                    content = self.remove_declaration_code(content)
-                    content = self.remove_run_time_calculation_code_code(content)
-                    content = self.remove_writing_to_file_code(content)
+                content = self.remove_declaration_code(content)
+                content = self.remove_run_time_calculation_code_code(content)
+                content = self.remove_writing_to_file_code(content)
                 with open(c_file_dict['file_full_path'], 'w') as f:
                     f.write(content)
             except Exception as ex:
