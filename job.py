@@ -99,9 +99,9 @@ class Job:
 
         raise Exception("File name: " + str(file_name) + " does not exist.")
 
-    def set_loop_in_file_results(self, file_name, loop_label, run_time, speedup=0):
+    def set_loop_in_file_results(self, file_id_by_rel_path, loop_label, run_time, speedup=0):
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_name:
+            if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
                         loop["run_time"] = run_time
@@ -113,7 +113,7 @@ class Job:
                                       "speedup": speedup})
                 return
 
-        raise Exception("File name: " + str(file_name) + " does not exist.")
+        raise Exception("File name: " + str(file_id_by_rel_path) + " does not exist.")
 
     def get_loop_in_file_results(self, file_name, loop_label):
         for file in self.job_results['run_time_results']:
@@ -125,16 +125,17 @@ class Job:
 
         raise Exception("File name: " + str(file_name) + " does not exist.")
 
-    def set_loop_speedup_in_file_results(self, file_name, loop_label, speedup):
+    def set_loop_speedup_in_file_results(self, file_id_by_rel_path, loop_label, speedup):
+        # TODO: change to rel file path
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_name:
+            if file['file_name'] == file_id_by_rel_path:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
                         loop["speedup"] = speedup
                         return
 
                 raise Exception("Loop label: " + str(loop_label) + " does not exist.")
-        raise Exception("File name: " + str(file_name) + " does not exist.")
+        raise Exception("File name: " + str(file_id_by_rel_path) + " does not exist.")
 
     def get_loop_speedup_in_file_results(self, file_name, loop_label):
         for file in self.job_results['run_time_results']:

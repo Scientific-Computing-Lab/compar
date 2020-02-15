@@ -165,11 +165,11 @@ class Compar:
         final_folder_path = self.create_combination_folder("final_results", base_dir=self.working_directory)
         final_files_list = self.make_absolute_file_list(final_folder_path)
 
-        for file_name, num_of_loops in self.files_loop_dict.items():
+        for file_id_by_rel_path, num_of_loops in self.files_loop_dict.items():
             for loop_id in range(1, num_of_loops+1):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
                 end_label = Fragmentator.get_end_label()+str(loop_id)
-                current_optimal_id = self.db.find_optimal_loop_combination(file_name, str(loop_id))
+                current_optimal_id = self.db.find_optimal_loop_combination(file_id_by_rel_path, str(loop_id))
 
                 # if the optimal combination is the serial => do nothing
                 if current_optimal_id != 0:
@@ -180,14 +180,15 @@ class Compar:
                     files_list = self.make_absolute_file_list(combination_folder_path)
 
                     # get direct file path to inject params
-                    src_file_path = list(filter(lambda x: x is not file_name, files_list))
+                    src_file_path = list(filter(lambda x: x['file_id_by_rel_path'] != file_id_by_rel_path, files_list))
                     src_file_path = src_file_path[0]['file_full_path']
 
                     # parallelize and inject
                     self.parallel_compilation_of_one_combination(current_optimal_combination, combination_folder_path)
 
                     # replace loop in c file using final_files_list
-                    target_file_path = list(filter(lambda x: x is not file_name, final_files_list))
+                    target_file_path = list(filter(lambda x: x['file_id_by_rel_path'] != file_id_by_rel_path,
+                                                   final_files_list))
                     target_file_path = target_file_path[0]['file_full_path']
 
                     Compar.replace_loops_in_files(src_file_path, target_file_path, start_label, end_label)
@@ -256,14 +257,6 @@ class Compar:
     def get_run_time_serial_results(self):
         return self.run_time_serial_results
 
-    def get_runtime_from_run_time_serial_results(self, file_name, loop_label):
-        key = file_name, loop_label
-        value = self.run_time_serial_results.get(key)
-        if value:
-            return value
-        else:
-            raise UserInputError('The input key does not exist')
-
     def get_jobs(self):
         return self.jobs
 
@@ -282,23 +275,6 @@ class Compar:
     def get_relative_c_files_list(self):
         return self.relative_c_file_list
 
-    def get_file_relative_path_from_c_files_list_by_file_name(self, file_name):
-        for file in self.relative_c_file_list:
-            if file['file_name'] == file_name:
-                return file['file_relative_path']
-        raise UserInputError("File name: " + str(file_name) + " does not exist.")
-
-    def get_file_name_from_c_files_list_by_file_relative_path(self, file_relative_path):
-        for file in self.relative_c_file_list:
-            if file['file_relative_path'] == file_relative_path:
-                return file['file_name']
-        raise UserInputError("File full path: " + str(file_relative_path) + " does not exist.")
-
-    def get_file_name_file_relative_path_from_c_files_list_by_file_name(self, file_name):
-        for file in self.relative_c_file_list:
-            if file['file_name'] == file_name:
-                return file
-        raise UserInputError("File name: " + str(file_name) + " does not exist.")
 
     def get_binary_compiler_type(self):
         return self.binary_compiler_type
@@ -321,9 +297,6 @@ class Compar:
     def get_user_cetus_flags(self):
         return self.user_cetus_flags
 
-    def get_user_binary_compiler_flags(self):
-        return self.user_binary_compiler_flags
-
     def get_is_make_file(self):
         return self.is_make_file
 
@@ -339,6 +312,9 @@ class Compar:
     def get_main_file_name(self):
         return self.main_file_name
 
+    def get_user_binary_compiler_flags(self):
+        return self.user_binary_compiler_flags
+
     def get_main_file_parameters(self):
         return self.main_file_parameters
 
@@ -353,10 +329,6 @@ class Compar:
 
     def set_run_time_serial_results(self, run_time_serial_results):
         self.run_time_serial_results = run_time_serial_results
-
-    def set_runtime_from_run_time_serial_results(self, file_name, loop_label, runtime):
-        key = file_name, loop_label
-        self.run_time_serial_results[key] = runtime
 
     def set_jobs(self, jobs):
         self.jobs = jobs
@@ -375,18 +347,6 @@ class Compar:
 
     def set_relative_c_file_list(self, relative_c_file_list):
         self.relative_c_file_list = relative_c_file_list
-
-    def set_file_relative_path_from_c_files_list_by_file_name(self, file_name, file_relative_path):
-        for file in self.relative_c_file_list:
-            if file['file_name'] == file_name:
-                file['file_relative_path'] = file_relative_path
-        self.relative_c_file_list.append({"file_name": file_name, "file_relative_path": file_relative_path})
-
-    def set_file_name_from_c_files_list_by_file_relative_path(self, file_relative_path, file_name):
-        for file in self.relative_c_file_list:
-            if file['file_relative_path'] == file_relative_path:
-                file['file_name'] = file_name
-        self.relative_c_file_list.append({"file_name": file_name, "file_relative_path": file_relative_path})
 
     def set_binary_compiler_type(self, binary_compiler_type):
         self.binary_compiler_type = binary_compiler_type
@@ -415,17 +375,11 @@ class Compar:
     def set_is_make_file(self, is_make_file):
         self.is_make_file = is_make_file
 
-    def set_makefile_name(self):
-        return self.makefile_name
-
     def set_makefile_parameters(self, makefile_parameters):
         self.makefile_parameters = makefile_parameters
 
     def set_makefile_output_files(self, makefile_output_files):
         self.makefile_output_files = makefile_output_files
-
-    def set_main_file_name(self, main_file_name):
-        self.main_file_name = main_file_name
 
     def set_main_file_parameters(self, main_file_parameters):
         self.main_file_parameters = main_file_parameters
@@ -492,8 +446,8 @@ class Compar:
         env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
         for file_dict in self.make_absolute_file_list(combination_folder_path):
             if compiler_name == Compar.CETUS:
-                self.replace_labels(file_dict['file_full_path'], self.files_loop_dict[file_dict['file_name']])
-            for loop_id in range(1, self.files_loop_dict[file_dict['file_name']] + 1):
+                self.replace_labels(file_dict['file_full_path'], self.files_loop_dict[file_dict['file_id_by_rel_path']])
+            for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']] + 1):
                 loop_start_label = Fragmentator.get_start_label() + str(loop_id)
                 self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
 
@@ -513,7 +467,7 @@ class Compar:
     def calculate_speedups(self, job_result_dict):
         for file_result_dict in job_result_dict['run_time_results']:
             for loop_result_dict in file_result_dict['loops']:
-                serial_run_time_key = (file_result_dict['file_name'], loop_result_dict['loop_label'])
+                serial_run_time_key = (file_result_dict['file_id_by_rel_path'], loop_result_dict['loop_label'])
                 loop_serial_runtime = self.run_time_serial_results[serial_run_time_key]
                 loop_parallel_runtime = loop_result_dict['run_time']
                 try:
@@ -599,13 +553,15 @@ class Compar:
             for file in files:
                 if os.path.splitext(file)[1] == '.c':
                     relative_path = os.path.relpath(os.path.join(path, file), base_dir)
+                    # file_name is not unique!
                     file_list.append({"file_name": file, "file_relative_path": relative_path})
         return file_list
 
     def make_absolute_file_list(self, base_dir_path):
         return list(map(lambda file_dict: {'file_name': file_dict['file_name'],
                                            'file_full_path': os.path.join(base_dir_path,
-                                                                          file_dict['file_relative_path'])
+                                                                          file_dict['file_relative_path']),
+                                           'file_id_by_rel_path': file_dict['file_relative_path']
                                            }, self.relative_c_file_list))
 
     def __run_binary_compiler(self, serial_dir_path):
@@ -640,11 +596,11 @@ class Compar:
 
         # update run_time_serial_results
         for file in self.make_absolute_file_list(serial_dir_path):
-            run_time_result_loops = job.get_file_results_loops(file['file_name'])
+            run_time_result_loops = job.get_file_results_loops(file['file_id_by_rel_path'])
             for loop in run_time_result_loops:
-                job.set_loop_speedup_in_file_results(file_name=file['file_name'], loop_label=loop['loop_label'], speedup=1.0)
-
-                key = file['file_name'], loop['loop_label']
+                job.set_loop_speedup_in_file_results(file_id_by_rel_path=file['file_id_by_rel_path'],
+                                                     loop_label=loop['loop_label'], speedup=1.0)
+                key = file['file_id_by_rel_path'], loop['loop_label']
                 value = loop['run_time']
                 self.run_time_serial_results[key] = value
 
@@ -656,7 +612,7 @@ class Compar:
         for c_file_dict in self.make_absolute_file_list(self.original_files_dir):
             self.__timer = Timer(c_file_dict['file_full_path'])
             self.__timer.inject_timers()
-            self.files_loop_dict[c_file_dict['file_name']] = self.__timer.get_number_of_loops()
+            self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = self.__timer.get_number_of_loops()
 
     def create_combination_folder(self, combination_folder_name, base_dir=None):
         if not base_dir:

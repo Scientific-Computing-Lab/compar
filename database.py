@@ -5,7 +5,6 @@ from exceptions import DatabaseError
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
-COMBINATIONS_DATA_FILE_PATH = "assets/combinations_data.json"
 STATIC_DB_NAME = "combinations"
 DYNAMIC_DB_NAME = "results"
 DB = "mongodb://10.10.10.120:27017"
@@ -73,19 +72,21 @@ class Database:
             print(e)
             return False
 
-    def find_optimal_loop_combination(self, file_name, loop_label):
+    def find_optimal_loop_combination(self, file_id_by_rel_path, loop_label):
         best_speedup = 1
         best_combination_id = 0
         combinations = self.dynamic_db[self.collection_name].find({})
         for combination in combinations:
             if 'error' not in combination.keys():
                 for file in combination['run_time_results']:
-                    if file['file_name'] == file_name:
+                    if file['file_id_by_rel_path'] == file_id_by_rel_path:
                         for loop in file['loops']:
                             if loop['loop_label'] == loop_label:
                                 if loop['speedup'] > best_speedup:
                                     best_speedup = loop['speedup']
                                     best_combination_id = combination['_id']
+                                break
+                        break
 
         return best_combination_id
 
@@ -123,7 +124,8 @@ def generate_combinations():
             optional_toggle_params_list = generate_toggle_params_list(comb["optional_params"]["toggle"])
             optional_toggle_params_list = mult_lists(optional_toggle_params_list)
 
-            all_combs = [essential_valued_params_list, essential_toggle_params_list, optional_valued_params_list, optional_toggle_params_list]
+            all_combs = [essential_valued_params_list, essential_toggle_params_list, optional_valued_params_list,
+                         optional_toggle_params_list]
             all_combs = [x for x in all_combs if x != []]
             all_combs = mult_lists(all_combs)
 

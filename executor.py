@@ -1,5 +1,4 @@
 import execute_job
-import os
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -12,6 +11,6 @@ class Executor:
             slurm_parameters = []
         pool = ThreadPoolExecutor(max_workers=number_of_threads)
         for job in jobs:
-            pool.submit(execute_job.Execute_job(job).run, slurm_parameters)
+            pool.submit(execute_job.ExecuteJob(job).run, slurm_parameters)
         pool.shutdown()
         return jobs
