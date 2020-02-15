@@ -21,14 +21,19 @@ class Database:
             self.static_db = self.connection[STATIC_DB_NAME]
             self.dynamic_db = self.connection[DYNAMIC_DB_NAME]
 
-            if self.collection_name not in self.static_db.list_collection_names():
-                self.static_db.create_collection(self.collection_name)
-                self.initialize_static_db()
+            if self.collection_name in self.static_db.list_collection_names():
+                # TODO: should be depend on users choice
+                self.static_db.drop_collection(self.collection_name)
 
-            if self.collection_name not in self.dynamic_db.list_collection_names():
-                self.dynamic_db.create_collection(self.collection_name)
-            else:
-                raise DatabaseError("results DB already has {0} name collection!".format(self.collection_name))
+            self.static_db.create_collection(self.collection_name)
+            self.initialize_static_db()
+
+            if self.collection_name in self.dynamic_db.list_collection_names():
+                # raise DatabaseError("results DB already has {0} name collection!".format(self.collection_name))
+                self.dynamic_db.drop_collection(self.collection_name)
+
+            self.dynamic_db.create_collection(self.collection_name)
+
         except Exception as e:
             raise DatabaseError(str(e) + "\nFailed to initialize DB!")
 
