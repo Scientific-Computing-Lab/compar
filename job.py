@@ -12,7 +12,7 @@ class Job:
 
     Data structures of job_results: {'_id' : "1234" ,
                                     'job_id':"1232132132",
-                                    'run_time_results': [ { 'file_name' : "1234.C" ,
+                                    'run_time_results': [ { 'file_id_by_rel_path' : "/test1/1234.C" ,
                                                                  'loops' : [ { 'loop_label' : "#123"
                                                                                'run_time' : "20"
                                                                                'speedup' : "1.25"
@@ -72,32 +72,31 @@ class Job:
     def get_job_results(self):
         return self.job_results
 
-    def set_file_results(self, file_name):
+    def set_file_results(self, file_id_by_rel_path):
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_name:
+            if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 file['loops'] = []
                 return
-        self.job_results['run_time_results'].append({'file_name': file_name, 'loops': []})
+        self.job_results['run_time_results'].append({'file_id_by_rel_path': file_id_by_rel_path, 'loops': []})
 
-    def get_file_results(self, file_name):
+    def get_file_results(self, file_id_by_rel_path):
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_name:
+            if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 return file
-        raise Exception("File name: " + str(file_name) + " does not exist.")
+        raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def set_file_results_loops(self, file_name, loops):
+    def set_file_results_loops(self, file_id_by_rel_path, loops):
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_name:
+            if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 file['loops'] = loops
                 return
-        self.job_results['run_time_results'].append({'file_name': file_name, 'loops': loops})
+        self.job_results['run_time_results'].append({'file_id_by_rel_path': file_id_by_rel_path, 'loops': loops})
 
-    def get_file_results_loops(self, file_name):
+    def get_file_results_loops(self, file_id_by_rel_path):
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_name:
+            if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 return file['loops']
-
-        raise Exception("File name: " + str(file_name) + " does not exist.")
+        raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
     def set_loop_in_file_results(self, file_id_by_rel_path, loop_label, run_time, speedup=0):
         for file in self.job_results['run_time_results']:
@@ -107,63 +106,54 @@ class Job:
                         loop["run_time"] = run_time
                         loop["speedup"] = speedup
                         return
-
                 file['loops'].append({"loop_label": str(loop_label),
                                       "run_time": run_time,
                                       "speedup": speedup})
                 return
+        raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-        raise Exception("File name: " + str(file_id_by_rel_path) + " does not exist.")
-
-    def get_loop_in_file_results(self, file_name, loop_label):
+    def get_loop_in_file_results(self, file_id_by_rel_path, loop_label):
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_name:
-
+            if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
                         return loop
-
-        raise Exception("File name: " + str(file_name) + " does not exist.")
+        raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
     def set_loop_speedup_in_file_results(self, file_id_by_rel_path, loop_label, speedup):
-        # TODO: change to rel file path
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_id_by_rel_path:
+            if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
                         loop["speedup"] = speedup
                         return
-
                 raise Exception("Loop label: " + str(loop_label) + " does not exist.")
-        raise Exception("File name: " + str(file_id_by_rel_path) + " does not exist.")
+        raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def get_loop_speedup_in_file_results(self, file_name, loop_label):
+    def get_loop_speedup_in_file_results(self, file_id_by_rel_path, loop_label):
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_name:
+            if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
                         return loop["speedup"]
-
                 raise Exception("Loop label: " + str(loop_label) + " does not exist.")
-        raise Exception("File name: " + str(file_name) + " does not exist.")
+        raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def set_loop_run_time_in_file_results(self, file_name, loop_label, run_time):
+    def set_loop_run_time_in_file_results(self, file_id_by_rel_path, loop_label, run_time):
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_name:
+            if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
                         loop["run_time"] = run_time
                         return
-
                 raise Exception("Loop label: " + str(loop_label) + " does not exist.")
-        raise Exception("File name: " + str(file_name) + " does not exist.")
+        raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def get_loop_run_time_in_file_results(self, file_name, loop_label):
+    def get_loop_run_time_in_file_results(self, file_id_by_rel_path, loop_label):
         for file in self.job_results['run_time_results']:
-            if file['file_name'] == file_name:
+            if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:
                     if loop["loop_label"] == str(loop_label):
                         return loop["run_time"]
-
                 raise Exception("Loop label: " + str(loop_label) + " does not exist.")
-        raise Exception("File name: " + str(file_name) + " does not exist.")
+        raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")

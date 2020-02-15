@@ -168,15 +168,15 @@ class ExecuteJob:
         for root, dirs, files in os.walk(self.get_job().get_directory_path()):
             for file in files:
                 if re.search("_run_time_result.txt$", file):
-                    # TODO: change to rel file path
-                    file_name = str(file.split("_run_time_result.txt")[0]) + ".c"
                     file_full_path = os.path.join(root, file)
-                    self.get_job().set_file_results(file_name)
+                    file_id_by_rel_path = os.path.relpath(file_full_path, self.job.directory)
+                    file_id_by_rel_path = file_id_by_rel_path.replace("_run_time_result.txt", ".c")
+                    self.get_job().set_file_results(file_id_by_rel_path)
                     try:
                         with open(file_full_path, 'r') as input_file:
                             for line in input_file:
                                 if ":" in line:
                                     line = line[line.find(last_string) + len(last_string)::].replace('\n', '').split(':')
-                                    self.get_job().set_loop_in_file_results(file_name, line[0], line[1])
+                                    self.get_job().set_loop_in_file_results(file_id_by_rel_path, line[0], line[1])
                     except OSError as e:
                         raise FileError(str(e))

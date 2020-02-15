@@ -419,7 +419,7 @@ class Compar:
             with open(c_file_dict['file_full_path'], 'r') as f:
                 file_content = f.read()
             old_prefix = Timer.get_file_name_prefix_token()
-            new_prefix = container_folder_path + os.sep
+            new_prefix = os.path.dirname(c_file_dict['file_full_path']) + os.sep
             file_content = file_content.replace(old_prefix, new_prefix)
             with open(c_file_dict['file_full_path'], 'w') as f:
                 f.write(file_content)
