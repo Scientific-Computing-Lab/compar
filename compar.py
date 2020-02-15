@@ -180,14 +180,14 @@ class Compar:
                     files_list = self.make_absolute_file_list(combination_folder_path)
 
                     # get direct file path to inject params
-                    src_file_path = list(filter(lambda x: x['file_id_by_rel_path'] != file_id_by_rel_path, files_list))
+                    src_file_path = list(filter(lambda x: x['file_id_by_rel_path'] == file_id_by_rel_path, files_list))
                     src_file_path = src_file_path[0]['file_full_path']
 
                     # parallelize and inject
                     self.parallel_compilation_of_one_combination(current_optimal_combination, combination_folder_path)
 
                     # replace loop in c file using final_files_list
-                    target_file_path = list(filter(lambda x: x['file_id_by_rel_path'] != file_id_by_rel_path,
+                    target_file_path = list(filter(lambda x: x['file_id_by_rel_path'] == file_id_by_rel_path,
                                                    final_files_list))
                     target_file_path = target_file_path[0]['file_full_path']
 
