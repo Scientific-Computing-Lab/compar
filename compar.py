@@ -161,7 +161,9 @@ class Compar:
         self.db = Database(self.__extract_working_directory_name())
 
     def generate_optimal_code(self):
-        optimal_files_to_be_cut = []
+        # copy final results into this folder
+        final_folder_path = self.create_combination_folder("final_results", base_dir=self.working_directory)
+        final_files_list = self.make_absolute_file_list(final_folder_path)
 
         for file_name, num_of_loops in self.files_loop_dict.items():
             for loop_id in range(1, num_of_loops+1):
@@ -171,38 +173,25 @@ class Compar:
 
                 # if the optimal combination is the serial => do nothing
                 if current_optimal_id != 0:
-                    current_optimal_combination = self.__combination_json_to_obj(self.db.get_combination_from_static_db(current_optimal_id))
-
-                    combination_folder_path = self.create_combination_folder(file_name+"_"+str(loop_id))
+                    current_optimal_combination = self.__combination_json_to_obj(
+                        self.db.get_combination_from_static_db(current_optimal_id))
+                    combination_folder_path = self.create_combination_folder(
+                        "current_combination", base_dir=self.working_directory)
                     files_list = self.make_absolute_file_list(combination_folder_path)
 
                     # get direct file path to inject params
-                    target_file_path = list(filter(lambda x: x is not file_name, files_list))
-                    target_file_path = target_file_path[0]['file_full_path']
-
-                    optimal_files_to_be_cut.append(
-                        {
-                            "file_name": file_name,
-                            "start_label": start_label,
-                            "end_label": end_label,
-                            "file_full_path": target_file_path
-                        }
-                    )
+                    src_file_path = list(filter(lambda x: x is not file_name, files_list))
+                    src_file_path = src_file_path[0]['file_full_path']
 
                     # parallelize and inject
                     self.parallel_compilation_of_one_combination(current_optimal_combination, combination_folder_path)
 
-        # copy final results into this folder
-        final_folder_path = self.create_combination_folder("final_results", base_dir=self.working_directory)
-        final_files_list = self.make_absolute_file_list(final_folder_path)
+                    # replace loop in c file using final_files_list
+                    target_file_path = list(filter(lambda x: x is not file_name, final_files_list))
+                    target_file_path = target_file_path[0]['file_full_path']
 
-        for optimal_file_to_be_cut in optimal_files_to_be_cut:
-            # replace loop in c file using final_files_list
-            file_to_be_edited_path = list(filter(lambda x: x is not optimal_file_to_be_cut['file_name'], final_files_list))
-            file_to_be_edited_path = file_to_be_edited_path[0]['file_full_path']
-
-            Compar.replace_loops_in_files(optimal_file_to_be_cut['file_full_path'], file_to_be_edited_path,
-                                          optimal_file_to_be_cut['start_label'], optimal_file_to_be_cut['end_label'])
+                    Compar.replace_loops_in_files(src_file_path, target_file_path, start_label, end_label)
+                    shutil.rmtree(combination_folder_path)
 
         self.remove_timer_code(final_folder_path)
 
@@ -577,7 +566,6 @@ class Compar:
         os.makedirs(self.combinations_dir, exist_ok=True)
         os.makedirs(self.backup_files_dir, exist_ok=True)
         os.makedirs(self.logs_dir, exist_ok=True)
-        # TODO: create a new folder to the optimal results (code and exe file, maybe json of optimal combinations also)
 
         if os.path.isdir(input_dir):
             self.__copy_folder_content(input_dir, self.original_files_dir)
