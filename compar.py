@@ -79,6 +79,7 @@ class Compar:
                  input_dir,
                  binary_compiler_type,
                  binary_compiler_version,
+                 delete_combinations_folders=True,
                  makefile_name="",
                  makefile_parameters=None,
                  makefile_output_files="",
@@ -106,6 +107,7 @@ class Compar:
         if not slurm_parameters:
             slurm_parameters = []
 
+        self.delete_combinations_folders = delete_combinations_folders
         self.binary_compiler = None
         self.binary_compiler_version = binary_compiler_version
         self.run_time_serial_results = {}
@@ -482,7 +484,8 @@ class Compar:
             job_result_dict = job.get_job_results()
             self.calculate_speedups(job_result_dict)
             self.db.insert_new_combination(job_result_dict)
-            self.__delete_combination_folder(job.get_directory_path())
+            if self.delete_combinations_folders:
+                self.__delete_combination_folder(job.get_directory_path())
         self.jobs.clear()
 
     def save_combination_as_failure(self, combination_id, error_msg, combination_folder_path):
@@ -492,7 +495,8 @@ class Compar:
         }
         self.db.insert_new_combination(combination_dict)
         sleep(1)
-        self.__delete_combination_folder(combination_folder_path)
+        if self.delete_combinations_folders:
+            self.__delete_combination_folder(combination_folder_path)
 
     def run_parallel_combinations(self):
         while self.db.has_next_combination():
@@ -606,7 +610,8 @@ class Compar:
 
         # update database
         self.db.insert_new_combination(job.get_job_results())
-        self.__delete_combination_folder(serial_dir_path)
+        if self.delete_combinations_folders:
+            self.__delete_combination_folder(serial_dir_path)
 
     def fragment_and_add_timers(self):
         for c_file_dict in self.make_absolute_file_list(self.original_files_dir):
