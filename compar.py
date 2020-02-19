@@ -110,7 +110,6 @@ class Compar:
         self.delete_combinations_folders = delete_combinations_folders
         self.binary_compiler = None
         self.binary_compiler_version = binary_compiler_version
-        self.run_time_serial_results = {}
         self.jobs = []
         self.__timer = None
         self.__max_combinations_at_once = 20
@@ -163,6 +162,8 @@ class Compar:
         self.db = Database(self.__extract_working_directory_name())
 
     def generate_optimal_code(self):
+        self.calculate_speedups()
+
         # copy final results into this folder
         final_folder_path = self.create_combination_folder("final_results", base_dir=self.working_directory)
         final_files_list = self.make_absolute_file_list(final_folder_path)
@@ -256,9 +257,6 @@ class Compar:
     def get_binary_compiler(self):
         return self.binary_compiler
 
-    def get_run_time_serial_results(self):
-        return self.run_time_serial_results
-
     def get_jobs(self):
         return self.jobs
 
@@ -328,9 +326,6 @@ class Compar:
 
     def set_binary_compiler(self, binary_compiler):
         self.binary_compiler = binary_compiler
-
-    def set_run_time_serial_results(self, run_time_serial_results):
-        self.run_time_serial_results = run_time_serial_results
 
     def set_jobs(self, jobs):
         self.jobs = jobs
@@ -466,23 +461,13 @@ class Compar:
             self.__replace_result_file_name_prefix(combination_folder_path)
             self.binary_compiler.compile()
 
-    def calculate_speedups(self, job_result_dict):
-        for file_result_dict in job_result_dict['run_time_results']:
-            for loop_result_dict in file_result_dict['loops']:
-                serial_run_time_key = (file_result_dict['file_id_by_rel_path'], loop_result_dict['loop_label'])
-                loop_serial_runtime = self.run_time_serial_results[serial_run_time_key]
-                loop_parallel_runtime = loop_result_dict['run_time']
-                try:
-                    speedup = float(loop_serial_runtime) / float(loop_parallel_runtime)
-                except ZeroDivisionError:
-                    speedup = 0.0
-                loop_result_dict['speedup'] = speedup
+    def calculate_speedups(self):
+        self.db.update_all_speedups()
 
     def run_and_save_job_list(self):
         job_list = Executor.execute_jobs(self.jobs, self.NUM_OF_THREADS, self.get_slurm_parameters())
         for job in job_list:
             job_result_dict = job.get_job_results()
-            self.calculate_speedups(job_result_dict)
             self.db.insert_new_combination(job_result_dict)
             if self.delete_combinations_folders:
                 self.__delete_combination_folder(job.get_directory_path())
@@ -590,28 +575,15 @@ class Compar:
                 # TODO: delete all the folders and the collection from the database
                 raise e.CompilationError(str(ex))
 
-        combination = Combination(combination_id='0',
+        combination = Combination(combination_id=Database.SERIAL_COMBINATION_ID,
                                   compiler_name=self.binary_compiler_type,
                                   parameters=None)
         job = Job(directory=serial_dir_path,
                   exec_file_args=self.main_file_parameters,
                   combination=combination)
-        job = Executor.execute_jobs([job])[0]
-
-        # update run_time_serial_results
-        for file in self.make_absolute_file_list(serial_dir_path):
-            run_time_result_loops = job.get_file_results_loops(file['file_id_by_rel_path'])
-            for loop in run_time_result_loops:
-                job.set_loop_speedup_in_file_results(file_id_by_rel_path=file['file_id_by_rel_path'],
-                                                     loop_label=loop['loop_label'], speedup=1.0)
-                key = file['file_id_by_rel_path'], loop['loop_label']
-                value = loop['run_time']
-                self.run_time_serial_results[key] = value
-
-        # update database
-        self.db.insert_new_combination(job.get_job_results())
-        if self.delete_combinations_folders:
-            self.__delete_combination_folder(serial_dir_path)
+        self.jobs.append(job)
+        if len(self.jobs) >= self.__max_combinations_at_once:
+            self.run_and_save_job_list()
 
     def fragment_and_add_timers(self):
         for c_file_dict in self.make_absolute_file_list(self.original_files_dir):

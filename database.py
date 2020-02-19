@@ -12,6 +12,8 @@ DB = "mongodb://10.10.10.120:27017"
 
 class Database:
 
+    SERIAL_COMBINATION_ID = '0'
+
     def __init__(self, collection_name):
         try:
             self.current_combination = None
@@ -76,6 +78,35 @@ class Database:
             print("Could not delete combination")
             print(e)
             return False
+
+    def update_serial_combination_speedup(self):
+        self.dynamic_db[self.collection_name].update_many({
+            '_id': self.SERIAL_COMBINATION_ID
+        }, {
+            '$set': {
+                'run_time_results.$[].loops.$[].speedup': 1.0
+            }
+        })
+
+    def update_parallel_combinations_speedup(self, serial_run_time):
+        # TODO: iterate over the rest of the combinations and calculate them speedup
+        # for file_result_dict in job_result_dict['run_time_results']:
+        #     for loop_result_dict in file_result_dict['loops']:
+        #         serial_run_time_key = (file_result_dict['file_id_by_rel_path'], loop_result_dict['loop_label'])
+        #         loop_serial_runtime = self.run_time_serial_results[serial_run_time_key]
+        #         loop_parallel_runtime = loop_result_dict['run_time']
+        #         try:
+        #             speedup = float(loop_serial_runtime) / float(loop_parallel_runtime)
+        #         except ZeroDivisionError:
+        #             speedup = 0.0
+        #         loop_result_dict['speedup'] = speedup
+        pass
+
+    def update_all_speedups(self):
+        self.update_serial_combination_speedup()
+        # TODO: get the serial combination run time
+        serial_run_time = None
+        self.update_parallel_combinations_speedup(serial_run_time)
 
     def find_optimal_loop_combination(self, file_id_by_rel_path, loop_label):
         best_speedup = 1
