@@ -1,7 +1,7 @@
 import pymongo
 import itertools
 from bson import json_util
-from exceptions import DatabaseError
+from exceptions import DatabaseError, MissingDataError
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
@@ -88,25 +88,70 @@ class Database:
             }
         })
 
-    def update_parallel_combinations_speedup(self, serial_run_time):
+    def update_parallel_combinations_speedup(self, serial_run_time_dict):
+        """
+        :param serial_run_time_dict:
+        {
+            <file id by rel path>:
+            {
+                <loop label>: <run time>,
+                ...
+            },
+            ...
+        }
+        """
+        for combination_id in range(1, self.dynamic_db[self.collection_name].count()):
+            for file_id_by_rel_path, loops_details_dict in serial_run_time_dict.items():
+                for loop_label, serial_run_time in loops_details_dict.items():
+                    combination_id = str(combination_id)
+                    # get results of a parallel combination from db
+                    parallel_combination = self.dynamic_db[self.collection_name].find_one({"_id": combination_id})
+                    if 'error' in parallel_combination.keys():
+                        continue
+                    parallel_files_details = parallel_combination['run_time_results']
+                    # get the loops details of the combination (file_id_by_rel_path should be unique)
+                    parallel_loops_details = list(filter(
+                        lambda file: file['file_id_by_rel_path'] == file_id_by_rel_path, parallel_files_details))
+                    assert len(parallel_files_details) == 1, 'file_id_by_rel_path should be unique'
+                    parallel_loops_details = parallel_loops_details[0]['loops']
+                    # get the run_time of the loop (loop_label should be unique)
+                    parallel_loop_run_time = list(filter(
+                        lambda loop: loop['loop_label'] == loop_label, parallel_loops_details))
+                    assert len(parallel_loop_run_time) == 1, 'loop_label should be unique'
+                    parallel_loop_run_time = parallel_loop_run_time[0]['run_time']
+                    # calculate the speedup
+                    try:
+                        speedup = float(serial_run_time) / float(parallel_loop_run_time)
+                    except ZeroDivisionError:
+                        speedup = 0.0
+                    # update the speedup in the db
+                    # TODO: not working, fix it!!!
+                    self.dynamic_db[self.collection_name].update_one({
+                        '_id': combination_id,
+                        'run_time_results.$[].file_id_by_rel_path': file_id_by_rel_path,
+                        'run_time_results.$[].loops.$[].loop_label': loop_label
+                    }, {
+                        '$set': {
+                            'run_time_results.$[].loops.$[].speedup': speedup
+                        }
+                    })
+
         # TODO: iterate over the rest of the combinations and calculate them speedup
-        # for file_result_dict in job_result_dict['run_time_results']:
-        #     for loop_result_dict in file_result_dict['loops']:
-        #         serial_run_time_key = (file_result_dict['file_id_by_rel_path'], loop_result_dict['loop_label'])
-        #         loop_serial_runtime = self.run_time_serial_results[serial_run_time_key]
-        #         loop_parallel_runtime = loop_result_dict['run_time']
-        #         try:
-        #             speedup = float(loop_serial_runtime) / float(loop_parallel_runtime)
-        #         except ZeroDivisionError:
-        #             speedup = 0.0
-        #         loop_result_dict['speedup'] = speedup
-        pass
 
     def update_all_speedups(self):
         self.update_serial_combination_speedup()
-        # TODO: get the serial combination run time
-        serial_run_time = None
-        self.update_parallel_combinations_speedup(serial_run_time)
+        serial_results = self.dynamic_db[self.collection_name].find_one({"_id": self.SERIAL_COMBINATION_ID})
+        if not serial_results:
+            raise MissingDataError('You must have a serial combination saved in DB to calculate speedups.')
+
+        serial_run_time_dict = dict(map(lambda file_details: (
+            file_details['file_id_by_rel_path'],
+            dict(map(lambda loop_details: (
+                loop_details['loop_label'], loop_details['run_time']
+            ), file_details['loops']))
+        ), serial_results['run_time_results']))
+
+        self.update_parallel_combinations_speedup(serial_run_time_dict)
 
     def find_optimal_loop_combination(self, file_id_by_rel_path, loop_label):
         best_speedup = 1
