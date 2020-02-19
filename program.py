@@ -1,5 +1,6 @@
 import argparse
 from compar import Compar
+import traceback
 
 
 def main():
@@ -23,7 +24,7 @@ def main():
     parser.add_argument('-slurm_p', '--slurm_parameters', help='Slurm parameters', default=None)
     args = vars(parser.parse_args())
 
-    Compar(
+    compar_obj = Compar(
         working_directory=args['working_directory'],
         input_dir=args['input_dir'],
         binary_compiler_type=args['binary_compiler_type'],
@@ -41,8 +42,14 @@ def main():
         main_file_parameters=args['main_file_parameters'],
         slurm_parameters=args['slurm_parameters']
     )
+    compar_obj.fragment_and_add_timers()
+    compar_obj.run_serial()
+    compar_obj.run_parallel_combinations()
+    compar_obj.generate_optimal_code()
 
 
 if __name__ == "__main__":
-    main()
-
+    try:
+        main()
+    except Exception as e:
+        traceback.print_exc()
