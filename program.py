@@ -1,6 +1,8 @@
 import argparse
 from compar import Compar
 import traceback
+import os
+import shutil
 
 
 def main():
@@ -23,6 +25,11 @@ def main():
     parser.add_argument('-main_file_p', '--main_file_parameters', help='Main c file parameters', default=None)
     parser.add_argument('-slurm_p', '--slurm_parameters', help='Slurm parameters', default=None)
     args = vars(parser.parse_args())
+
+    # TODO: should be depend on users choice
+    if os.path.exists(args['working_directory']):
+        shutil.rmtree(args['working_directory'])
+    os.mkdir(args['working_directory'])
 
     compar_obj = Compar(
         working_directory=args['working_directory'],
