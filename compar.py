@@ -181,6 +181,7 @@ class Compar:
                     combination_folder_path = self.create_combination_folder(
                         "current_combination", base_dir=self.working_directory)
                     files_list = self.make_absolute_file_list(combination_folder_path)
+                    current_comp_name = current_optimal_combination.compiler_name
 
                     # get direct file path to inject params
                     src_file_path = list(filter(lambda x: x['file_id_by_rel_path'] == file_id_by_rel_path, files_list))
@@ -195,6 +196,8 @@ class Compar:
                     target_file_path = target_file_path[0]['file_full_path']
 
                     Compar.replace_loops_in_files(src_file_path, target_file_path, start_label, end_label)
+                    Compar.add_to_loop_details_about_comp_and_combination(target_file_path, start_label,
+                                                                          current_optimal_id, current_comp_name)
                     shutil.rmtree(combination_folder_path)
 
         self.remove_timer_code(final_folder_path)
@@ -209,6 +212,23 @@ class Compar:
                 return input_file.read()
         except FileNotFoundError:
             raise FileError('File {0} not exist'.format(file_path))
+
+    @staticmethod
+    def add_to_loop_details_about_comp_and_combination(file_path, start_label, combination_id, comp_name):
+        e.assert_file_exist(file_path)
+        e.assert_file_is_empty(file_path)
+        with open(file_path, 'r') as file:
+            file_text = file.read()
+        to_replace = ''
+        to_replace += '// COMBINATION_ID: ' + combination_id + '\n'
+        to_replace += '// COMPILER_NAME: ' + comp_name + '\n'
+        to_replace += start_label
+        file_text = file_text.replace(start_label, to_replace)
+        try:
+            with open(file_path, 'w') as file:
+                file.write(file_text)
+        except OSError as err:
+            raise e.FileError(str(err))
 
     @staticmethod
     def replace_loops_in_files(origin_path, destination_path, start_label, end_label):
