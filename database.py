@@ -101,13 +101,13 @@ class Database:
         }
         """
         for combination_id in range(1, self.dynamic_db[self.collection_name].count()):
+            combination_id = str(combination_id)
+            parallel_combination = self.dynamic_db[self.collection_name].find_one({"_id": combination_id})
+            if 'error' in parallel_combination.keys():
+                continue
             for file_id_by_rel_path, loops_details_dict in serial_run_time_dict.items():
                 for loop_label, serial_run_time in loops_details_dict.items():
-                    combination_id = str(combination_id)
                     # get results of a parallel combination from db
-                    parallel_combination = self.dynamic_db[self.collection_name].find_one({"_id": combination_id})
-                    if 'error' in parallel_combination.keys():
-                        continue
                     parallel_files_details = parallel_combination['run_time_results']
                     # get the loops details of the combination (file_id_by_rel_path should be unique)
                     parallel_loops_details = list(filter(
@@ -125,18 +125,23 @@ class Database:
                     except ZeroDivisionError:
                         speedup = 0.0
                     # update the speedup in the db
-                    # TODO: not working, fix it!!!
-                    self.dynamic_db[self.collection_name].update_one({
-                        '_id': combination_id,
-                        'run_time_results.$[].file_id_by_rel_path': file_id_by_rel_path,
-                        'run_time_results.$[].loops.$[].loop_label': loop_label
-                    }, {
-                        '$set': {
-                            'run_time_results.$[].loops.$[].speedup': speedup
-                        }
-                    })
-
-        # TODO: iterate over the rest of the combinations and calculate them speedup
+                    self.dynamic_db[self.collection_name].update_one(
+                        filter={
+                            '_id': combination_id,
+                        },
+                        update={
+                            '$set': {
+                                'run_time_results.$[fileFilter].loops.$[loopFilter].speedup': speedup
+                            }
+                        },
+                        array_filters=[
+                            {
+                                'fileFilter.file_id_by_rel_path': file_id_by_rel_path
+                            }, {
+                                'loopFilter.loop_label': loop_label
+                            }
+                        ]
+                    )
 
     def update_all_speedups(self):
         self.update_serial_combination_speedup()

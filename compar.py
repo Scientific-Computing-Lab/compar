@@ -198,6 +198,7 @@ class Compar:
                     Compar.replace_loops_in_files(src_file_path, target_file_path, start_label, end_label)
                     Compar.add_to_loop_details_about_comp_and_combination(target_file_path, start_label,
                                                                           current_optimal_id, current_comp_name)
+                    sleep(1)  # prevent IO error
                     shutil.rmtree(combination_folder_path)
 
         self.remove_timer_code(final_folder_path)
@@ -220,9 +221,9 @@ class Compar:
         with open(file_path, 'r') as file:
             file_text = file.read()
         to_replace = ''
+        to_replace += start_label + '\n'
         to_replace += '// COMBINATION_ID: ' + combination_id + '\n'
-        to_replace += '// COMPILER_NAME: ' + comp_name + '\n'
-        to_replace += start_label
+        to_replace += '// COMPILER_NAME: ' + comp_name
         file_text = file_text.replace(start_label, to_replace)
         try:
             with open(file_path, 'w') as file:
