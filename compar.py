@@ -15,6 +15,8 @@ from job import Job
 from fragmentator import Fragmentator
 import shutil
 from exceptions import FileError
+from exceptions import CompilationError
+from exceptions import ExecutionError
 from parameters import Parameters
 from timer import Timer
 import exceptions as e
@@ -201,10 +203,20 @@ class Compar:
                     sleep(1)  # prevent IO error
                     shutil.rmtree(combination_folder_path)
 
+        # remove timers code
         self.remove_timer_code(final_folder_path)
-
         # format all optimal files
         self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
+        try:
+            self.compile_combination_to_binary(final_folder_path)
+        except Exception as e:
+            raise CompilationError(str(e) + 'exception in Compar.generate_optimal_code: cannot compile optimal code')
+        try:
+            job = Job(final_folder_path, Combination("final", "mixed", []), [])
+            self.jobs.append(job)
+            self.run_and_save_job_list(False)
+        except Exception as e:
+            raise ExecutionError(str(e) + 'exception in Compar.generate_optimal_code: cannot run optimal code')
 
     @staticmethod
     def get_file_content(file_path):
@@ -485,13 +497,14 @@ class Compar:
     def calculate_speedups(self):
         self.db.update_all_speedups()
 
-    def run_and_save_job_list(self):
+    def run_and_save_job_list(self, combination=True):
         job_list = Executor.execute_jobs(self.jobs, self.NUM_OF_THREADS, self.get_slurm_parameters())
-        for job in job_list:
-            job_result_dict = job.get_job_results()
-            self.db.insert_new_combination(job_result_dict)
-            if self.delete_combinations_folders:
-                self.__delete_combination_folder(job.get_directory_path())
+        if combination:
+            for job in job_list:
+                job_result_dict = job.get_job_results()
+                self.db.insert_new_combination(job_result_dict)
+                if self.delete_combinations_folders:
+                    self.__delete_combination_folder(job.get_directory_path())
         self.jobs.clear()
 
     def save_combination_as_failure(self, combination_id, error_msg, combination_folder_path):
