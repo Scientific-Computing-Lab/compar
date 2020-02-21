@@ -14,6 +14,7 @@ from file_formator import format_c_code
 from job import Job
 from fragmentator import Fragmentator
 import shutil
+import csv
 from exceptions import FileError
 from exceptions import CompilationError
 from exceptions import ExecutionError
@@ -165,16 +166,22 @@ class Compar:
 
     def generate_optimal_code(self):
         self.calculate_speedups()
+        optimal_loops_data = []
 
         # copy final results into this folder
         final_folder_path = self.create_combination_folder("final_results", base_dir=self.working_directory)
         final_files_list = self.make_absolute_file_list(final_folder_path)
 
         for file_id_by_rel_path, num_of_loops in self.files_loop_dict.items():
+            current_file = {"file_id_by_rel_path":file_id_by_rel_path}
+            current_file["optimal_loops"] = []
             for loop_id in range(1, num_of_loops+1):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
                 end_label = Fragmentator.get_end_label()+str(loop_id)
-                current_optimal_id = self.db.find_optimal_loop_combination(file_id_by_rel_path, str(loop_id))
+                current_optimal_id, current_loop = self.db.find_optimal_loop_combination(file_id_by_rel_path, str(loop_id))
+                # update the optimal loops list
+                current_loop['_id'] = current_optimal_id
+                current_file["optimal_loops"].append(current_loop)
 
                 # if the optimal combination is the serial => do nothing
                 if current_optimal_id != 0:
@@ -203,6 +210,8 @@ class Compar:
                     sleep(1)  # prevent IO error
                     shutil.rmtree(combination_folder_path)
 
+            optimal_loops_data.append(current_file)
+
         # remove timers code
         self.remove_timer_code(final_folder_path)
         # format all optimal files
@@ -217,6 +226,7 @@ class Compar:
             self.run_and_save_job_list(False)
         except Exception as e:
             raise ExecutionError(str(e) + 'exception in Compar.generate_optimal_code: cannot run optimal code')
+        self.generate_summary_file(optimal_loops_data, final_folder_path)
 
     @staticmethod
     def get_file_content(file_path):
@@ -670,3 +680,18 @@ class Compar:
             except Exception as ex:
                 raise e.FileError('exception in Compar.remove_timer_code: {}'.format(
                     c_file_dict['file_full_path']) + str(ex))
+
+    def generate_summary_file(self, optimal_data, dir_path):
+        file_path = os.path.join(dir_path, 'summary.csv')
+        with open(file_path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["File", "Loop", "Combination", "Compiler", "Compilation Params", "Env flags",
+                             "Runtime", "Speedup"])
+            for curr_file in optimal_data:
+                for loop in curr_file['optimal_loops']:
+                    combination_obj = self.__combination_json_to_obj(self.db.get_combination_from_static_db(loop['_id']))
+                    writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], loop['_id'],
+                                     combination_obj.get_compiler(),
+                                     combination_obj.get_parameters().get_compilation_params(),
+                                     combination_obj.get_parameters().get_env_params(),
+                                     loop['run_time'], loop['speedup']])

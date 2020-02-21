@@ -161,6 +161,7 @@ class Database:
     def find_optimal_loop_combination(self, file_id_by_rel_path, loop_label):
         best_speedup = 1
         best_combination_id = 0
+        best_loop = None
         combinations = self.dynamic_db[self.collection_name].find({})
         for combination in combinations:
             if 'error' not in combination.keys():
@@ -168,13 +169,14 @@ class Database:
                     if file['file_id_by_rel_path'] == file_id_by_rel_path:
                         for loop in file['loops']:
                             if loop['loop_label'] == loop_label:
-                                if loop['speedup'] > best_speedup:
+                                if loop['speedup'] >= best_speedup:
                                     best_speedup = loop['speedup']
                                     best_combination_id = combination['_id']
+                                    best_loop = loop
                                 break
                         break
 
-        return best_combination_id
+        return best_combination_id, best_loop
 
     def get_combination_from_static_db(self, combination_id):
         combination = None
