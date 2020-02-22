@@ -27,7 +27,8 @@ class Makefile:
 
     def run_makefile(self):
         print("Running makefile")
-        output = subprocess.check_output([' && '.join(self.commands)], cwd=self.working_directory)
+        command = 'module load intel && ' + ' && '.join(self.commands)
+        output = subprocess.check_output([command], cwd=self.working_directory, shell=True)
         print('Makefile output: ' + str(output))
         print("Done makefile work")
 

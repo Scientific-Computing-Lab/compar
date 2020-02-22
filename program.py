@@ -3,6 +3,7 @@ from compar import Compar
 import traceback
 import os
 import shutil
+from exceptions import assert_rel_path_starts_without_sep
 
 
 def main():
@@ -21,9 +22,13 @@ def main():
                         default="")
     parser.add_argument('-make_on', '--makefile_output_exe_file_name', help='Makefile output executable file name',
                         default="")
+    parser.add_argument('-ignore', '--ignored_rel_paths', nargs="*",
+                        help='List of relative folder paths to be ignored while parallelizing', default=None)
     parser.add_argument('-p4a_f', '--par4all_flags', nargs="*", help='Par4all flags', default=None)
     parser.add_argument('-autopar_f', '--autopar_flags', nargs="*", help='Autopar flags', default=None)
     parser.add_argument('-cetus_f', '--cetus_flags', nargs="*", help='Cetus flags', default=None)
+    parser.add_argument('-include', '--include_dirs_list', nargs="*",
+                        help='Include dir names for compilation - relative paths', default=None)
     parser.add_argument('-main_file', '--main_file_name', help='Main c file name', default="")
     parser.add_argument('-main_file_p', '--main_file_parameters', nargs="*", help='Main c file parameters',
                         default=None)
@@ -34,6 +39,10 @@ def main():
     if os.path.exists(args['working_directory']):
         shutil.rmtree(args['working_directory'])
     os.mkdir(args['working_directory'])
+
+    assert_rel_path_starts_without_sep(args['makefile_exe_folder_rel_path'])
+    for path in args['makefile_exe_folder_rel_path']:
+        assert_rel_path_starts_without_sep(path)
 
     compar_obj = Compar(
         working_directory=args['working_directory'],
@@ -46,9 +55,11 @@ def main():
         makefile_commands=args['makefile_commands'],
         makefile_exe_folder_rel_path=args['makefile_exe_folder_rel_path'],
         makefile_output_exe_file_name=args['makefile_output_exe_file_name'],
+        ignored_rel_paths=args['ignored_rel_paths'],
         par4all_flags=args['par4all_flags'],
         autopar_flags=args['autopar_flags'],
         cetus_flags=args['cetus_flags'],
+        include_dirs_list=args['include_dirs_list'],
         main_file_name=args['main_file_name'],
         main_file_parameters=args['main_file_parameters'],
         slurm_parameters=args['slurm_parameters']

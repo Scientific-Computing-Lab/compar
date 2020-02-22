@@ -23,6 +23,7 @@ from timer import Timer
 import exceptions as e
 from database import Database
 from compilers.makefile import Makefile
+import traceback
 
 
 class Compar:
@@ -59,7 +60,7 @@ class Compar:
             c_code = input_file.read()
         e.assert_file_is_empty(c_code)
         loop_id_with_inject_code = loop_id + '\n' + c_code_to_inject
-        c_code = c_code.replace(loop_id, loop_id_with_inject_code)
+        c_code = re.sub(loop_id + '[ ]*\n', loop_id_with_inject_code, c_code)
         try:
             with open(c_file_path, 'w') as output_file:
                 output_file.write(c_code)
@@ -89,15 +90,19 @@ class Compar:
                  makefile_commands=None,
                  makefile_exe_folder_rel_path="",
                  makefile_output_exe_file_name="",
+                 ignored_rel_paths=None,
                  par4all_flags=None,
                  autopar_flags=None,
                  cetus_flags=None,
+                 include_dirs_list=None,
                  main_file_name="",
                  main_file_parameters=None,
                  slurm_parameters=None):
 
         if not is_make_file:
             e.assert_only_files(input_dir)
+        if not include_dirs_list:
+            include_dirs_list = []
         if not makefile_commands:
             makefile_commands = []
         if not binary_compiler_flags:
@@ -112,6 +117,8 @@ class Compar:
             main_file_parameters = []
         if not slurm_parameters:
             slurm_parameters = []
+        if not ignored_rel_paths:
+            ignored_rel_paths = []
 
         self.delete_combinations_folders = delete_combinations_folders
         self.binary_compiler = None
@@ -119,6 +126,8 @@ class Compar:
         self.jobs = []
         self.__timer = None
         self.__max_combinations_at_once = 20
+        self.ignored_rel_paths = ignored_rel_paths
+        self.include_dirs_list = include_dirs_list
 
         # Build compar environment-----------------------------------
         self.working_directory = working_directory
@@ -132,11 +141,11 @@ class Compar:
         # Creating compiler variables----------------------------------
         # TODO -fix version
         version = ""  # don't know if getting this from the user
-        self.relative_c_file_list = Compar.make_relative_c_file_list(self.original_files_dir)
+        self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
         self.binary_compiler_type = binary_compiler_type
-        self.par4all_compiler = Par4all(version, par4all_flags)
-        self.autopar_compiler = Autopar(version, autopar_flags)
-        self.cetus_compiler = Cetus(version, cetus_flags)
+        self.par4all_compiler = Par4all(version, par4all_flags, include_dirs_list=self.include_dirs_list)
+        self.autopar_compiler = Autopar(version, autopar_flags, include_dirs_list=self.include_dirs_list)
+        self.cetus_compiler = Cetus(version, cetus_flags, include_dirs_list=self.include_dirs_list)
         # -----------------------------------------------------------
 
         # Saves compiler flags---------------------------------------
@@ -164,7 +173,8 @@ class Compar:
         self.files_loop_dict = {}
 
         # INITIALIZATIONS
-        self.__initialize_binary_compiler()
+        if not is_make_file:
+            self.__initialize_binary_compiler()
         self.db = Database(self.__extract_working_directory_name())
 
     def generate_optimal_code(self):
@@ -359,6 +369,7 @@ class Compar:
                 self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
 
     def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None):
+        self.__replace_result_file_name_prefix(combination_folder_path)
         if self.is_make_file:
             makefile = Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
                                 self.makefile_output_exe_file_name, self.makefile_commands)
@@ -370,7 +381,6 @@ class Compar:
             self.binary_compiler.initiate_for_new_task(compilation_flags,
                                                        combination_folder_path,
                                                        self.main_file_name)
-            self.__replace_result_file_name_prefix(combination_folder_path)
             self.binary_compiler.compile()
 
     def calculate_speedups(self):
@@ -406,10 +416,12 @@ class Compar:
                 self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
                 self.compile_combination_to_binary(combination_folder_path)
             except e.CombinationFailure as ex:
+                traceback.print_exc()
                 self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
                 continue
             except e.CompilationError as ex:
                 # TODO: TabError in p4a, why??? its work on the linux interpreter (/usr/bin/python3)!!!
+                traceback.print_exc()
                 self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
                 continue
             job = Job(combination_folder_path, combination_obj, self.main_file_parameters)
@@ -448,15 +460,15 @@ class Compar:
     def __delete_combination_folder(combination_folder_path):
         shutil.rmtree(combination_folder_path)
 
-    @staticmethod
-    def make_relative_c_file_list(base_dir):
+    def make_relative_c_file_list(self, base_dir):
         file_list = []
         for path, dirs, files in os.walk(base_dir):
-            for file in files:
-                if os.path.splitext(file)[1] == '.c':
-                    relative_path = os.path.relpath(os.path.join(path, file), base_dir)
-                    # file_name is not unique!
-                    file_list.append({"file_name": file, "file_relative_path": relative_path})
+            if os.path.relpath(path, base_dir) not in self.ignored_rel_paths:
+                for file in files:
+                    if os.path.splitext(file)[1] == '.c':
+                        relative_path = os.path.relpath(os.path.join(path, file), base_dir)
+                        # file_name is not unique!
+                        file_list.append({"file_name": file, "file_relative_path": relative_path})
         return file_list
 
     def make_absolute_file_list(self, base_dir_path):
@@ -470,7 +482,6 @@ class Compar:
         self.binary_compiler.initiate_for_new_task(compilation_flags=self.user_binary_compiler_flags,
                                                    input_file_directory=serial_dir_path,
                                                    main_c_file=self.main_file_name)
-        self.__replace_result_file_name_prefix(serial_dir_path)
         self.binary_compiler.compile()
 
     def run_serial(self):
@@ -478,6 +489,7 @@ class Compar:
         shutil.rmtree(serial_dir_path, ignore_errors=True)
         os.mkdir(serial_dir_path)
         self.__copy_sources_to_combination_folder(serial_dir_path)
+        self.__replace_result_file_name_prefix(serial_dir_path)
 
         if self.is_make_file:
             compiler_type = "Makefile"
