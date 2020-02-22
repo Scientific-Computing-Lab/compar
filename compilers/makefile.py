@@ -13,7 +13,7 @@ class Makefile:
         self.working_directory = working_directory
         self.exe_folder_relative_path = exe_folder_relative_path
         self.exe_file_name = exe_file_name
-        self.commands = commands
+        self.commands = [str(x) for x in commands]
 
     def make(self):
         try:
@@ -27,9 +27,8 @@ class Makefile:
 
     def run_makefile(self):
         print("Running makefile")
-        for command in self.commands:
-            output = subprocess.check_output([command], cwd=self.working_directory)
-            print(command + ' makefile output: ' + str(output))
+        output = subprocess.check_output([' && '.join(self.commands)], cwd=self.working_directory)
+        print('Makefile output: ' + str(output))
         print("Done makefile work")
 
     def move_exe_to_base_dir(self):

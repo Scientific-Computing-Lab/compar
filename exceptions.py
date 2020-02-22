@@ -50,3 +50,9 @@ def assert_file_from_format(file_path, _format):
 def assert_file_is_empty(file):
     if not file:
         raise FileError('File {0} is empty'.format(file))
+
+
+def assert_only_files(folder_path):
+    folder_content = os.listdir(folder_path)
+    if len(folder_content) != len(list(filter(os.path.isfile, folder_content))):
+        raise UserInputError('Input dir must contain only files!')

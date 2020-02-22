@@ -22,6 +22,7 @@ from parameters import Parameters
 from timer import Timer
 import exceptions as e
 from database import Database
+from compilers.makefile import Makefile
 
 
 class Compar:
@@ -80,13 +81,13 @@ class Compar:
     def __init__(self,
                  working_directory,
                  input_dir,
-                 binary_compiler_type,
-                 binary_compiler_version,
+                 binary_compiler_type="",
+                 binary_compiler_version=None,
                  binary_compiler_flags=None,
                  delete_combinations_folders=True,
                  is_make_file=False,
                  makefile_commands=None,
-                 makefile_output_exe_folder="",
+                 makefile_exe_folder_rel_path="",
                  makefile_output_exe_file_name="",
                  par4all_flags=None,
                  autopar_flags=None,
@@ -95,6 +96,8 @@ class Compar:
                  main_file_parameters=None,
                  slurm_parameters=None):
 
+        if not is_make_file:
+            e.assert_only_files(input_dir)
         if not makefile_commands:
             makefile_commands = []
         if not binary_compiler_flags:
@@ -146,7 +149,7 @@ class Compar:
         # Makefile---------------------------------------------------
         self.is_make_file = is_make_file
         self.makefile_commands = makefile_commands
-        self.makefile_output_exe_folder = makefile_output_exe_folder
+        self.makefile_exe_folder_rel_path = makefile_exe_folder_rel_path
         self.makefile_output_exe_file_name = makefile_output_exe_file_name
         # -----------------------------------------------------------
 
@@ -173,12 +176,12 @@ class Compar:
         final_files_list = self.make_absolute_file_list(final_folder_path)
 
         for file_id_by_rel_path, num_of_loops in self.files_loop_dict.items():
-            current_file = {"file_id_by_rel_path":file_id_by_rel_path}
-            current_file["optimal_loops"] = []
+            current_file = {"file_id_by_rel_path": file_id_by_rel_path, 'optimal_loops': []}
             for loop_id in range(1, num_of_loops+1):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
                 end_label = Fragmentator.get_end_label()+str(loop_id)
-                current_optimal_id, current_loop = self.db.find_optimal_loop_combination(file_id_by_rel_path, str(loop_id))
+                current_optimal_id, current_loop = self.db.find_optimal_loop_combination(file_id_by_rel_path,
+                                                                                         str(loop_id))
                 # update the optimal loops list
                 current_loop['_id'] = current_optimal_id
                 current_file["optimal_loops"].append(current_loop)
@@ -219,13 +222,13 @@ class Compar:
         try:
             self.compile_combination_to_binary(final_folder_path)
         except Exception as ex:
-            raise CompilationError(str(ex) + 'exception in Compar.generate_optimal_code: cannot compile optimal code')
+            raise CompilationError(str(ex) + 'exception in Compar. generate_optimal_code: cannot compile optimal code')
         try:
             job = Job(final_folder_path, Combination("final", "mixed", []), [])
             self.jobs.append(job)
             self.run_and_save_job_list(False)
         except Exception as ex:
-            raise ExecutionError(str(ex) + 'exception in Compar.generate_optimal_code: cannot run optimal code')
+            raise ExecutionError(str(ex) + 'exception in Compar. generate_optimal_code: cannot run optimal code')
         self.generate_summary_file(optimal_loops_data, final_folder_path)
 
     @staticmethod
@@ -357,7 +360,9 @@ class Compar:
 
     def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None):
         if self.is_make_file:
-            pass
+            makefile = Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
+                                self.makefile_output_exe_file_name, self.makefile_commands)
+            makefile.make()
         else:
             compilation_flags = self.user_binary_compiler_flags
             if extra_flags_list:
@@ -475,8 +480,12 @@ class Compar:
         self.__copy_sources_to_combination_folder(serial_dir_path)
 
         if self.is_make_file:
-            pass
+            compiler_type = "Makefile"
+            makefile = Makefile(serial_dir_path, self.makefile_exe_folder_rel_path, self.makefile_output_exe_file_name,
+                                self.makefile_commands)
+            makefile.make()
         else:
+            compiler_type = self.binary_compiler_type
             try:
                 self.__run_binary_compiler(serial_dir_path)
             except e.CombinationFailure as ex:
@@ -484,7 +493,7 @@ class Compar:
                 raise e.CompilationError(str(ex))
 
         combination = Combination(combination_id=Database.SERIAL_COMBINATION_ID,
-                                  compiler_name=self.binary_compiler_type,
+                                  compiler_name=compiler_type,
                                   parameters=None)
         job = Job(directory=serial_dir_path,
                   exec_file_args=self.main_file_parameters,
