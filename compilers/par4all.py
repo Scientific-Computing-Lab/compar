@@ -7,9 +7,9 @@ import re
 
 class Par4all(ParallelCompiler):
 
-    def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None, include_dirs_list=None):
-        super().__init__(version, compilation_flags, input_file_directory, file_list)
-        self.__include_dirs_list = include_dirs_list
+    def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
+                 include_dirs_list=None):
+        super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list)
 
     @staticmethod
     def remove_code_from_file(file_path, code_to_be_removed):
@@ -62,8 +62,9 @@ class Par4all(ParallelCompiler):
         command += ' && module load par4all && source $set_p4a_env'
         command += ' && p4a -v -O  ' + ' '.join(files_to_compile)
         command += ' '.join(map(str, super().get_compilation_flags()))
-        if self.__include_dirs_list:
-            command += '-I ' + ' '.join(map(str, self.__include_dirs_list))
+        if self.include_dirs_list:
+            command += ' ' + '-I'.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
+                                           self.include_dirs_list))
         command += ' && export PATH=' + previous_path
         try:
             output = subprocess.check_output([command, ], shell=True, cwd=self.get_input_file_directory())

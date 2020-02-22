@@ -8,8 +8,9 @@ import exceptions as e
 
 class Cetus(ParallelCompiler):
 
-    def __init__(self, version, input_file_directory=None, compilation_flags=None, file_list=None):
-        super().__init__(version, compilation_flags, input_file_directory, file_list)
+    def __init__(self, version, input_file_directory=None, compilation_flags=None, file_list=None,
+                 include_dirs_list=None):
+        super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list)
 
     def compile(self):
         super().compile()
@@ -17,7 +18,8 @@ class Cetus(ParallelCompiler):
             for file in self.get_file_list():
                 Cetus.replace_line_in_code(file["file_full_path"], '#include <omp.h>', '')
                 cwd_path = os.path.dirname(file["file_full_path"])
-                output = subprocess.check_output(['module load cetus; cetus {} {}'.format(
+                self.copy_headers(cwd_path)
+                output = subprocess.check_output(['module load cetus && cetus {} {}'.format(
                     " ".join(self.get_compilation_flags()), file["file_name"])], shell=True, cwd=cwd_path)
                 print('cetus compilation output: ' + str(output))
                 # Replace file from cetus output folder into original file folder
@@ -30,9 +32,10 @@ class Cetus(ParallelCompiler):
                 Cetus.inject_line_in_code(file["file_full_path"], '#include <omp.h>')
             return True
         except subprocess.CalledProcessError as ex:
-            raise CombinationFailure(f'par4all return with {ex.returncode} code: {str(ex)} : {ex.output} : {ex.stderr}')
+            raise CombinationFailure(f'cetus return with {ex.returncode} code: {str(ex)} : {ex.output} : {ex.stderr}')
         except Exception as ex:
-            raise CompilationError(str(ex) + " files in directory " + self.get_input_file_directory() + " failed to be parallel!")
+            raise CompilationError(str(ex) + " files in directory " + self.get_input_file_directory() +
+                                   " failed to be parallel!")
 
     @staticmethod
     def replace_line_in_code(file_full_path, old_line, new_line):
@@ -57,3 +60,15 @@ class Cetus(ParallelCompiler):
                 output_file.write(c_code)
         except OSError as err:
             raise e.FileError(str(err))
+
+    def copy_headers(self, target_dir):
+        for rel_path in self.include_dirs_list:
+            full_path = os.path.join(self._input_file_directory, rel_path)
+            for path, dirs, files in os.walk(full_path):
+                for file in files:
+                    if file.endswith('.h'):
+                        try:
+                            shutil.copyfile(os.path.join(path, file), os.path.join(target_dir, file))
+                        except shutil.SameFileError:
+                            pass
+
