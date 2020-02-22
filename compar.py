@@ -85,9 +85,9 @@ class Compar:
                  binary_compiler_flags=None,
                  delete_combinations_folders=True,
                  is_make_file=False,
-                 makefile_name="",
-                 makefile_parameters=None,
-                 makefile_output_files="",
+                 makefile_commands=None,
+                 makefile_output_exe_folder="",
+                 makefile_output_exe_file_name="",
                  par4all_flags=None,
                  autopar_flags=None,
                  cetus_flags=None,
@@ -95,8 +95,8 @@ class Compar:
                  main_file_parameters=None,
                  slurm_parameters=None):
 
-        if not makefile_parameters:
-            makefile_parameters = []
+        if not makefile_commands:
+            makefile_commands = []
         if not binary_compiler_flags:
             binary_compiler_flags = []
         if not par4all_flags:
@@ -145,9 +145,9 @@ class Compar:
 
         # Makefile---------------------------------------------------
         self.is_make_file = is_make_file
-        self.makefile_name = makefile_name
-        self.makefile_parameters = makefile_parameters
-        self.makefile_output_files = makefile_output_files
+        self.makefile_commands = makefile_commands
+        self.makefile_output_exe_folder = makefile_output_exe_folder
+        self.makefile_output_exe_file_name = makefile_output_exe_file_name
         # -----------------------------------------------------------
 
         # Main file--------------------------------------------------
@@ -218,14 +218,14 @@ class Compar:
         self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
         try:
             self.compile_combination_to_binary(final_folder_path)
-        except Exception as e:
-            raise CompilationError(str(e) + 'exception in Compar.generate_optimal_code: cannot compile optimal code')
+        except Exception as ex:
+            raise CompilationError(str(ex) + 'exception in Compar.generate_optimal_code: cannot compile optimal code')
         try:
             job = Job(final_folder_path, Combination("final", "mixed", []), [])
             self.jobs.append(job)
             self.run_and_save_job_list(False)
-        except Exception as e:
-            raise ExecutionError(str(e) + 'exception in Compar.generate_optimal_code: cannot run optimal code')
+        except Exception as ex:
+            raise ExecutionError(str(ex) + 'exception in Compar.generate_optimal_code: cannot run optimal code')
         self.generate_summary_file(optimal_loops_data, final_folder_path)
 
     @staticmethod
@@ -290,142 +290,6 @@ class Compar:
             if option == "env":
                 c_code += param + "\n"
         return c_code
-
-    def get_timer(self):
-        return self.__timer
-
-    def get_binary_compiler_version(self):
-        return self.binary_compiler_version
-
-    def get_binary_compiler(self):
-        return self.binary_compiler
-
-    def get_jobs(self):
-        return self.jobs
-
-    def get_working_directory(self):
-        return self.working_directory
-
-    def get_backup_files_dir(self):
-        return self.backup_files_dir
-
-    def get_original_files_dir(self):
-        return self.original_files_dir
-
-    def get_combinations_dir(self):
-        return self.combinations_dir
-
-    def get_relative_c_files_list(self):
-        return self.relative_c_file_list
-
-
-    def get_binary_compiler_type(self):
-        return self.binary_compiler_type
-
-    def get_par4all_compiler(self):
-        return self.par4all_compiler
-
-    def get_autopar_compiler(self):
-        return self.autopar_compiler
-
-    def get_cetus_compiler(self):
-        return self.cetus_compiler
-
-    def get_user_par4all_flags(self):
-        return self.user_par4all_flags
-
-    def get_user_autopar_flags(self):
-        return self.user_autopar_flags
-
-    def get_user_cetus_flags(self):
-        return self.user_cetus_flags
-
-    def get_is_make_file(self):
-        return self.is_make_file
-
-    def get_makefile_name(self):
-        return self.makefile_name
-
-    def get_makefile_parameters(self):
-        return self.makefile_parameters
-
-    def get_makefile_output_files(self):
-        return self.makefile_output_files
-
-    def get_main_file_name(self):
-        return self.main_file_name
-
-    def get_user_binary_compiler_flags(self):
-        return self.user_binary_compiler_flags
-
-    def get_main_file_parameters(self):
-        return self.main_file_parameters
-
-    def get_slurm_parameters(self):
-        return self.slurm_parameters
-
-    def set_binary_compiler_version(self, binary_compiler_version):
-        self.binary_compiler_version = binary_compiler_version
-
-    def set_binary_compiler(self, binary_compiler):
-        self.binary_compiler = binary_compiler
-
-    def set_jobs(self, jobs):
-        self.jobs = jobs
-
-    def set_working_directory(self, working_directory):
-        self.working_directory = working_directory
-
-    def set_backup_files_dir(self, backup_files_dir):
-        self.backup_files_dir = backup_files_dir
-
-    def set_original_files_dir(self, original_files_dir):
-        self.original_files_dir = original_files_dir
-
-    def set_combinations_dir(self, combinations_dir):
-        self.combinations_dir = combinations_dir
-
-    def set_relative_c_file_list(self, relative_c_file_list):
-        self.relative_c_file_list = relative_c_file_list
-
-    def set_binary_compiler_type(self, binary_compiler_type):
-        self.binary_compiler_type = binary_compiler_type
-
-    def set_par4all_compiler(self, par4all_compiler):
-        self.par4all_compiler = par4all_compiler
-
-    def set_autopar_compiler(self, autopar_compiler):
-        self.autopar_compiler = autopar_compiler
-
-    def set_cetus_compiler(self, cetus_compiler):
-        self.cetus_compiler = cetus_compiler
-
-    def set_user_par4all_flags(self, user_par4all_flags):
-        self.user_par4all_flags = user_par4all_flags
-
-    def set_user_autopar_flags(self, user_autopar_flags):
-        self.user_autopar_flags = user_autopar_flags
-
-    def set_user_cetus_flags(self, user_cetus_flags):
-        self.user_cetus_flags = user_cetus_flags
-
-    def set_user_binary_compiler_flags(self, user_binary_compiler_flags):
-        self.user_binary_compiler_flags = user_binary_compiler_flags
-
-    def set_is_make_file(self, is_make_file):
-        self.is_make_file = is_make_file
-
-    def set_makefile_parameters(self, makefile_parameters):
-        self.makefile_parameters = makefile_parameters
-
-    def set_makefile_output_files(self, makefile_output_files):
-        self.makefile_output_files = makefile_output_files
-
-    def set_main_file_parameters(self, main_file_parameters):
-        self.main_file_parameters = main_file_parameters
-
-    def set_slurm_parameters(self, slurm_parameters):
-        self.slurm_parameters = slurm_parameters
 
     @staticmethod
     def __combination_json_to_obj(combination_json):
@@ -495,12 +359,12 @@ class Compar:
         if self.is_make_file:
             pass
         else:
-            compilation_flags = self.get_user_binary_compiler_flags()
+            compilation_flags = self.user_binary_compiler_flags
             if extra_flags_list:
                 compilation_flags += extra_flags_list
             self.binary_compiler.initiate_for_new_task(compilation_flags,
                                                        combination_folder_path,
-                                                       self.get_main_file_name())
+                                                       self.main_file_name)
             self.__replace_result_file_name_prefix(combination_folder_path)
             self.binary_compiler.compile()
 
@@ -508,7 +372,7 @@ class Compar:
         self.db.update_all_speedups()
 
     def run_and_save_job_list(self, combination=True):
-        job_list = Executor.execute_jobs(self.jobs, self.NUM_OF_THREADS, self.get_slurm_parameters())
+        job_list = Executor.execute_jobs(self.jobs, self.NUM_OF_THREADS, self.slurm_parameters)
         if combination:
             for job in job_list:
                 job_result_dict = job.get_job_results()
@@ -543,7 +407,7 @@ class Compar:
                 # TODO: TabError in p4a, why??? its work on the linux interpreter (/usr/bin/python3)!!!
                 self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
                 continue
-            job = Job(combination_folder_path, combination_obj, self.get_main_file_parameters())
+            job = Job(combination_folder_path, combination_obj, self.main_file_parameters)
             self.jobs.append(job)
         if self.jobs:
             self.run_and_save_job_list()
