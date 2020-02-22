@@ -175,7 +175,8 @@ class Database:
                                     best_loop = loop
                                 break
                         break
-
+        if not best_loop:
+            raise MissingDataError(f'Cannot find any loop in db, loop: {loop_label}')
         return best_combination_id, best_loop
 
     def get_combination_from_static_db(self, combination_id):
