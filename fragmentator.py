@@ -70,6 +70,7 @@ class Fragmentator:
             'with_brackets': True
         }
         found_start = False
+        found_while = {}
 
         def save_and_reset_data_to_new_loop():
             nonlocal found_start
@@ -111,13 +112,32 @@ class Fragmentator:
                 # it is not the opposite of "if found start"!!!!
                 # because the "found start" flag can be changed during the above if statement
 
-                for_loop_regex_result = re.search('^[ ]*for', line)
-                if for_loop_regex_result:
-                    found_start = True
-                    current_loop['loop_lines'].append(line)
-                    current_loop['start_position_index'] = re.search('for', for_loop_regex_result.string).start()
-                    if not re.search(r'{[ ]*$|{[ ]*//[\w\W]*$', line):
-                        current_loop['with_brackets'] = False
+                if found_while:
+                    if found_while['with_brackets']:
+                        try:
+                            prefix_only_spaces = set(line[:found_while['line_offset']]) == set(' ')
+                            if prefix_only_spaces and line[found_while['line_offset']] == '}':
+                                found_while.clear()
+                        except IndexError:
+                            raise FragmentError(
+                                'Close bracket } of while loop is missing! (Maybe you forgot to run clang-format?)')
+                    else:  # that line is the body of the loop, there is only one line
+                        if not re.search('^//|^#|^/*', line):  # not a comment or a pragma
+                            found_while.clear()
+                else:
+                    for_loop_regex_result = re.search('^[ ]*for', line)
+                    while_loop_regex_result = re.search('^[ ]*while', line)
+                    end_with_bracket_pattern = r'{[ ]*$|{[ ]*//[\w\W]*$|{[ ]*/\*[\w\W]*$'
+                    if while_loop_regex_result:
+                        found_while['line_offset'] = re.search('while', line).start()
+                        with_bracket = re.search(end_with_bracket_pattern, line)
+                        found_while['with_brackets'] = with_bracket is not None
+                    elif for_loop_regex_result and not found_while:
+                        found_start = True
+                        current_loop['loop_lines'].append(line)
+                        current_loop['start_position_index'] = re.search('for', for_loop_regex_result.string).start()
+                        if not re.search(end_with_bracket_pattern, line):
+                            current_loop['with_brackets'] = False
 
     def __write_to_file(self, content):
         try:
