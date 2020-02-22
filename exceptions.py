@@ -33,6 +33,10 @@ class MissingDataError(Exception):
     pass
 
 
+class MakefileError(Exception):
+    pass
+
+
 def assert_file_exist(file_path):
     if not os.path.exists(file_path):
         raise FileError('File {} not exist'.format(file_path))

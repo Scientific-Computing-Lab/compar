@@ -9,6 +9,7 @@
 !/compilers/par4all.py
 !/compilers/binaryCompiler.py
 !/compilers/parallelCompiler.py
+!/compilers/makefile.py
 !/data/*
 !/assets
 !/assets/*
