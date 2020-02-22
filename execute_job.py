@@ -123,14 +123,14 @@ class ExecuteJob:
         slurm_parameters = user_slurm_parameters
         dir_path = self.get_job().get_directory_path()
         dir_name = os.path.basename(dir_path)
-        sbatch_script_file = self.__make_sbatch_script_file()
-
         x_file = dir_name + ".x"
+        sbatch_script_file = self.__make_sbatch_script_file(x_file)
+
         log_file = dir_name + ".log"
         x_file_path = os.path.join(dir_path, x_file)
         log_file_path = os.path.join(dir_path, log_file)
         slurm_parameters = " ".join(slurm_parameters)
-        cmd = 'sbatch {0} -o {1} {2} {3} {4} ' \
+        cmd = 'module load intel && sbatch {0} -o {1} {2} {3} {4} ' \
             .format(slurm_parameters,
                     log_file_path,
                     sbatch_script_file,
@@ -151,12 +151,12 @@ class ExecuteJob:
         if ExecuteJob.MY_BUSY_NODE_NUMBER_LIST:
             ExecuteJob.MY_BUSY_NODE_NUMBER_LIST.remove(self.get_run_node_number())
 
-    def __make_sbatch_script_file(self):
+    def __make_sbatch_script_file(self, job_name=''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
         batch_file = open(batch_file_path, 'w')
         batch_file.write(
             '#!/bin/bash\n'
-            + '#SBATCH --job-name=compar\n'
+            + f'#SBATCH --job-name={job_name}\n'
             + '#SBATCH --partition=grid\n'
             + '#SBATCH --exclusive\n'
             + '$@\n'
