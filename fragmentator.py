@@ -109,8 +109,8 @@ class Fragmentator:
                     # the current line may be a new loop
                     save_and_reset_data_to_new_loop()
             if not found_start:  # NOTICE THE COMMENT BELOW!!!
-                # it is not the opposite of "if found start"!!!!
-                # because the "found start" flag can be changed during the above if statement
+                # it is not the opposite of "if found_start"!!!!
+                # because the "found_start" flag can be changed during the above if statement
 
                 if found_while:
                     if found_while['with_brackets']:
@@ -122,9 +122,15 @@ class Fragmentator:
                             raise FragmentError(
                                 'Close bracket } of while loop is missing! (Maybe you forgot to run clang-format?)')
                     else:  # that line is the body of the loop, there is only one line
-                        if not re.search('^//|^#|^/*', line):  # not a comment or a pragma
+                        prefix_last_space_position = re.search(r'^[ ]+', line).end()
+                        is_not_comment_or_pragma = not re.search(r'^//|^#|^/\*', line)
+                        start_with_same_offset = prefix_last_space_position <= found_while['line_offset']
+                        if is_not_comment_or_pragma and line != '' and start_with_same_offset:
                             found_while.clear()
-                else:
+                if not found_while:  # NOTICE THE COMMENT BELOW!!!
+                    # it is not the opposite of "if found_while"!!!!
+                    # because the "found_while" flag can be changed during the above if statement
+
                     for_loop_regex_result = re.search('^[ ]*for', line)
                     while_loop_regex_result = re.search('^[ ]*while', line)
                     end_with_bracket_pattern = r'{[ ]*$|{[ ]*//[\w\W]*$|{[ ]*/\*[\w\W]*$'
