@@ -1,6 +1,7 @@
 import re
 from exceptions import FileError
 from exceptions import assert_file_exist
+from exceptions import FragmentError
 from file_formator import format_c_code
 
 
@@ -85,6 +86,8 @@ class Fragmentator:
 
         for line in lines:
             if not line:
+                if found_start:
+                    current_loop['loop_lines'].append('')
                 continue
             if found_start:
                 indent_chars = line[:current_loop['start_position_index']]
@@ -140,6 +143,8 @@ class Fragmentator:
         rest_of_the_content = self.__file_content
         for i, loop_fragment in enumerate(self.__fragments):
             loop_start_offset = rest_of_the_content.find(loop_fragment['loop'])
+            if loop_start_offset == -1:
+                raise FragmentError(f'Cannot find loop {loop_fragment["loop"]}')
             loop_end_offset = loop_start_offset + len(loop_fragment['loop'])
             loop_with_markers = loop_fragment['start_label'] + '\n'
             loop_with_markers += loop_fragment['loop']
