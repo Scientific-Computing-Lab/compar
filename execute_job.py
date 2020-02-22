@@ -161,6 +161,7 @@ class ExecuteJob:
             + '#SBATCH --exclusive\n'
             + '$@\n'
         )
+        batch_file.close()
         return batch_file_path
 
     def __analysis_output_file(self):
