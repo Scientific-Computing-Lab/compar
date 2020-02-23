@@ -17,10 +17,11 @@ class ExecuteJob:
     #TODO: need to ask if it is ok (yoel)
     MY_BUSY_NODE_NUMBER_LIST = []
 
-    def __init__(self, job):
+    def __init__(self, job, num_of_loops_in_files):
         self.job = job
         self.node_number_list = INTEL_XEON_CPU_E5_2683_V4
         self.run_node_number = 0
+        self.num_of_loops_in_files = num_of_loops_in_files
 
     def get_job(self):
         return self.job
@@ -96,6 +97,13 @@ class ExecuteJob:
                 return True
         return False
 
+    @staticmethod
+    def rewrite_output_file(file_path, loops_list):
+        f = open(file_path, "w")
+        for loop in loops_list:
+            f.write(f'run time of loop {loop[0]}: {loop[1]}\n')
+        f.close()
+
     def add_nodelist_flag_into_slurm(self, user_slurm_parameters):
 
         if not ExecuteJob.has_nodelist_flag_in_slurm_parameters(user_slurm_parameters):
@@ -169,6 +177,7 @@ class ExecuteJob:
         for root, dirs, files in os.walk(self.get_job().get_directory_path()):
             for file in files:
                 if re.search("_run_time_result.txt$", file):
+                    loops_dict = {}
                     file_full_path = os.path.join(root, file)
                     file_id_by_rel_path = os.path.relpath(file_full_path, self.job.directory)
                     file_id_by_rel_path = file_id_by_rel_path.replace("_run_time_result.txt", ".c")
@@ -177,7 +186,24 @@ class ExecuteJob:
                         with open(file_full_path, 'r') as input_file:
                             for line in input_file:
                                 if ":" in line:
-                                    line = line[line.find(last_string) + len(last_string)::].replace('\n', '').split(':')
-                                    self.get_job().set_loop_in_file_results(file_id_by_rel_path, line[0], line[1])
+                                    line = line[line.find(last_string) +
+                                                len(last_string)::].replace('\n', '').split(':')
+                                    loop_label = line[0]
+                                    loop_runtime = float(line[1])
+                                    if loop_label not in loops_dict.keys():
+                                        loops_dict[loop_label] = [loop_runtime]
+                                    else:
+                                        loops_dict[loop_label].append(loop_runtime)
+                        loops_list = list(map(lambda x: (x[0], float("{0:.8f}".format(sum(x[1]) / len(x[1])))),
+                                              loops_dict.items()))
+                        ran_loops = [x[0] for x in loops_list]
+                        for i in range(1, self.num_of_loops_in_files[file_id_by_rel_path] + 1):
+                            if i not in ran_loops:
+                                self.get_job().set_loop_in_file_results(file_id_by_rel_path, i, None, dead_code=True)
+                        for loop in loops_list:
+                            self.get_job().set_loop_in_file_results(file_id_by_rel_path, loop[0], loop[1])
+                        ExecuteJob.rewrite_output_file(file_full_path, loops_list)
                     except OSError as e:
                         raise FileError(str(e))
+
+

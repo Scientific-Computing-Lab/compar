@@ -41,6 +41,10 @@ class FragmentError(Exception):
     pass
 
 
+class DeadCode(Exception):
+    pass
+
+
 def assert_file_exist(file_path):
     if not os.path.exists(file_path):
         raise FileError('File {} not exist'.format(file_path))
@@ -58,7 +62,8 @@ def assert_file_is_empty(file):
 
 def assert_only_files(folder_path):
     folder_content = os.listdir(folder_path)
-    if len(folder_content) != len(list(filter(os.path.isfile, folder_content))):
+    if len(folder_content) != len(list(filter(os.path.isfile,
+                                              [os.path.join(folder_path, file) for file in folder_content]))):
         raise UserInputError('Input dir must contain only files!')
 
 

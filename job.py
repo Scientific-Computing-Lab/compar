@@ -98,17 +98,21 @@ class Job:
                 return file['loops']
         raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def set_loop_in_file_results(self, file_id_by_rel_path, loop_label, run_time, speedup=0):
+    def set_loop_in_file_results(self, file_id_by_rel_path, loop_label, run_time, dead_code=False, speedup=0):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
-                for loop in file['loops']:
-                    if loop["loop_label"] == str(loop_label):
-                        loop["run_time"] = run_time
-                        loop["speedup"] = speedup
-                        return
-                file['loops'].append({"loop_label": str(loop_label),
-                                      "run_time": run_time,
-                                      "speedup": speedup})
+                if dead_code:
+                    file['loops'].append({"loop_label": str(loop_label), "dead_code": True})
+                    return
+                else:
+                    for loop in file['loops']:
+                        if loop["loop_label"] == str(loop_label):
+                            loop["run_time"] = run_time
+                            loop["speedup"] = speedup
+                            return
+                    file['loops'].append({"loop_label": str(loop_label),
+                                          "run_time": run_time,
+                                          "speedup": speedup})
                 return
         raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 

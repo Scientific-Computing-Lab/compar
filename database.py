@@ -1,7 +1,7 @@
 import pymongo
 import itertools
 from bson import json_util
-from exceptions import DatabaseError, MissingDataError
+from exceptions import DatabaseError, MissingDataError, DeadCode
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
@@ -80,13 +80,21 @@ class Database:
             return False
 
     def update_serial_combination_speedup(self):
-        self.dynamic_db[self.collection_name].update_many({
-            '_id': self.SERIAL_COMBINATION_ID
-        }, {
-            '$set': {
-                'run_time_results.$[].loops.$[].speedup': 1.0
-            }
-        })
+        self.dynamic_db[self.collection_name].update_many(
+            filter={
+                '_id': self.SERIAL_COMBINATION_ID
+            },
+            update={
+                '$set': {
+                    'run_time_results.$[].loops.$[loopFilter].speedup': 1.0
+                }
+            },
+            array_filters=[
+                {
+                    'loopFilter.dead_code': None
+                }
+            ]
+        )
 
     def update_parallel_combinations_speedup(self, serial_run_time_dict):
         """
@@ -107,6 +115,8 @@ class Database:
                 continue
             for file_id_by_rel_path, loops_details_dict in serial_run_time_dict.items():
                 for loop_label, serial_run_time in loops_details_dict.items():
+                    if not serial_run_time:
+                        continue
                     # get results of a parallel combination from db
                     parallel_files_details = parallel_combination['run_time_results']
                     # get the loops details of the combination (file_id_by_rel_path should be unique)
@@ -153,15 +163,16 @@ class Database:
             file_details['file_id_by_rel_path'],
             dict(map(lambda loop_details: (
                 loop_details['loop_label'], loop_details['run_time']
-            ), file_details['loops']))
+            ) if 'dead_code' not in loop_details.keys() else (loop_details['loop_label'], None), file_details['loops']))
         ), serial_results['run_time_results']))
 
         self.update_parallel_combinations_speedup(serial_run_time_dict)
 
     def find_optimal_loop_combination(self, file_id_by_rel_path, loop_label):
         best_speedup = 1
-        best_combination_id = 0
+        best_combination_id = '0'
         best_loop = None
+        loop_is_dead_code = False
         combinations = self.dynamic_db[self.collection_name].find({})
         for combination in combinations:
             if 'error' not in combination.keys():
@@ -169,14 +180,20 @@ class Database:
                     if file['file_id_by_rel_path'] == file_id_by_rel_path:
                         for loop in file['loops']:
                             if loop['loop_label'] == loop_label:
-                                if loop['speedup'] >= best_speedup:
-                                    best_speedup = loop['speedup']
-                                    best_combination_id = combination['_id']
-                                    best_loop = loop
-                                break
+                                if 'dead_code' in loop.keys():
+                                    loop_is_dead_code = True
+                                else:
+                                    loop_is_dead_code = False
+                                    if loop['speedup'] >= best_speedup:
+                                        best_speedup = loop['speedup']
+                                        best_combination_id = combination['_id']
+                                        best_loop = loop
+                                    break
                         break
+        if loop_is_dead_code:
+            raise DeadCode(f'Loop {loop_label} in file {file_id_by_rel_path} is dead code!')
         if not best_loop:
-            raise MissingDataError(f'Cannot find any loop in db, loop: {loop_label}')
+            raise MissingDataError(f'Cannot find any loop in db, loop: {loop_label}, file: {file_id_by_rel_path}')
         return best_combination_id, best_loop
 
     def get_combination_from_static_db(self, combination_id):

@@ -190,14 +190,18 @@ class Compar:
             for loop_id in range(1, num_of_loops+1):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
                 end_label = Fragmentator.get_end_label()+str(loop_id)
-                current_optimal_id, current_loop = self.db.find_optimal_loop_combination(file_id_by_rel_path,
-                                                                                         str(loop_id))
-                # update the optimal loops list
-                current_loop['_id'] = current_optimal_id
-                current_file["optimal_loops"].append(current_loop)
+                try:
+                    current_optimal_id, current_loop = self.db.find_optimal_loop_combination(file_id_by_rel_path,
+                                                                                             str(loop_id))
+                    # update the optimal loops list
+                    current_loop['_id'] = current_optimal_id
+                    current_file["optimal_loops"].append(current_loop)
+                except e.DeadCode:
+                    current_file["optimal_loops"].append({'_id': '0', 'dead_code': True})
+                    current_optimal_id = '0'
 
                 # if the optimal combination is the serial => do nothing
-                if current_optimal_id != 0:
+                if current_optimal_id != '0':
                     current_optimal_combination = self.__combination_json_to_obj(
                         self.db.get_combination_from_static_db(current_optimal_id))
                     combination_folder_path = self.create_combination_folder(
@@ -387,7 +391,7 @@ class Compar:
         self.db.update_all_speedups()
 
     def run_and_save_job_list(self, combination=True):
-        job_list = Executor.execute_jobs(self.jobs, self.NUM_OF_THREADS, self.slurm_parameters)
+        job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.NUM_OF_THREADS, self.slurm_parameters)
         if combination:
             for job in job_list:
                 job_result_dict = job.get_job_results()
@@ -574,9 +578,14 @@ class Compar:
                              "Runtime", "Speedup"])
             for curr_file in optimal_data:
                 for loop in curr_file['optimal_loops']:
-                    combination_obj = self.__combination_json_to_obj(self.db.get_combination_from_static_db(loop['_id']))
-                    writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], loop['_id'],
-                                     combination_obj.get_compiler(),
-                                     combination_obj.get_parameters().get_compilation_params(),
-                                     combination_obj.get_parameters().get_env_params(),
-                                     loop['run_time'], loop['speedup']])
+                    if 'dead_code' in loop.keys():
+                        writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], 'dead code',
+                                         "", "", "", "", ""])
+                    else:
+                        combination_obj = self.__combination_json_to_obj(
+                            self.db.get_combination_from_static_db(loop['_id']))
+                        writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], loop['_id'],
+                                         combination_obj.get_compiler(),
+                                         combination_obj.get_parameters().get_compilation_params(),
+                                         combination_obj.get_parameters().get_env_params(),
+                                         loop['run_time'], loop['speedup']])
