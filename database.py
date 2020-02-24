@@ -188,7 +188,7 @@ class Database:
                                         best_speedup = loop['speedup']
                                         best_combination_id = combination['_id']
                                         best_loop = loop
-                                    break
+                                break
                         break
         if loop_is_dead_code:
             raise DeadCode(f'Loop {loop_label} in file {file_id_by_rel_path} is dead code!')
@@ -198,6 +198,16 @@ class Database:
 
     def get_combination_from_static_db(self, combination_id):
         combination = None
+        if combination_id == '0':
+            return {
+                "_id": "0",
+                "compiler_name": "serial",
+                "parameters": {
+                    "env_params": [],
+                    "code_params": [],
+                    "compilation_params": []
+                }
+            }
         try:
             combination = self.static_db[self.collection_name].find_one({"_id": combination_id})
         except Exception as e:

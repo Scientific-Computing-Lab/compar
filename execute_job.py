@@ -194,11 +194,11 @@ class ExecuteJob:
                                         loops_dict[loop_label] = [loop_runtime]
                                     else:
                                         loops_dict[loop_label].append(loop_runtime)
-                        loops_list = list(map(lambda x: (x[0], float("{0:.8f}".format(sum(x[1]) / len(x[1])))),
+                        loops_list = list(map(lambda x: (x[0], float(sum(x[1]))),
                                               loops_dict.items()))
                         ran_loops = [x[0] for x in loops_list]
                         for i in range(1, self.num_of_loops_in_files[file_id_by_rel_path] + 1):
-                            if i not in ran_loops:
+                            if str(i) not in ran_loops:
                                 self.get_job().set_loop_in_file_results(file_id_by_rel_path, i, None, dead_code=True)
                         for loop in loops_list:
                             self.get_job().set_loop_in_file_results(file_id_by_rel_path, loop[0], loop[1])

@@ -37,7 +37,7 @@ class Par4all(ParallelCompiler):
 
     @staticmethod
     def __remove_bswap_function(file_path):
-        bswap_regex = re.compile(r'static __uint64_t __bswap_64[^\}]*\}', re.DOTALL)
+        bswap_regex = re.compile(r'static __uint64_t __bswap_64[^\}]*\}', flags=re.DOTALL)
         try:
             with open(file_path, 'r+') as f:
                 content = f.read()

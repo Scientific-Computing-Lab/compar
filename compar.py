@@ -197,7 +197,7 @@ class Compar:
                     current_loop['_id'] = current_optimal_id
                     current_file["optimal_loops"].append(current_loop)
                 except e.DeadCode:
-                    current_file["optimal_loops"].append({'_id': '0', 'dead_code': True})
+                    current_file["optimal_loops"].append({'_id': '0', 'loop_label': str(loop_id), 'dead_code': True})
                     current_optimal_id = '0'
 
                 # if the optimal combination is the serial => do nothing
@@ -262,8 +262,8 @@ class Compar:
         to_replace = ''
         to_replace += start_label + '\n'
         to_replace += '// COMBINATION_ID: ' + combination_id + '\n'
-        to_replace += '// COMPILER_NAME: ' + comp_name
-        file_text = file_text.replace(start_label, to_replace)
+        to_replace += '// COMPILER_NAME: ' + comp_name + '\n'
+        file_text = re.sub(f'{start_label}[ ]*\\n', to_replace, file_text)
         try:
             with open(file_path, 'w') as file:
                 file.write(file_text)
@@ -276,17 +276,16 @@ class Compar:
         origin_file_string = Compar.get_file_content(origin_path)
         destination_file_string = Compar.get_file_content(destination_path)
 
-        origin_cut_string = re.search(start_label+"(.+?)"+end_label, origin_file_string, re.DOTALL)
-        if origin_cut_string:
-            origin_cut_string = origin_cut_string.group()
-        else:
-            raise Exception('cannot find loops in file')
+        origin_cut_string = re.findall(f'{start_label}[ ]*\\n.*{end_label}[ ]*\\n', origin_file_string, flags=re.DOTALL)
+        if len(origin_cut_string) != 1:
+            raise Exception(f'cannot find loop {start_label} in {origin_path}')
+        origin_cut_string = origin_cut_string[0]
 
-        destination_cut_string = re.search(start_label+"(.+?)"+end_label, destination_file_string, re.DOTALL)
-        if destination_cut_string:
-            destination_cut_string = destination_cut_string.group()
-        else:
-            raise Exception('cannot find loops in file')
+        destination_cut_string = re.findall(f'{start_label}[ ]*\\n.*{end_label}[ ]*\\n', destination_file_string,
+                                            flags=re.DOTALL)
+        if len(destination_cut_string) != 1:
+            raise Exception(f'cannot find loop {start_label} in {destination_path}')
+        destination_cut_string = destination_cut_string[0]
 
         destination_file_string = destination_file_string.replace(destination_cut_string, origin_cut_string)
 
@@ -538,22 +537,22 @@ class Compar:
     def remove_declaration_code(content):
         run_time_vars_regex = rf'double[ ]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
         file_pointer_vars_regex = rf'FILE[ ]*\*[ ]*{Timer.COMPAR_VAR_PREFIX}[^;]+;'
-        content = re.sub(run_time_vars_regex, '', content, re.DOTALL)
-        content = re.sub(file_pointer_vars_regex, '', content, re.DOTALL)
+        content = re.sub(run_time_vars_regex, '', content, flags=re.DOTALL)
+        content = re.sub(file_pointer_vars_regex, '', content, flags=re.DOTALL)
         return content
 
     @staticmethod
     def remove_run_time_calculation_code_code(content):
-        return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, re.DOTALL)
+        return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, flags=re.DOTALL)
 
     @staticmethod
     def remove_writing_to_file_code(content):
         fopen_regex = rf'{Timer.COMPAR_VAR_PREFIX}[^;]+fopen[^;]+{re.escape(Timer.get_file_name_prefix_token())}?[^;]+;'
         fprintf_regex = rf'fprintf[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
         fclose_regex = rf'fclose[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
-        content = re.sub(fopen_regex, '', content, re.DOTALL)
-        content = re.sub(fprintf_regex, '', content, re.DOTALL)
-        content = re.sub(fclose_regex, '', content, re.DOTALL)
+        content = re.sub(fopen_regex, '', content, flags=re.DOTALL)
+        content = re.sub(fprintf_regex, '', content, flags=re.DOTALL)
+        content = re.sub(fclose_regex, '', content, flags=re.DOTALL)
         return content
 
     def remove_timer_code(self, container_folder_path):
