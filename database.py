@@ -170,7 +170,7 @@ class Database:
 
     def find_optimal_loop_combination(self, file_id_by_rel_path, loop_label):
         best_speedup = 1
-        best_combination_id = '0'
+        best_combination_id = self.SERIAL_COMBINATION_ID
         best_loop = None
         loop_is_dead_code = False
         combinations = self.dynamic_db[self.collection_name].find({})
@@ -198,7 +198,7 @@ class Database:
 
     def get_combination_from_static_db(self, combination_id):
         combination = None
-        if combination_id == '0':
+        if combination_id == self.SERIAL_COMBINATION_ID:
             return {
                 "_id": "0",
                 "compiler_name": "serial",
