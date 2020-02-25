@@ -122,7 +122,7 @@ class Database:
                     # get the loops details of the combination (file_id_by_rel_path should be unique)
                     parallel_loops_details = list(filter(
                         lambda file: file['file_id_by_rel_path'] == file_id_by_rel_path, parallel_files_details))
-                    assert len(parallel_files_details) == 1, 'file_id_by_rel_path should be unique'
+                    assert len(parallel_loops_details) == 1, 'file_id_by_rel_path should be unique'
                     parallel_loops_details = parallel_loops_details[0]['loops']
                     # get the run_time of the loop (loop_label should be unique)
                     parallel_loop_run_time = list(filter(
