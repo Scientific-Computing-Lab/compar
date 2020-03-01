@@ -32,6 +32,11 @@ class Makefile:
         print('Makefile output: ' + str(output))
         print("Done makefile work")
 
+    def get_exe_full_path(self):
+        working_dir_name = os.path.basename(os.path.dirname(self.working_directory + os.path.sep))
+        exe_new_name = f'{working_dir_name}.x'
+        return os.path.join(self.working_directory, exe_new_name)
+
     def move_exe_to_base_dir(self):
         exe_folder_full_path = os.path.join(self.working_directory, self.exe_folder_relative_path)
         exe_path = os.path.join(exe_folder_full_path, self.exe_file_name)
