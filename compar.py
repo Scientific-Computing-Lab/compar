@@ -97,7 +97,8 @@ class Compar:
                  include_dirs_list=None,
                  main_file_name="",
                  main_file_parameters=None,
-                 slurm_parameters=None):
+                 slurm_parameters=None,
+                 is_nas=False):
 
         if not is_make_file:
             e.assert_only_files(input_dir)
@@ -128,6 +129,7 @@ class Compar:
         self.__max_combinations_at_once = 20
         self.ignored_rel_paths = ignored_rel_paths
         self.include_dirs_list = include_dirs_list
+        self.is_nas = is_nas
 
         # Build compar environment-----------------------------------
         self.working_directory = working_directory
@@ -143,7 +145,7 @@ class Compar:
         version = ""  # don't know if getting this from the user
         self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
         self.binary_compiler_type = binary_compiler_type
-        self.par4all_compiler = Par4all(version, par4all_flags, include_dirs_list=self.include_dirs_list)
+        self.par4all_compiler = Par4all(version, par4all_flags, include_dirs_list=self.include_dirs_list, is_nas=is_nas)
         self.autopar_compiler = Autopar(version, autopar_flags, include_dirs_list=self.include_dirs_list)
         self.cetus_compiler = Cetus(version, cetus_flags, include_dirs_list=self.include_dirs_list)
         # -----------------------------------------------------------
@@ -359,10 +361,18 @@ class Compar:
                                                 combination_folder_path,
                                                 self.make_absolute_file_list(combination_folder_path))
         if compiler_name == Compar.PAR4ALL:
-            self.__copy_pips_stubs_to_folder(combination_folder_path)
+            if self.is_nas:
+                parallel_compiler.set_make_obj(Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
+                                                        self.makefile_output_exe_file_name, self.makefile_commands))
+                self.__copy_pips_stubs_to_folder(os.path.join(combination_folder_path, 'common'))
+            else:
+                self.__copy_pips_stubs_to_folder(combination_folder_path)
         parallel_compiler.compile()
         if compiler_name == Compar.PAR4ALL:
-            os.remove(os.path.join(combination_folder_path, 'pips_stubs.c'))
+            if self.is_nas:
+                os.remove(os.path.join(combination_folder_path, 'common', 'pips_stubs.c'))
+            else:
+                os.remove(os.path.join(combination_folder_path, 'pips_stubs.c'))
         env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
         for file_dict in self.make_absolute_file_list(combination_folder_path):
             if compiler_name == Compar.CETUS:
@@ -390,14 +400,27 @@ class Compar:
         self.db.update_all_speedups()
 
     def run_and_save_job_list(self, combination=True):
-        job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.NUM_OF_THREADS, self.slurm_parameters)
-        if combination:
-            for job in job_list:
-                job_result_dict = job.get_job_results()
-                self.db.insert_new_combination(job_result_dict)
-                if self.delete_combinations_folders:
-                    self.__delete_combination_folder(job.get_directory_path())
-        self.jobs.clear()
+        try:
+            job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.NUM_OF_THREADS, self.slurm_parameters)
+            if combination:
+                for job in job_list:
+                    self.save_successful_job(job)
+        except Exception as ex:
+            traceback.print_exc()
+            for job in self.jobs:
+                # TODO: check it!
+                if job.get_job_results()['run_time_results']:
+                    self.save_successful_job(job)
+                else:
+                    self.save_combination_as_failure(job.combination.combination_id, str(ex), job.directory)
+        finally:
+            self.jobs.clear()
+
+    def save_successful_job(self, job):
+        job_result_dict = job.get_job_results()
+        self.db.insert_new_combination(job_result_dict)
+        if self.delete_combinations_folders:
+            self.__delete_combination_folder(job.get_directory_path())
 
     def save_combination_as_failure(self, combination_id, error_msg, combination_folder_path):
         combination_dict = {
@@ -418,12 +441,7 @@ class Compar:
             try:
                 self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
                 self.compile_combination_to_binary(combination_folder_path)
-            except e.CombinationFailure as ex:
-                traceback.print_exc()
-                self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
-                continue
-            except e.CompilationError as ex:
-                # TODO: TabError in p4a, why??? its work on the linux interpreter (/usr/bin/python3)!!!
+            except Exception as ex:
                 traceback.print_exc()
                 self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
                 continue
