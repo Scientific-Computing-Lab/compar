@@ -33,6 +33,7 @@ def main():
     parser.add_argument('-main_file_p', '--main_file_parameters', nargs="*", help='Main c file parameters',
                         default=None)
     parser.add_argument('-slurm_p', '--slurm_parameters', nargs="*", help='Slurm parameters', default=None)
+    parser.add_argument('-nas', '--is_nas', help='Is NAS Benchmark', action='store_true')
     args = vars(parser.parse_args())
 
     # TODO: should be depend on users choice
@@ -62,7 +63,8 @@ def main():
         include_dirs_list=args['include_dirs_list'],
         main_file_name=args['main_file_name'],
         main_file_parameters=args['main_file_parameters'],
-        slurm_parameters=args['slurm_parameters']
+        slurm_parameters=args['slurm_parameters'],
+        is_nas=args['is_nas']
     )
     compar_obj.fragment_and_add_timers()
     compar_obj.run_serial()
