@@ -8,8 +8,10 @@ import re
 class Par4all(ParallelCompiler):
 
     def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
-                 include_dirs_list=None):
+                 include_dirs_list=None, is_nas=False, make_obj=None):
         super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list)
+        self.is_nas = is_nas
+        self.make_obj = make_obj
 
     @staticmethod
     def remove_code_from_file(file_path, code_to_be_removed):
@@ -49,23 +51,25 @@ class Par4all(ParallelCompiler):
         except Exception as e:
             print(e)
 
-    def __run_p4a_process(self, file_path_to_compile):
-        files_to_compile = [file_path_to_compile, ]
-        pips_stub_path = os.path.join(self.get_input_file_directory(), 'pips_stubs.c')
+    def set_make_obj(self, make_obj):
+        self.make_obj = make_obj
+
+    def __run_p4a_process(self):
+        files_to_compile = [file_dict['file_full_path'] for file_dict in self.get_file_list()]
+        if self.is_nas:
+            pips_stub_path = os.path.join(self.get_input_file_directory(), 'common', 'pips_stubs.c')
+        else:
+            pips_stub_path = os.path.join(self.get_input_file_directory(), 'pips_stubs.c')
         if os.path.exists(pips_stub_path):
             files_to_compile.append(pips_stub_path)
-        try:
-            previous_path = os.environ['PATH']
-        except KeyError:
-            previous_path = ''
-        command = 'export PATH=/usr/bin/python3:$PATH'
-        command += ' && module load par4all && source $set_p4a_env'
-        command += ' && p4a -v -O  ' + ' '.join(files_to_compile)
-        command += ' '.join(map(str, super().get_compilation_flags()))
+        command = 'module load par4all && source $set_p4a_env'
+        command += ' && PATH=/bin:$PATH p4a --log -vv ' + ' '.join(files_to_compile)
+        if self.is_nas:
+            command += ' common/*.c'
+        command += ' ' + ' '.join(map(str, super().get_compilation_flags()))
         if self.include_dirs_list:
-            command += ' ' + '-I'.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
+            command += ' -I ' + ' -I '.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
                                            self.include_dirs_list))
-        command += ' && export PATH=' + previous_path
         try:
             output = subprocess.check_output([command, ], shell=True, cwd=self.get_input_file_directory())
             print('par4all compilation output: ' + str(output))
@@ -77,16 +81,20 @@ class Par4all(ParallelCompiler):
     def compile(self):
         try:
             super().compile()
-            for file_dict in self.get_file_list():
-                self.remove_code_from_file(file_dict['file_full_path'], '#include <omp.h>')
-                self.__run_p4a_process(file_dict['file_full_path'])
-                file_name, extension = os.path.splitext(file_dict['file_full_path'])
-                name_to_replace = file_name + '.p4a' + extension
-                os.rename(name_to_replace, file_dict['file_full_path'])
-                self.inject_code_at_the_top(file_dict['file_full_path'], '#include <omp.h>')
-                self.__remove_bswap_function(file_dict['file_full_path'])
-                compiled_pips_stubs = os.path.join(self.get_input_file_directory(), 'pips_stubs.p4a.c')
-                if os.path.exists(compiled_pips_stubs):
-                    os.remove(compiled_pips_stubs)
+            if self.is_nas:
+                self.make_obj.make()
+                if os.path.exists(self.make_obj.get_exe_full_path()):
+                    os.remove(self.make_obj.get_exe_full_path())
+                wtime_sgi64_path = os.path.join(self.get_input_file_directory(), 'common', 'wtime_sgi64.c')
+                if os.path.exists(wtime_sgi64_path):
+                    os.remove(wtime_sgi64_path)
+            self.__run_p4a_process()
+            for root, dirs, files in os.walk(self.get_input_file_directory()):
+                for file in files:
+                    full_path = os.path.join(root, file)
+                    if file.endswith('.p4a.c'):
+                        os.rename(full_path, full_path[0:-6] + '.c')
+                        full_path = full_path[0:-6] + '.c'
+                        self.__remove_bswap_function(full_path)
         except Exception as e:
             raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() + " failed to be parallel!")
