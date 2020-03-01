@@ -61,7 +61,7 @@
       "toggle": [
         "--fine-grain",
         "--com-optimization",
-        "---no_pointer_aliasing"
+        "--no-pointer-aliasing"
       ]
     }
   }
