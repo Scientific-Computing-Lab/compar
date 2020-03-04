@@ -17,11 +17,14 @@ class ExecuteJob:
     #TODO: need to ask if it is ok (yoel)
     MY_BUSY_NODE_NUMBER_LIST = []
 
-    def __init__(self, job, num_of_loops_in_files):
+    def __init__(self, job, num_of_loops_in_files, db, db_lock, save_results):
         self.job = job
         self.node_number_list = INTEL_XEON_CPU_E5_2683_V4
         self.run_node_number = 0
         self.num_of_loops_in_files = num_of_loops_in_files
+        self.db = db
+        self.db_lock = db_lock
+        self.save_results = save_results
 
     def get_job(self):
         return self.job
@@ -122,9 +125,32 @@ class ExecuteJob:
             return new_slurm_parameters
         return user_slurm_parameters.copy()
 
+    def save_successful_job(self, job):
+        job_result_dict = job.get_job_results()
+        self.db_lock.acquire()
+        self.db.insert_new_combination(job_result_dict)
+        self.db_lock.release()
+
+    def save_combination_as_failure(self, error_msg):
+        combination_dict = {
+            '_id': self.job.combination.combination_id,
+            'error': error_msg
+        }
+        self.db_lock.acquire()
+        self.db.insert_new_combination(combination_dict)
+        self.db_lock.release()
+
     def run(self, user_slurm_parameters):
-        self.__run_with_sbatch(user_slurm_parameters)
-        self.__analysis_output_file()
+        try:
+            self.__run_with_sbatch(user_slurm_parameters)
+            self.__analysis_output_file()
+            if self.save_results:
+                self.save_successful_job(self.job)
+        except Exception as ex:
+            if self.job.get_job_results()['run_time_results']:
+                self.save_successful_job(self.job)
+            else:
+                self.save_combination_as_failure(str(ex))
 
     def __run_with_sbatch(self, user_slurm_parameters):
         # slurm_parameters = self.add_nodelist_flag_into_slurm(user_slurm_parameters)
@@ -203,7 +229,6 @@ class ExecuteJob:
                         for loop in loops_list:
                             self.get_job().set_loop_in_file_results(file_id_by_rel_path, loop[0], loop[1])
                         ExecuteJob.rewrite_output_file(file_full_path, loops_list)
+
                     except OSError as e:
                         raise FileError(str(e))
-
-

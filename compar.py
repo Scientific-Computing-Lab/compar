@@ -399,28 +399,18 @@ class Compar:
     def calculate_speedups(self):
         self.db.update_all_speedups()
 
-    def run_and_save_job_list(self, combination=True):
+    def run_and_save_job_list(self, save_results=True):
+        job_list = []
         try:
-            job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.NUM_OF_THREADS, self.slurm_parameters)
-            if combination:
-                for job in job_list:
-                    self.save_successful_job(job)
+            job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.db, self.NUM_OF_THREADS,
+                                             self.slurm_parameters, save_results)
         except Exception as ex:
             traceback.print_exc()
-            for job in self.jobs:
-                # TODO: check it!
-                if job.get_job_results()['run_time_results']:
-                    self.save_successful_job(job)
-                else:
-                    self.save_combination_as_failure(job.combination.combination_id, str(ex), job.directory)
         finally:
+            for job in job_list:
+                if self.delete_combinations_folders:
+                    self.__delete_combination_folder(job.get_directory_path())
             self.jobs.clear()
-
-    def save_successful_job(self, job):
-        job_result_dict = job.get_job_results()
-        self.db.insert_new_combination(job_result_dict)
-        if self.delete_combinations_folders:
-            self.__delete_combination_folder(job.get_directory_path())
 
     def save_combination_as_failure(self, combination_id, error_msg, combination_folder_path):
         combination_dict = {
