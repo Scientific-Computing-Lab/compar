@@ -238,6 +238,7 @@ class Compar:
         self.remove_timer_code(final_folder_path)
         # format all optimal files
         self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
+        self.generate_summary_file(optimal_loops_data, final_folder_path)
         try:
             self.compile_combination_to_binary(final_folder_path)
         except Exception as ex:
@@ -248,7 +249,6 @@ class Compar:
             self.run_and_save_job_list(False)
         except Exception as ex:
             raise ExecutionError(str(ex) + 'exception in Compar. generate_optimal_code: cannot run optimal code')
-        self.generate_summary_file(optimal_loops_data, final_folder_path)
 
     @staticmethod
     def get_file_content(file_path):
