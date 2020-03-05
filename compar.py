@@ -531,8 +531,9 @@ class Compar:
         for file_dict in job_results:
             if 'dead_code_file' not in file_dict.keys():
                 for loop_dict in file_dict['loops']:
-                    key = (file_dict['file_id_by_rel_path'], loop_dict['loop_label'])
-                    self.serial_run_time[key] = loop_dict['run_time']
+                    if 'dead_code' not in loop_dict.keys():
+                        key = (file_dict['file_id_by_rel_path'], loop_dict['loop_label'])
+                        self.serial_run_time[key] = loop_dict['run_time']
         if self.delete_combinations_folders:
             self.__delete_combination_folder(serial_dir_path)
 

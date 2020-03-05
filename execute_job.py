@@ -151,7 +151,7 @@ class ExecuteJob:
                     try:
                         if not self.serial_run_time_dict:  # it is serial running
                             loop_dict['speedup'] = 1.0
-                        else:
+                        elif 'dead_code' not in loop_dict.keys():
                             serial_run_time_key = (file_dict['file_id_by_rel_path'], loop_dict['loop_label'])
                             serial_run_time = float(self.serial_run_time_dict[serial_run_time_key])
                             parallel_run_time = float(loop_dict['run_time'])
