@@ -182,7 +182,6 @@ class Compar:
         self.db = Database(self.__extract_working_directory_name())
 
     def generate_optimal_code(self):
-        self.calculate_speedups()
         optimal_loops_data = []
 
         # copy final results into this folder
