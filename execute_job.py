@@ -17,7 +17,7 @@ class ExecuteJob:
     #TODO: need to ask if it is ok (yoel)
     MY_BUSY_NODE_NUMBER_LIST = []
 
-    def __init__(self, job, num_of_loops_in_files, db, db_lock, save_results):
+    def __init__(self, job, num_of_loops_in_files, db, db_lock, save_results, serial_run_time, relative_c_file_list):
         self.job = job
         self.node_number_list = INTEL_XEON_CPU_E5_2683_V4
         self.run_node_number = 0
@@ -25,6 +25,8 @@ class ExecuteJob:
         self.db = db
         self.db_lock = db_lock
         self.save_results = save_results
+        self.serial_run_time_dict = serial_run_time  # {(<file_id_by_rel_path>, <loop_label>) : <run_time>, ... }
+        self.relative_c_file_list = relative_c_file_list
 
     def get_job(self):
         return self.job
@@ -86,7 +88,7 @@ class ExecuteJob:
                         print("All nodes are occupide.")
                         time.sleep(30)
                         my_busy_node_number = self.__get_free_node_number_list()
-                       
+
             return my_busy_node_number[0]
 
         return free_node_number_list[0]
@@ -125,8 +127,9 @@ class ExecuteJob:
             return new_slurm_parameters
         return user_slurm_parameters.copy()
 
-    def save_successful_job(self, job):
-        job_result_dict = job.get_job_results()
+    def save_successful_job(self):
+        self.update_speedup()
+        job_result_dict = self.job.get_job_results()
         self.db_lock.acquire()
         self.db.insert_new_combination(job_result_dict)
         self.db_lock.release()
@@ -140,17 +143,49 @@ class ExecuteJob:
         self.db.insert_new_combination(combination_dict)
         self.db_lock.release()
 
+    def update_speedup(self):
+        job_results = self.job.get_job_results()['run_time_results']
+        for file_dict in job_results:
+            if 'dead_code_file' not in file_dict.keys():
+                for loop_dict in file_dict['loops']:
+                    try:
+                        if not self.serial_run_time_dict:  # it is serial running
+                            loop_dict['speedup'] = 1.0
+                        else:
+                            serial_run_time_key = (file_dict['file_id_by_rel_path'], loop_dict['loop_label'])
+                            serial_run_time = float(self.serial_run_time_dict[serial_run_time_key])
+                            parallel_run_time = float(loop_dict['run_time'])
+                            try:
+                                loop_dict['speedup'] = serial_run_time / parallel_run_time
+                            except ZeroDivisionError:
+                                loop_dict['speedup'] = 0.0
+
+                    except KeyError as e:  # if one of the keys doesn't exists, just for debug.
+                        error_msg = 'key error: ' + str(e) + f', in file {file_dict["file_id_by_rel_path"]}'
+                        if 'missing_data' in file_dict.keys():
+                            error_msg = file_dict['missing_data'] + f'\n{error_msg}'
+                        file_dict['missing_data'] = error_msg
+
     def run(self, user_slurm_parameters):
         try:
             self.__run_with_sbatch(user_slurm_parameters)
             self.__analysis_output_file()
+            self.update_dead_code_files()
             if self.save_results:
-                self.save_successful_job(self.job)
+                self.save_successful_job()
         except Exception as ex:
             if self.job.get_job_results()['run_time_results']:
-                self.save_successful_job(self.job)
+                self.save_successful_job()
             else:
                 self.save_combination_as_failure(str(ex))
+
+    def update_dead_code_files(self):
+        job_results = self.job.get_job_results()['run_time_results']
+        results_file_ids = [file_dict['file_id_by_rel_path'] for file_dict in job_results]
+        for file_dict in self.relative_c_file_list:
+            file_id = file_dict['file_relative_path']
+            if file_id not in results_file_ids:
+                job_results.append({'file_id_by_rel_path': file_id, 'dead_code_file': True})
 
     def __run_with_sbatch(self, user_slurm_parameters):
         # slurm_parameters = self.add_nodelist_flag_into_slurm(user_slurm_parameters)
@@ -181,7 +216,7 @@ class ExecuteJob:
         cmd = "squeue | grep {0}".format(self.get_job().get_job_id())
         while os.system(cmd) == 0:
             time.sleep(30)
-            
+
         if ExecuteJob.MY_BUSY_NODE_NUMBER_LIST:
             ExecuteJob.MY_BUSY_NODE_NUMBER_LIST.remove(self.get_run_node_number())
 

@@ -121,6 +121,8 @@ class Compar:
         if not ignored_rel_paths:
             ignored_rel_paths = []
 
+        self.serial_run_time = {}
+
         self.delete_combinations_folders = delete_combinations_folders
         self.binary_compiler = None
         self.binary_compiler_version = binary_compiler_version
@@ -402,8 +404,9 @@ class Compar:
     def run_and_save_job_list(self, save_results=True):
         job_list = []
         try:
-            job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.db, self.NUM_OF_THREADS,
-                                             self.slurm_parameters, save_results)
+            job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.db, self.relative_c_file_list,
+                                             self.NUM_OF_THREADS, self.slurm_parameters, save_results,
+                                             self.serial_run_time)
         except Exception as ex:
             traceback.print_exc()
         finally:
@@ -521,9 +524,17 @@ class Compar:
         job = Job(directory=serial_dir_path,
                   exec_file_args=self.main_file_parameters,
                   combination=combination)
-        self.jobs.append(job)
-        if len(self.jobs) >= self.__max_combinations_at_once:
-            self.run_and_save_job_list()
+
+        job = Executor.execute_jobs([job, ], self.files_loop_dict, self.db, self.relative_c_file_list,
+                                    self.NUM_OF_THREADS, self.slurm_parameters)
+        job_results = job.get_job_results()['run_time_results']
+        for file_dict in job_results:
+            if 'dead_code_file' not in file_dict.keys():
+                for loop_dict in file_dict['loops']:
+                    key = (file_dict['file_id_by_rel_path'], loop_dict['loop_label'])
+                    self.serial_run_time[key] = loop_dict['run_time']
+        if self.delete_combinations_folders:
+            self.__delete_combination_folder(serial_dir_path)
 
     def fragment_and_add_timers(self):
         for c_file_dict in self.make_absolute_file_list(self.original_files_dir):
