@@ -199,7 +199,9 @@ class Compar:
                     # update the optimal loops list
                     current_loop['_id'] = current_optimal_id
                     current_file["optimal_loops"].append(current_loop)
-                except e.DeadCode:
+                except e.DeadCodeFile:
+                    current_file["dead_code_file"] = True
+                except e.DeadCodeLoop:
                     current_file["optimal_loops"].append({'_id': '0', 'loop_label': str(loop_id), 'dead_code': True})
                     current_optimal_id = '0'
 
@@ -595,9 +597,13 @@ class Compar:
             writer.writerow(["File", "Loop", "Combination", "Compiler", "Compilation Params", "Env flags",
                              "Runtime", "Speedup"])
             for curr_file in optimal_data:
+                if 'dead_code_file' in curr_file.keys():
+                    writer.writerow([curr_file['file_id_by_rel_path'], "" 'dead code file',
+                                     "", "", "", "", ""])
+                    continue
                 for loop in curr_file['optimal_loops']:
                     if 'dead_code' in loop.keys():
-                        writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], 'dead code',
+                        writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], 'dead code loop',
                                          "", "", "", "", ""])
                     else:
                         combination_obj = self.__combination_json_to_obj(

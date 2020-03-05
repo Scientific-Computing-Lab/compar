@@ -41,7 +41,11 @@ class FragmentError(Exception):
     pass
 
 
-class DeadCode(Exception):
+class DeadCodeLoop(Exception):
+    pass
+
+
+class DeadCodeFile(Exception):
     pass
 
 

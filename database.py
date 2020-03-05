@@ -1,7 +1,7 @@
 import pymongo
 import itertools
 from bson import json_util
-from exceptions import DatabaseError, MissingDataError, DeadCode
+from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
@@ -178,6 +178,8 @@ class Database:
             if 'error' not in combination.keys():
                 for file in combination['run_time_results']:
                     if file['file_id_by_rel_path'] == file_id_by_rel_path:
+                        if 'dead_code_file' in file.keys():
+                            raise DeadCodeFile(f'file {file_id_by_rel_path} is dead code!')
                         for loop in file['loops']:
                             if loop['loop_label'] == loop_label:
                                 if 'dead_code' in loop.keys():
@@ -191,7 +193,7 @@ class Database:
                                 break
                         break
         if loop_is_dead_code:
-            raise DeadCode(f'Loop {loop_label} in file {file_id_by_rel_path} is dead code!')
+            raise DeadCodeLoop(f'Loop {loop_label} in file {file_id_by_rel_path} is dead code!')
         if not best_loop:
             raise MissingDataError(f'Cannot find any loop in db, loop: {loop_label}, file: {file_id_by_rel_path}')
         return best_combination_id, best_loop
