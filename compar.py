@@ -526,7 +526,7 @@ class Compar:
                   combination=combination)
 
         job = Executor.execute_jobs([job, ], self.files_loop_dict, self.db, self.relative_c_file_list,
-                                    self.NUM_OF_THREADS, self.slurm_parameters)
+                                    self.NUM_OF_THREADS, self.slurm_parameters)[0]
         job_results = job.get_job_results()['run_time_results']
         for file_dict in job_results:
             if 'dead_code_file' not in file_dict.keys():
