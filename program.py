@@ -3,7 +3,7 @@ from compar import Compar
 import traceback
 import os
 import shutil
-from exceptions import assert_rel_path_starts_without_sep
+from exceptions import assert_rel_path_starts_without_sep, CompilationError
 
 
 def main():
@@ -75,5 +75,9 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    except CompilationError as e:
+        print("The optimal code could not be compiled!")
+        print("Please check manually if there are some duplicate variables declaration in the same scope")
+        print("This is probably Cetus side effects")
     except Exception as e:
         traceback.print_exc()
