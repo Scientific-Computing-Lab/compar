@@ -539,7 +539,8 @@ class Compar:
         if self.delete_combinations_folders:
             self.__delete_combination_folder(serial_dir_path)
 
-    def fragment_and_add_timers(self, main_file_path):
+    def fragment_and_add_timers(self, main_file_rel_path):
+        main_file_path = os.path.join(self.original_files_dir, main_file_rel_path)
         declaration_code_to_inject_to_main_file = ""
         for index, c_file_dict in enumerate(self.make_absolute_file_list(self.original_files_dir)):
             self.__timer = Timer(c_file_dict['file_full_path'])
@@ -552,8 +553,6 @@ class Compar:
                     f"{name_of_global_array}[{num_of_loops}] = {'{0}'};\n"
             else:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, 'no_global_var')
-        # TODO: 1. change main file
-        # TODO: 2. inject to all c files
         self.__timer.inject_code_to_main_file(main_file_path, declaration_code_to_inject_to_main_file)
 
     def create_combination_folder(self, combination_folder_name, base_dir=None):

@@ -34,6 +34,8 @@ def main():
                         default=None)
     parser.add_argument('-slurm_p', '--slurm_parameters', nargs="*", help='Slurm parameters', default=None)
     parser.add_argument('-nas', '--is_nas', help='Is NAS Benchmark', action='store_true')
+    parser.add_argument('-main_file_r_p', '--main_file_rel_path', help='Main c file name relative path',
+                        default="", required=True)
     args = vars(parser.parse_args())
 
     # TODO: should be depend on users choice
@@ -66,7 +68,8 @@ def main():
         slurm_parameters=args['slurm_parameters'],
         is_nas=args['is_nas']
     )
-    compar_obj.fragment_and_add_timers()
+    # TODO: change fragment_and_add_timers main file path
+    compar_obj.fragment_and_add_timers(args['main_file_rel_path'])
     compar_obj.run_serial()
     compar_obj.run_parallel_combinations()
     compar_obj.generate_optimal_code()
