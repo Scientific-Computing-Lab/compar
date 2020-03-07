@@ -543,14 +543,13 @@ class Compar:
         declaration_code_to_inject_to_main_file = ""
         for index, c_file_dict in enumerate(self.make_absolute_file_list(self.original_files_dir)):
             self.__timer = Timer(c_file_dict['file_full_path'])
-            # TODO: inject struct to all c files
             self.__timer.inject_timers(index, main_file_path)
             num_of_loops = self.__timer.get_number_of_loops()
             name_of_global_array = f'____compar____arr{str(index)}'
             if num_of_loops != 0:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, name_of_global_array)
                 declaration_code_to_inject_to_main_file += f"____compar____struct " \
-                    f"{name_of_global_array}[{num_of_loops}];\n"
+                    f"{name_of_global_array}[{num_of_loops}] = {'{0}'};\n"
             else:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, 'no_global_var')
         # TODO: 1. change main file
