@@ -43,20 +43,13 @@ class Timer(object):
         return prefix_loop_code
 
     @staticmethod
-    def get_suffix_loop_code(label, file_name):
+    def get_suffix_loop_code(label, name_of_global_array):
         suffix_loop_code = '\n'
         suffix_loop_code += Timer.INIT_RUN_TIME_VAR_CODE.format(label, label)
-        # TODO: inject here to the new arrays
-        # TODO: suffix_loop_code += Timer.WRITE_TO_FILE_CODE.format(label, file_name, label, label, label, label)
+        suffix_loop_code += f'{name_of_global_array}[{int(label)-1}].counter++;\n'
+        suffix_loop_code += f'{name_of_global_array}[{int(label)-1}].total_runtime+=' \
+            f'{Timer.COMPAR_VAR_PREFIX}run_time_{label};\n'
         return suffix_loop_code
-
-    @staticmethod
-    def inject_global_declaration(input_file_text, num_of_loops, array_var_index):
-        new_code = Timer.DECL_GLOBAL_STRUCT_CODE
-        name_of_global_array = f'____compar____arr{str(array_var_index)}'
-        new_code += f"____compar____struct extern {name_of_global_array}[{num_of_loops}];\n"
-        new_code += input_file_text
-        return new_code
 
     def __init__(self, file_path):
         e.assert_file_exist(file_path)
@@ -101,16 +94,20 @@ class Timer(object):
         return input_file_text, fragments
 
     def inject_timers(self, array_var_index, main_file_path):
+        name_of_global_array = f'____compar____arr{str(array_var_index)}'
         input_file_text, fragments = self.calculate_num_of_loops()
-        if self.__input_file_path != main_file_path:
-            input_file_text = Timer.inject_global_declaration(input_file_text, self.__number_of_loops, array_var_index)
+
+        if self.__input_file_path != main_file_path and self.get_number_of_loops() != 0:
+            input_file_text = Timer.inject_global_declaration(
+                input_file_text, self.__number_of_loops, name_of_global_array)
+
         if '#include <omp.h>' not in input_file_text:
             input_file_text = '#ifdef _OPENMP\n#include <omp.h>\n#endif\n{}'.format(input_file_text)
         if '#include <stdio.h>' not in input_file_text:
             input_file_text = '#include <stdio.h>\n{}'.format(input_file_text)
         for label, loop_fragment in enumerate(fragments, 1):
             prefix_code = self.get_prefix_loop_code(str(label))
-            suffix_code = self.get_suffix_loop_code(str(label), self.__time_result_file)
+            suffix_code = self.get_suffix_loop_code(str(label), name_of_global_array)
             loop_with_c_code = loop_fragment['start_label'] + prefix_code
             loop_with_c_code += loop_fragment['loop']
             loop_with_c_code += suffix_code
@@ -150,6 +147,13 @@ class Timer(object):
             c_code = re.sub(regex_pattern, new_code, input_file_text)
             with open(main_file_path, 'w') as output_file:
                 output_file.write(c_code)
+
+    @staticmethod
+    def inject_global_declaration(input_file_text, num_of_loops, name_of_global_array):
+        new_code = Timer.DECL_GLOBAL_STRUCT_CODE
+        new_code += f"____compar____struct extern {name_of_global_array}[{num_of_loops}];\n"
+        new_code += input_file_text
+        return new_code
 
     @staticmethod
     def generate_at_exit_function_code():
