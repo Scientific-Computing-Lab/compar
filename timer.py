@@ -19,7 +19,7 @@ class Timer(object):
                              COMPAR_VAR_PREFIX + 'start_time_{};\n'
 
     WRITE_TO_FILE_CODE_1 = 'FILE * fp{} = fopen(\"{}\", \"a\");\n'
-    WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'run time of loop %d: %lf'+r'\\n' + '"' + ', {}, {});\n'
+    WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'run time of loop %d: %lf'+r'\\n' + '"' + ', {}, {});'
     WRITE_TO_FILE_CODE_3 = 'fclose(fp{});\n'
 
     @staticmethod
@@ -172,10 +172,9 @@ class Timer(object):
                 code += Timer.WRITE_TO_FILE_CODE_1.format(loops[1], path)
                 curr_loop = 0
                 while curr_loop < loops[0]:
-                    code += Timer.WRITE_TO_FILE_CODE_2.format(loops[1], curr_loop+1,
-                                                              f'{loops[1]}[{curr_loop}].total_runtime')
-                    #  TODO: add here counter write to file
-                    #  TODO: check if that loops has 0 runtime => it didn't run
+                    code += f'if ({loops[1]}[{curr_loop}].counter > 0)'
+                    code += '{' + Timer.WRITE_TO_FILE_CODE_2.format(loops[1], curr_loop+1,
+                                                                    f'{loops[1]}[{curr_loop}].total_runtime') +'}\n'
                     curr_loop += 1
                 code += Timer.WRITE_TO_FILE_CODE_3.format(loops[1])
         code += '}\n'

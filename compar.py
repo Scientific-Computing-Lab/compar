@@ -189,9 +189,9 @@ class Compar:
         final_folder_path = self.create_combination_folder("final_results", base_dir=self.working_directory)
         final_files_list = self.make_absolute_file_list(final_folder_path)
 
-        for file_id_by_rel_path, num_of_loops in self.files_loop_dict.items():
+        for file_id_by_rel_path, loops in self.files_loop_dict.items():
             current_file = {"file_id_by_rel_path": file_id_by_rel_path, 'optimal_loops': []}
-            for loop_id in range(1, num_of_loops+1):
+            for loop_id in range(1, loops[0]+1):
                 start_label = Fragmentator.get_start_label()+str(loop_id)
                 end_label = Fragmentator.get_end_label()+str(loop_id)
                 try:
