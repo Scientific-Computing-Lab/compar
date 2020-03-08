@@ -82,6 +82,7 @@ class Compar:
     def __init__(self,
                  working_directory,
                  input_dir,
+                 main_file_rel_path,
                  binary_compiler_type="",
                  binary_compiler_version=None,
                  binary_compiler_flags=None,
@@ -122,7 +123,7 @@ class Compar:
             ignored_rel_paths = []
 
         self.serial_run_time = {}
-
+        self.main_file_rel_path = main_file_rel_path
         self.delete_combinations_folders = delete_combinations_folders
         self.binary_compiler = None
         self.binary_compiler_version = binary_compiler_version
@@ -386,6 +387,8 @@ class Compar:
                 self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
 
     def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None):
+        Timer.inject_atexit_code_to_main_file(os.path.join(combination_folder_path, self.main_file_rel_path),
+                                              self.files_loop_dict, combination_folder_path)
         # self.__replace_result_file_name_prefix(combination_folder_path)
         if self.is_make_file:
             makefile = Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
@@ -505,6 +508,8 @@ class Compar:
         shutil.rmtree(serial_dir_path, ignore_errors=True)
         os.mkdir(serial_dir_path)
         self.__copy_sources_to_combination_folder(serial_dir_path)
+        Timer.inject_atexit_code_to_main_file(os.path.join(serial_dir_path, self.main_file_rel_path),
+                                                      self.files_loop_dict, serial_dir_path)
         # self.__replace_result_file_name_prefix(serial_dir_path)
 
         if self.is_make_file:
@@ -539,8 +544,8 @@ class Compar:
         if self.delete_combinations_folders:
             self.__delete_combination_folder(serial_dir_path)
 
-    def fragment_and_add_timers(self, main_file_rel_path):
-        main_file_path = os.path.join(self.original_files_dir, main_file_rel_path)
+    def fragment_and_add_timers(self):
+        main_file_path = os.path.join(self.original_files_dir, self.main_file_rel_path)
         declaration_code_to_inject_to_main_file = ""
         for index, c_file_dict in enumerate(self.make_absolute_file_list(self.original_files_dir)):
             self.__timer = Timer(c_file_dict['file_full_path'])
@@ -553,7 +558,7 @@ class Compar:
                     f"{name_of_global_array}[{num_of_loops}] = {'{0}'};\n"
             else:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, 'no_global_var')
-        self.__timer.inject_code_to_main_file(main_file_path, declaration_code_to_inject_to_main_file)
+        self.__timer.inject_declarations_to_main_file(main_file_path, declaration_code_to_inject_to_main_file)
 
     def create_combination_folder(self, combination_folder_name, base_dir=None):
         if not base_dir:

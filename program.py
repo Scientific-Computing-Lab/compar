@@ -66,10 +66,11 @@ def main():
         main_file_name=args['main_file_name'],
         main_file_parameters=args['main_file_parameters'],
         slurm_parameters=args['slurm_parameters'],
-        is_nas=args['is_nas']
+        is_nas=args['is_nas'],
+        main_file_rel_path=args['main_file_rel_path']
     )
     # TODO: change fragment_and_add_timers main file path
-    compar_obj.fragment_and_add_timers(args['main_file_rel_path'])
+    compar_obj.fragment_and_add_timers()
     compar_obj.run_serial()
     compar_obj.run_parallel_combinations()
     compar_obj.generate_optimal_code()

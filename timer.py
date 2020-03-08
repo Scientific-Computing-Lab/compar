@@ -18,10 +18,9 @@ class Timer(object):
     INIT_RUN_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'run_time_{} = omp_get_wtime() - ' +\
                              COMPAR_VAR_PREFIX + 'start_time_{};\n'
 
-    # WRITE_TO_FILE_CODE = COMPAR_VAR_PREFIX + 'fp{} = fopen(\"' + __PREFIX_OUTPUT_FILE + '{}\", \"a\");\n'
-    # WRITE_TO_FILE_CODE += 'fprintf(' + COMPAR_VAR_PREFIX + 'fp{}, \"run time of loop %d: %lf\\n\", {}, ' + \
-    #                       COMPAR_VAR_PREFIX + 'run_time_{});\n'
-    # WRITE_TO_FILE_CODE += 'fclose(' + COMPAR_VAR_PREFIX + 'fp{});\n'
+    WRITE_TO_FILE_CODE_1 = 'FILE * fp{} = fopen(\"{}\", \"a\");\n'
+    WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'run time of loop %d: %lf'+r'\\n' + '"' + ', {}, {});\n'
+    WRITE_TO_FILE_CODE_3 = 'fclose(fp{});\n'
 
     @staticmethod
     def get_file_name_prefix_token():
@@ -127,11 +126,18 @@ class Timer(object):
             raise e.FileError(str(err))
 
     @staticmethod
-    def inject_code_to_main_file(main_file_path, declaration_code_to_inject):
-        with open(main_file_path, 'r') as input_file:
+    def inject_declarations_to_main_file(file_path, declaration_code_to_inject):
+        with open(file_path, 'r') as input_file:
             input_file_text = Timer.DECL_GLOBAL_STRUCT_CODE
             input_file_text += declaration_code_to_inject + "\n"
             input_file_text += input_file.read()
+            with open(file_path, 'w') as output_file:
+                output_file.write(input_file_text)
+
+    @staticmethod
+    def inject_atexit_code_to_main_file(main_file_path, files_loop_dict, working_dir_path):
+        with open(main_file_path, 'r') as input_file:
+            input_file_text = input_file.read()
 
             regex_pattern = "((int|void)[ ]*main[ ]*[(].*[)][ ]*[\\n]?{\\n)"
             code_to_replace = re.findall(regex_pattern, input_file_text)
@@ -141,7 +147,7 @@ class Timer(object):
 
             code_to_replace = code_to_replace[0][0]
 
-            new_code = Timer.generate_at_exit_function_code()
+            new_code = Timer.generate_at_exit_function_code(files_loop_dict, working_dir_path)
             new_code += f'{code_to_replace} atexit(____compar____atExit);\n'
 
             c_code = re.sub(regex_pattern, new_code, input_file_text)
@@ -156,17 +162,21 @@ class Timer(object):
         return new_code
 
     @staticmethod
-    def generate_at_exit_function_code():
-        # TODO: onExit: open and write the results to files
-        # TODO: update the absolute paths after combination folder exist
+    def generate_at_exit_function_code(files_loop_dict, working_dir_path):
         code = 'void ____compar____atExit() {\n'
-
-        # Open files
-
-
-
-        # Write time to files
-        # Close files
-
+        for file, loops in files_loop_dict.items():
+            if loops[0] != 0:  # the file has loops
+                name, ext = os.path.splitext(file)
+                new_file_name = f'{name}_run_time_result.txt'
+                path = os.path.join(working_dir_path, new_file_name)
+                code += Timer.WRITE_TO_FILE_CODE_1.format(loops[1], path)
+                curr_loop = 0
+                while curr_loop < loops[0]:
+                    code += Timer.WRITE_TO_FILE_CODE_2.format(loops[1], curr_loop+1,
+                                                              f'{loops[1]}[{curr_loop}].total_runtime')
+                    #  TODO: add here counter write to file
+                    #  TODO: check if that loops has 0 runtime => it didn't run
+                    curr_loop += 1
+                code += Timer.WRITE_TO_FILE_CODE_3.format(loops[1])
         code += '}\n'
         return code
