@@ -13,7 +13,7 @@ class Timer(object):
     DECL_RUN_TIME_VAR_CODE = 'double ' + COMPAR_VAR_PREFIX + 'run_time_{};\n'
     DECL_FILE_POINTER_VAR_CODE = 'FILE *' + COMPAR_VAR_PREFIX + 'fp{};\n'
     DECL_GLOBAL_STRUCT_CODE = 'typedef struct ____compar____struct {' \
-                              '\n\tint counter;\n\tfloat total_runtime;\n} ____compar____struct;\n'
+                              '\n\tint counter;\n\tdouble total_runtime;\n} ____compar____struct;\n'
     INIT_START_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'start_time_{} = omp_get_wtime();\n'
     INIT_RUN_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'run_time_{} = omp_get_wtime() - ' +\
                              COMPAR_VAR_PREFIX + 'start_time_{};\n'
