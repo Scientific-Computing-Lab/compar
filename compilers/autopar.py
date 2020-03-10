@@ -31,5 +31,10 @@ class Autopar(ParallelCompiler):
                                            self.include_dirs_list))
         command += f' {" ".join(options)} -c {file_name}'
         output = subprocess.check_output([command], shell=True, cwd=os.path.dirname(file_full_path))
+        dir, file_name = os.path.split(file_full_path)
+        parallel_file_full_path = os.path.join(dir, f'rose_{file_name}')
+        if os.path.exists(parallel_file_full_path):
+            os.remove(file_full_path)
+            os.rename(parallel_file_full_path, file_full_path)
         print('autopar compilation output: ' + str(output))
         print("Done parallel work")
