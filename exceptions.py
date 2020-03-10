@@ -74,3 +74,11 @@ def assert_only_files(folder_path):
 def assert_rel_path_starts_without_sep(path):
     if path.startswith(os.sep):
         raise UserInputError('Relative path should not start with separator!')
+
+
+def assert_forbidden_characters(path):
+    forbidden_characters = ["{", "}"]
+    for char in forbidden_characters:
+        if char in path:
+            raise UserInputError(f'Path cannot contain any char from: {forbidden_characters}')
+
