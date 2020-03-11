@@ -149,16 +149,17 @@ class ExecuteJob:
             if 'dead_code_file' not in file_dict.keys():
                 for loop_dict in file_dict['loops']:
                     try:
-                        if not self.serial_run_time_dict:  # it is serial running
-                            loop_dict['speedup'] = 1.0
-                        elif 'dead_code' not in loop_dict.keys():
-                            serial_run_time_key = (file_dict['file_id_by_rel_path'], loop_dict['loop_label'])
-                            serial_run_time = float(self.serial_run_time_dict[serial_run_time_key])
-                            parallel_run_time = float(loop_dict['run_time'])
-                            try:
-                                loop_dict['speedup'] = serial_run_time / parallel_run_time
-                            except ZeroDivisionError:
-                                loop_dict['speedup'] = 0.0
+                        if 'dead_code' not in loop_dict.keys():
+                            if not self.serial_run_time_dict:  # it is serial running
+                                loop_dict['speedup'] = 1.0
+                            else:
+                                serial_run_time_key = (file_dict['file_id_by_rel_path'], loop_dict['loop_label'])
+                                serial_run_time = float(self.serial_run_time_dict[serial_run_time_key])
+                                parallel_run_time = float(loop_dict['run_time'])
+                                try:
+                                    loop_dict['speedup'] = serial_run_time / parallel_run_time
+                                except ZeroDivisionError:
+                                    loop_dict['speedup'] = float('inf')
 
                     except KeyError as e:  # if one of the keys doesn't exists, just for debug.
                         error_msg = 'key error: ' + str(e) + f', in file {file_dict["file_id_by_rel_path"]}'
@@ -251,19 +252,12 @@ class ExecuteJob:
                                                 len(last_string)::].replace('\n', '').split(':')
                                     loop_label = line[0]
                                     loop_runtime = float(line[1])
-                                    if loop_label not in loops_dict.keys():
-                                        loops_dict[loop_label] = [loop_runtime]
-                                    else:
-                                        loops_dict[loop_label].append(loop_runtime)
-                        loops_list = list(map(lambda x: (x[0], float(sum(x[1]))),
-                                              loops_dict.items()))
-                        ran_loops = [x[0] for x in loops_list]
+                                    loops_dict[loop_label] = loop_runtime
+                        ran_loops = list(loops_dict.keys())
                         for i in range(1, self.num_of_loops_in_files[file_id_by_rel_path][0] + 1):
                             if str(i) not in ran_loops:
                                 self.get_job().set_loop_in_file_results(file_id_by_rel_path, i, None, dead_code=True)
-                        for loop in loops_list:
-                            self.get_job().set_loop_in_file_results(file_id_by_rel_path, loop[0], loop[1])
-                        ExecuteJob.rewrite_output_file(file_full_path, loops_list)
-
+                            else:
+                                self.get_job().set_loop_in_file_results(file_id_by_rel_path, str(i), loops_dict[str(i)])
                     except OSError as e:
                         raise FileError(str(e))

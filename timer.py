@@ -13,13 +13,13 @@ class Timer(object):
     DECL_RUN_TIME_VAR_CODE = 'double ' + COMPAR_VAR_PREFIX + 'run_time_{};\n'
     DECL_FILE_POINTER_VAR_CODE = 'FILE *' + COMPAR_VAR_PREFIX + 'fp{};\n'
     DECL_GLOBAL_STRUCT_CODE = 'typedef struct ____compar____struct {' \
-                              '\n\tint counter;\n\tfloat total_runtime;\n} ____compar____struct;\n'
+                              '\n\tint counter;\n\tdouble total_runtime;\n} ____compar____struct;\n'
     INIT_START_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'start_time_{} = omp_get_wtime();\n'
     INIT_RUN_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'run_time_{} = omp_get_wtime() - ' +\
                              COMPAR_VAR_PREFIX + 'start_time_{};\n'
 
     WRITE_TO_FILE_CODE_1 = 'FILE * fp{} = fopen(\"{}\", \"a\");\n'
-    WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'run time of loop %d: %lf'+r'\\n' + '"' + ', {}, {});'
+    WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'run time of loop %d: %lf'+r'\\n' + '"' + ', {}, {});\n'
     WRITE_TO_FILE_CODE_3 = 'fclose(fp{});\n'
 
     @staticmethod
@@ -172,9 +172,9 @@ class Timer(object):
                 code += Timer.WRITE_TO_FILE_CODE_1.format(loops[1], path)
                 curr_loop = 0
                 while curr_loop < loops[0]:
-                    code += f'if ({loops[1]}[{curr_loop}].counter > 0)'
-                    code += '{' + Timer.WRITE_TO_FILE_CODE_2.format(loops[1], curr_loop+1,
-                                                                    f'{loops[1]}[{curr_loop}].total_runtime') +'}\n'
+                    code += f'if ({loops[1]}[{curr_loop}].counter > 0) '
+                    code += Timer.WRITE_TO_FILE_CODE_2.format(loops[1], curr_loop+1,
+                                                              f'{loops[1]}[{curr_loop}].total_runtime')
                     curr_loop += 1
                 code += Timer.WRITE_TO_FILE_CODE_3.format(loops[1])
         code += '}\n'

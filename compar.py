@@ -135,6 +135,7 @@ class Compar:
         self.is_nas = is_nas
 
         # Build compar environment-----------------------------------
+        e.assert_forbidden_characters(working_directory)
         self.working_directory = working_directory
         self.backup_files_dir = os.path.join(working_directory, Compar.BACKUP_FOLDER_NAME)
         self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
@@ -480,12 +481,14 @@ class Compar:
         shutil.rmtree(combination_folder_path)
 
     def make_relative_c_file_list(self, base_dir):
+        e.assert_forbidden_characters(base_dir)
         file_list = []
         for path, dirs, files in os.walk(base_dir):
             if os.path.relpath(path, base_dir) not in self.ignored_rel_paths:
                 for file in files:
                     if os.path.splitext(file)[1] == '.c':
                         relative_path = os.path.relpath(os.path.join(path, file), base_dir)
+                        e.assert_forbidden_characters(relative_path)
                         # file_name is not unique!
                         file_list.append({"file_name": file, "file_relative_path": relative_path})
         return file_list
@@ -574,19 +577,32 @@ class Compar:
     def remove_declaration_code(content):
         run_time_vars_regex = rf'double[ ]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
         file_pointer_vars_regex = rf'FILE[ ]*\*[ ]*{Timer.COMPAR_VAR_PREFIX}[^;]+;'
+        struct_regex_version_1 = r'typedef struct ____compar____[^\}]*\}[^;]*;'
+        struct_regex_version_2 = r'struct ____compar____[^\}]+int[^\}]+\}[^;]*;'
+        struct_regex_version_3 = r'typedef struct ____compar____[^\;]*____compar____struct;'
+        content = re.sub(struct_regex_version_1, '', content, flags=re.DOTALL)
+        content = re.sub(struct_regex_version_2, '', content, flags=re.DOTALL)
+        content = re.sub(struct_regex_version_3, '', content, flags=re.DOTALL)
         content = re.sub(run_time_vars_regex, '', content, flags=re.DOTALL)
         content = re.sub(file_pointer_vars_regex, '', content, flags=re.DOTALL)
         return content
 
     @staticmethod
     def remove_run_time_calculation_code_code(content):
-        return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, flags=re.DOTALL)
+        content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, flags=re.DOTALL)
+        content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}struct[ ]+extern[^;]+;', '', content, flags=re.DOTALL)
+        content = re.sub(Timer.COMPAR_VAR_PREFIX + r'struct[^\}]+arr[^\}]+\}[ ]*;', '', content, flags=re.DOTALL)
+        return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}arr[^;]+;', '', content, flags=re.DOTALL)
 
     @staticmethod
     def remove_writing_to_file_code(content):
         fopen_regex = rf'{Timer.COMPAR_VAR_PREFIX}[^;]+fopen[^;]+{re.escape(Timer.get_file_name_prefix_token())}?[^;]+;'
         fprintf_regex = rf'fprintf[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
         fclose_regex = rf'fclose[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
+        main_file_at_exit_regex = r'void[ ]+____compar____atExit[^\}]+\}'
+        main_file_at_exit_call_regex = r'atexit[^\;]+;'
+        content = re.sub(main_file_at_exit_regex, '', content, flags=re.DOTALL)
+        content = re.sub(main_file_at_exit_call_regex, '', content, flags=re.DOTALL)
         content = re.sub(fopen_regex, '', content, flags=re.DOTALL)
         content = re.sub(fprintf_regex, '', content, flags=re.DOTALL)
         content = re.sub(fclose_regex, '', content, flags=re.DOTALL)

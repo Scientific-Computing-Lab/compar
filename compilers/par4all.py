@@ -96,5 +96,12 @@ class Par4all(ParallelCompiler):
                         os.rename(full_path, full_path[0:-6] + '.c')
                         full_path = full_path[0:-6] + '.c'
                         self.__remove_bswap_function(full_path)
+                        with open(full_path, "r+") as f:
+                            input_file_text = f.read()
+                            if '#include <omp.h>' not in input_file_text:
+                                input_file_text = '#ifdef _OPENMP\n#include <omp.h>\n#endif\n{}'.format(input_file_text)
+                                f.seek(0)
+                                f.write(input_file_text)
+                                f.truncate()
         except Exception as e:
             raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() + " failed to be parallel!")

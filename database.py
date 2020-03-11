@@ -186,7 +186,9 @@ class Database:
                                     loop_is_dead_code = True
                                 else:
                                     loop_is_dead_code = False
-                                    if loop['speedup'] >= best_speedup:
+                                    if combination['_id'] == '0' and not best_loop and best_combination_id == '0':
+                                        best_loop = loop
+                                    if loop['speedup'] > best_speedup:
                                         best_speedup = loop['speedup']
                                         best_combination_id = combination['_id']
                                         best_loop = loop
