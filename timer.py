@@ -19,7 +19,7 @@ class Timer(object):
                              COMPAR_VAR_PREFIX + 'start_time_{};\n'
 
     WRITE_TO_FILE_CODE_1 = 'FILE * fp{} = fopen(\"{}\", \"a\");\n'
-    WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'run time of loop %d: %lf'+r'\\n' + '"' + ', {}, {});\n'
+    WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'run time of loop %d: %.10lf'+r'\\n' + '"' + ', {}, {});\n'
     WRITE_TO_FILE_CODE_3 = 'fclose(fp{});\n'
 
     @staticmethod
