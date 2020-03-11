@@ -580,11 +580,13 @@ class Compar:
         struct_regex_version_1 = r'typedef struct ____compar____[^\}]*\}[^;]*;'
         struct_regex_version_2 = r'struct ____compar____[^\}]+int[^\}]+\}[^;]*;'
         struct_regex_version_3 = r'typedef struct ____compar____[^\;]*____compar____struct;'
+        compar_dummy_var_regex = fr'{Timer.COMPAR_DUMMY_VAR}[^;]+;'
         content = re.sub(struct_regex_version_1, '', content, flags=re.DOTALL)
         content = re.sub(struct_regex_version_2, '', content, flags=re.DOTALL)
         content = re.sub(struct_regex_version_3, '', content, flags=re.DOTALL)
         content = re.sub(run_time_vars_regex, '', content, flags=re.DOTALL)
         content = re.sub(file_pointer_vars_regex, '', content, flags=re.DOTALL)
+        content = re.sub(compar_dummy_var_regex, '', content, flags=re.DOTALL)
         return content
 
     @staticmethod

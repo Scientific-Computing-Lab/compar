@@ -21,6 +21,7 @@ class Timer(object):
     WRITE_TO_FILE_CODE_1 = 'FILE * fp{} = fopen(\"{}\", \"a\");\n'
     WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'run time of loop %d: %.10lf'+r'\\n' + '"' + ', {}, {});\n'
     WRITE_TO_FILE_CODE_3 = 'fclose(fp{});\n'
+    COMPAR_DUMMY_VAR = f'int {COMPAR_VAR_PREFIX}dummy_var'
 
     @staticmethod
     def get_file_name_prefix_token():
@@ -110,7 +111,7 @@ class Timer(object):
             loop_with_c_code = loop_fragment['start_label'] + prefix_code
             loop_with_c_code += loop_fragment['loop']
             loop_with_c_code += suffix_code
-            loop_with_c_code += loop_fragment['end_label'] + '\n'
+            loop_with_c_code += loop_fragment['end_label'] + '\n' + Timer.COMPAR_DUMMY_VAR + str(label) + ';\n'
 
             if 'return' in loop_with_c_code:
                 loop_with_c_code = loop_with_c_code.replace('return', suffix_code + '\nreturn')
