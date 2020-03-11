@@ -578,7 +578,7 @@ class Compar:
         run_time_vars_regex = rf'double[ ]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
         file_pointer_vars_regex = rf'FILE[ ]*\*[ ]*{Timer.COMPAR_VAR_PREFIX}[^;]+;'
         struct_regex_version_1 = r'typedef struct ____compar____[^\}]*\}[^;]*;'
-        struct_regex_version_2 = r'struct ____compar____[^\}]*\}[^;]*;'
+        struct_regex_version_2 = r'struct ____compar____[^\}]+int[^\}]+\}[^;]*;'
         struct_regex_version_3 = r'typedef struct ____compar____[^\;]*____compar____struct;'
         content = re.sub(struct_regex_version_1, '', content, flags=re.DOTALL)
         content = re.sub(struct_regex_version_2, '', content, flags=re.DOTALL)
@@ -591,7 +591,7 @@ class Compar:
     def remove_run_time_calculation_code_code(content):
         content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, flags=re.DOTALL)
         content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}struct[ ]+extern[^;]+;', '', content, flags=re.DOTALL)
-        content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}struct[^;]+' + r'arr[^;]+\}[ ]*;', '', content, flags=re.DOTALL)
+        content = re.sub(Timer.COMPAR_VAR_PREFIX + r'struct[^\}]+arr[^\}]+\}[ ]*;', '', content, flags=re.DOTALL)
         return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}arr[^;]+;', '', content, flags=re.DOTALL)
 
     @staticmethod
