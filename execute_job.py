@@ -159,7 +159,7 @@ class ExecuteJob:
                                 try:
                                     loop_dict['speedup'] = serial_run_time / parallel_run_time
                                 except ZeroDivisionError:
-                                    loop_dict['speedup'] = 0.0
+                                    loop_dict['speedup'] = float('inf')
 
                     except KeyError as e:  # if one of the keys doesn't exists, just for debug.
                         error_msg = 'key error: ' + str(e) + f', in file {file_dict["file_id_by_rel_path"]}'
