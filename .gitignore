@@ -27,3 +27,9 @@
 !parameters.py
 !combination.py
 !program.py
+!/compar_app
+/compar_app/*
+!/compar_app/templates
+!/compar_app/templates/home.html
+!/compar_app/app.py
+
