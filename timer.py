@@ -172,7 +172,7 @@ class Timer(object):
                 code += Timer.WRITE_TO_FILE_CODE_1.format(loops[1], path)
                 curr_loop = 0
                 while curr_loop < loops[0]:
-                    code += f'if ({loops[1]}[{curr_loop}].counter > 0)'
+                    code += f'if ({loops[1]}[{curr_loop}].counter > 0) '
                     code += Timer.WRITE_TO_FILE_CODE_2.format(loops[1], curr_loop+1,
                                                               f'{loops[1]}[{curr_loop}].total_runtime')
                     curr_loop += 1
