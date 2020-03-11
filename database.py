@@ -172,28 +172,34 @@ class Database:
         best_speedup = 1
         best_combination_id = self.SERIAL_COMBINATION_ID
         best_loop = None
-        loop_is_dead_code = False
+        loop_is_dead_code = True
+        file_is_dead_code = True
         combinations = self.dynamic_db[self.collection_name].find({})
         for combination in combinations:
             if 'error' not in combination.keys():
                 for file in combination['run_time_results']:
                     if file['file_id_by_rel_path'] == file_id_by_rel_path:
                         if 'dead_code_file' in file.keys():
-                            raise DeadCodeFile(f'file {file_id_by_rel_path} is dead code!')
-                        for loop in file['loops']:
-                            if loop['loop_label'] == loop_label:
-                                if 'dead_code' in loop.keys():
-                                    loop_is_dead_code = True
-                                else:
-                                    loop_is_dead_code = False
-                                    if combination['_id'] == '0' and not best_loop and best_combination_id == '0':
-                                        best_loop = loop
-                                    if loop['speedup'] > best_speedup:
-                                        best_speedup = loop['speedup']
-                                        best_combination_id = combination['_id']
-                                        best_loop = loop
-                                break
-                        break
+                            file_is_dead_code = file_is_dead_code and True
+                            break
+                        else:
+                            file_is_dead_code = False
+                            for loop in file['loops']:
+                                if loop['loop_label'] == loop_label:
+                                    if 'dead_code' in loop.keys():
+                                        loop_is_dead_code = loop_is_dead_code and True
+                                    else:
+                                        loop_is_dead_code = False
+                                        if combination['_id'] == '0' and not best_loop and best_combination_id == '0':
+                                            best_loop = loop
+                                        if loop['speedup'] > best_speedup:
+                                            best_speedup = loop['speedup']
+                                            best_combination_id = combination['_id']
+                                            best_loop = loop
+                                    break
+                            break
+        if file_is_dead_code:
+            raise DeadCodeFile(f'file {file_id_by_rel_path} is dead code!')
         if loop_is_dead_code:
             raise DeadCodeLoop(f'Loop {loop_label} in file {file_id_by_rel_path} is dead code!')
         if not best_loop:
