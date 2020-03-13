@@ -113,18 +113,32 @@ def welcome_label():
                                        binary_comp_form=binary_comp_form, exists_file_form=exists_file_form,
                                        exists_c_file_form=exists_c_file_form, start_form=start_form)
             else:
+                DATA['exists_c_file'] = False
                 return render_template('index.html', main_form=main_form, comp_form=comp_form,
                                        binary_comp_form=binary_comp_form, exists_file_form=exists_file_form,
                                        editor_c_form=editor_c_form, start_form=start_form)
         elif start_form.submit3.data:
-            pass
+            if DATA['is_make_file']:
+                DATA['input_dir'] = request.form.get('input_dir')
+                DATA['ignore'] = request.form.get('ignore')
+                DATA['include'] = request.form.get('include')
+                DATA['make_commands'] = request.form.get('make_commands')
+                DATA['make_op'] = request.form.get('make_op')
+                DATA['make_on'] = request.form.get('make_on')
+                DATA['main_file'] = request.form.get('main_file')
+                DATA['main_file_p'] = request.form.get('main_file_p')
+                DATA['main_file_r_p'] = request.form.get('main_file_r_p')
+                DATA['nas_file'] = request.form.get('nas_file')
+            else:
+                if DATA['exists_c_file']:
+                    DATA['input_dir'] = request.form.get('input_dir')
+                    DATA['main_file'] = request.form.get('main_file')
+                    DATA['main_file_p'] = request.form.get('main_file_p')
+                    DATA['main_file_r_p'] = request.form.get('main_file_r_p')
+                    DATA['nas_file'] = request.form.get('nas_file')
+                else:
+                    pass
     return render_template('index.html', main_form=main_form, comp_form=comp_form)
-
-
-# @app.route("/make_choice", methods=["GET", "POST"])
-# def show_makefile_choice():
-#     makefile_choice = request.form['option']
-#     return makefile_choice
 
 
 if __name__ == "__main__":
