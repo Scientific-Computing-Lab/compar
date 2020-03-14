@@ -27,3 +27,17 @@
 !parameters.py
 !combination.py
 !program.py
+<<<<<<< HEAD
+!parse_nas_runtime.py
+=======
+!/compar_app
+/compar_app/*
+!/compar_app/templates
+!/compar_app/templates/home.html
+!/compar_app/templates/index.html
+!/compar_app/app.py
+!/compar_app/templates/base.html
+!/compar_app/templates/output.html
+!/compar_app/templates/result.html
+!/compar_app/output.py
+>>>>>>> fd7b8647c1aeaf30f2f2c9c1cd5eefd8b7272cc2

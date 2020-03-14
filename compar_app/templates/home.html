@@ -1,0 +1,120 @@
+ {{output}}{% extends 'index.html' %}
+
+{% block title %}
+    Compar
+{% endblock %}
+
+{% block content %}
+    <h1>Welcome To Compar!</h1>
+    <form action="/" method="post" novalidate>
+        <p>
+            {{ form.work_dir.label }}
+            {{ form.work_dir(size=40) }}
+        </p>
+        <p>
+            {{ form.input_dir.label }}
+            {{ form.input_dir(size=40) }}
+        </p>
+        <p>
+            {{ form.make_file_choice.label }}<br>
+            {{ form.make_file_choice() }}
+        </p>
+        <p>{{ form.submit1() }}</p>
+    </form>
+
+{% if make_form %}
+
+    <h3>Makefile:</h3>
+    <form action="/" method="POST" >
+        <p>
+            {{ make_form.commands.label }}
+            {{ make_form.commands(size=32) }}
+        </p>
+        <p>
+            {{ make_form.location.label }}
+            {{ make_form.location(size=32) }}
+        </p>
+        <p>
+            {{ make_form.file_name.label }}
+            {{ make_form.file_name() }}
+        </p>
+        <p>{{ start_form.submit3() }}</p>
+    </form>
+{% endif %}
+{% if binary_comp_form %}
+
+    <form action="/" method="POST" >
+        <h3>Choose binary compiler:</h3>
+        <p>
+            {{ binary_comp_form.binary_comp_name.label }}
+            {{ binary_comp_form.binary_comp_name(size=32) }}
+        </p>
+        <p>
+            {{ binary_comp_form.binary_comp_version.label }}
+            {{ binary_comp_form.binary_comp_version(size=32) }}
+        </p>
+        <p>
+            {{ binary_comp_form.binary_comp_flags.label }}
+            {{ binary_comp_form.binary_comp_flags(size=32) }}
+        </p>
+        <h3>Choose flags for parallel compilers:</h3>
+        <p>
+            {{ comp_form.p4a.label }}
+            {{ comp_form.p4a(size=32) }}
+        </p>
+        <p>
+            {{ comp_form.autopar.label }}
+            {{ comp_form.autopar(size=32) }}
+        </p>
+        <p>
+            {{ comp_form.cetus.label }}
+            {{ comp_form.cetus(size=32) }}
+        </p>
+        <h3>Choose flags:</h3>
+        <p>
+            {{ flags_form.save.label }}<br>
+            {{ flags_form.save() }}
+        </p>
+        <p>
+            {{ flags_form.ignore.label }}
+            {{ flags_form.ignore(size=32) }}
+        </p>
+        <p>
+            {{ flags_form.include.label }}
+            {{ flags_form.include(size=32) }}
+        </p>
+        <p>
+            {{ exists_file_form.exists_file.label }}<br>
+            {{ exists_file_form.exists_file() }}
+        </p>
+        <p>{{ exists_file_form.submit2() }}</p>
+        {% if exists_c_file_form %}
+            <p>
+                {{ exists_c_file_form.c_file_name.label }}
+                {{ exists_c_file_form.c_file_name(size=30) }}
+            </p>
+            <p>
+                {{ exists_c_file_form.c_file_parameters.label }}
+                {{ exists_c_file_form.c_file_parameters(size=45) }}
+            </p>
+            <p>
+                {{ exists_c_file_form.c_file_path.label }}
+                {{ exists_c_file_form.c_file_path(size=45) }}
+            </p>
+            <p>
+                {{ exists_c_file_form.nas_file.label }}<br>
+                {{ exists_c_file_form.nas_file() }}
+            </p>
+            <p>{{ start_form.submit3() }}</p>
+        {% endif %}
+        {% if editor_c_form %}
+            <p>
+                {{ editor_c_form.editor.label }}<br>
+                {{ editor_c_form.editor(cols="150", rows="1000") }}
+            </p>
+            <p>{{ start_form.submit3() }}</p>
+        {% endif %}
+    </form>
+{% endif %}
+
+{% endblock %}
