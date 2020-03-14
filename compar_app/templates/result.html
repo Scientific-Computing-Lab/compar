@@ -1,16 +1,66 @@
 {%extends "base.html" %}
 {% block content %}
-    <div class="jumbotron text-center">
-        <h1>Result</h1>
+    <style>
+         .parent {
+            display: flex;
+            flex-direction: row;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: space-around;
+        }
+
+        .contain {
+            width: 45%;
+        }
+
+        .results {
+            background: #eee;
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+            height: 100%;
+            white-space: normal;
+            padding: 20px;
+        }
+
+        .text-center {
+            display:flex;
+        }
+
+        .row {
+            display:flex;
+            flex-direction: column;
+            margin-right: 5px;
+            width: 14px;
+        }
+
+        .spaces {
+            white-space: pre-wrap;
+        }
+    </style>
+    <div class="results">
+        <h1>Results</h1>
+    </div>
+    <div class="parent">
+        <div class="contain">
+            <h2 class="text-center" >Compar Output :</h2>
+            <div class="scroll" >
+                <div class="spaces">
+                     {{output}}
+                </div>
+            </div>
+        </div>
+        <div class="contain">
+            <h2 class="text-center">Optimal code :</h2>
+            <div class="scroll">
+                <div class="row">1 2 3 4 5 6 7 8 9</div>
+                <div class="spaces">{{result_file}}</div>
+            </div>
+        </div>
     </div>
 
-    <div >
-        <h2 class="text-center" >Compar Output :</h2>
-        <div class="scroll" >{{output}}</div>
-        <h2 class="text-center">Optimal code :</h2>
-        <div class="scroll">{{result_file}}</div>
 
-    </div>
+
 
 
 {% endblock content %}

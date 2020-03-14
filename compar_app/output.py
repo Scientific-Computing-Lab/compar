@@ -7,14 +7,15 @@ app.config.from_object(__name__)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 
+
 @app.route('/', methods=['POST', 'GET'])
 def index():
     if request.method == 'POST':
         if request.form['submit_button'] == 'Start Compar':
-            #TODO-open compar object
+            # TODO-open compar object
             # TODO - get args from may to compr
             makefile = False  # TODO - set it from May page
-            command = ["python3 test.py"] #TODO- change to compar commend
+            command = ["python3 test.py"]  # TODO- change to compar commend
             output = ""
             compar_process = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True, shell=True)
             for line in compar_process.stdout:  # (if compar_process.poll != None:)
@@ -25,16 +26,19 @@ def index():
                 raise subprocess.CalledProcessError(return_code, command)
 
             if makefile:
-                result_file = "main/diretcory"#TODO- change it to the real directory  location
+                result_file = "main/diretcory"  # TODO- change it to the real directory  location
             else:
                 result_file = ""
-                f = open("test.py", "r")#TODO - change it to the real file location
+                num_of_lines = 0
+                f = open("test.py", "r") #  TODO - change it to the real file location
                 for line in f:
+                    num_of_lines = num_of_lines + 1
                     result_file += line
                 f.close()
-            return redirect(url_for('result', result_file=result_file,  output=output))
+            return redirect(url_for('result', result_file=result_file, num_of_lines=num_of_lines,  output=output))
     else:
         return render_template("output.html")
+
 
 @app.route('/result')
 def result():

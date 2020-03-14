@@ -18,22 +18,27 @@
             animation: spin 1s linear infinite;
         }
 
+        #parent {
+            display: flex;
+        }
+
         @keyframes spin {
             100% {
                 transform: rotate(360deg);
             }
         }
         div.scroll {
-            background-color: bisque;
-            width: 1000px;
-            height: 300px;
+            display: flex;
+            background-color: black;
+            color: white;
+            font-size: 14px;
+            padding: 0px 25px;
+            width: 100%;
+            min-height: 300px;
+            height: auto;
             overflow: scroll;
-            margin-left: auto;
-            margin-right: auto;
         }
-        div {
-            white-space: pre-wrap;
-        }
+
     </style>
 </head>
 <body>
