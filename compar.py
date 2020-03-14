@@ -203,6 +203,7 @@ class Compar:
                     current_file["optimal_loops"].append(current_loop)
                 except e.DeadCodeFile:
                     current_file["dead_code_file"] = True
+                    break
                 except e.DeadCodeLoop:
                     current_file["optimal_loops"].append({'_id': '0', 'loop_label': str(loop_id), 'dead_code': True})
                     current_optimal_id = '0'
@@ -233,7 +234,6 @@ class Compar:
                                                                           current_optimal_id, current_comp_name)
                     sleep(1)  # prevent IO error
                     shutil.rmtree(combination_folder_path)
-
             optimal_loops_data.append(current_file)
 
         # remove timers code
@@ -242,7 +242,7 @@ class Compar:
         self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
         self.generate_summary_file(optimal_loops_data, final_folder_path)
         try:
-            self.compile_combination_to_binary(final_folder_path)
+            self.compile_combination_to_binary(final_folder_path, inject=False)
         except Exception as ex:
             raise CompilationError(str(ex) + 'exception in Compar. generate_optimal_code: cannot compile optimal code')
         try:
@@ -387,10 +387,10 @@ class Compar:
                 loop_start_label = Fragmentator.get_start_label() + str(loop_id)
                 self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
 
-    def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None):
-        Timer.inject_atexit_code_to_main_file(os.path.join(combination_folder_path, self.main_file_rel_path),
-                                              self.files_loop_dict, combination_folder_path)
-        # self.__replace_result_file_name_prefix(combination_folder_path)
+    def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None, inject=True):
+        if inject:
+            Timer.inject_atexit_code_to_main_file(os.path.join(combination_folder_path, self.main_file_rel_path),
+                                                  self.files_loop_dict, combination_folder_path)
         if self.is_make_file:
             makefile = Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
                                 self.makefile_output_exe_file_name, self.makefile_commands)
@@ -580,11 +580,13 @@ class Compar:
         struct_regex_version_1 = r'typedef struct ____compar____[^\}]*\}[^;]*;'
         struct_regex_version_2 = r'struct ____compar____[^\}]+int[^\}]+\}[^;]*;'
         struct_regex_version_3 = r'typedef struct ____compar____[^\;]*____compar____struct;'
+        compar_dummy_var_regex = fr'{Timer.COMPAR_DUMMY_VAR}[^;]+;'
         content = re.sub(struct_regex_version_1, '', content, flags=re.DOTALL)
         content = re.sub(struct_regex_version_2, '', content, flags=re.DOTALL)
         content = re.sub(struct_regex_version_3, '', content, flags=re.DOTALL)
         content = re.sub(run_time_vars_regex, '', content, flags=re.DOTALL)
         content = re.sub(file_pointer_vars_regex, '', content, flags=re.DOTALL)
+        content = re.sub(compar_dummy_var_regex, '', content, flags=re.DOTALL)
         return content
 
     @staticmethod
