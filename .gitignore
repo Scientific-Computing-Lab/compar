@@ -31,6 +31,7 @@
 /compar_app/*
 !/compar_app/templates
 !/compar_app/templates/home.html
+!/compar_app/templates/index.html
 !/compar_app/app.py
 !/compar_app/templates/base.html
 !/compar_app/templates/output.html

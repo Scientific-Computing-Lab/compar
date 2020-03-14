@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>Compar</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="../../assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="static/css/grid.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script src="../../assets/js/ie-emulation-modes-warning.js"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+
+      <div class="page-header">
+        <h1>Welcome To Compar!</h1>
+      </div>
+
+      <h2>Basic information</h2>
+      <form action="/" method="post" novalidate>
+      <div class="row">
+        <div class="col-md-4" style="font-size:20px">{{ main_form.work_dir.label }}
+                              {{ main_form.work_dir(size=40) }}</div>
+        <div class="col-md-4" style="font-size:20px">{{ main_form.slum_params.label }}
+                              {{ main_form.slum_params(size=40) }}</div>
+        <div class="col-md-8" style="font-size:20px">{{ main_form.save.label }}<br>
+                              {{ main_form.save() }}</div>
+      </div>
+
+      <hr>
+
+      <h2>Choose flags for parallel compilers:</h2>
+      <div class="row">
+        <div class="col-md-8" style="font-size:20px">{{ comp_form.p4a.label }}
+                              {{ comp_form.p4a(size=32) }}</div>
+        <div class="col-md-4" style="font-size:20px">{{ comp_form.autopar.label }}
+                              {{ comp_form.autopar(size=32) }}</div>
+        <div class="col-md-4" style="font-size:20px">{{ comp_form.cetus.label }}
+                              {{ comp_form.cetus(size=32) }}</div>
+      </div>
+
+       <hr>
+        <div class="col-md-4" style="font-size:20px">{{ main_form.make_file_choice.label }}<br>
+                                                      {{ main_form.make_file_choice() }}</div>
+        <div class="col-md-4" style="font-size:20px">{{ main_form.submit1() }}</div>
+      </form>
+
+      <hr>
+
+      {% if make_form %}
+
+      <h2>Makefile:</h2>
+      <form action="/" method="POST" >
+      <div class="row">
+        <div class="col-md-3" style="font-size:20px">{{ make_form.input_dir.label }}
+                              {{ make_form.input_dir(size=32) }}</div>
+        <div class="col-md-3" style="font-size:20px">{{ make_form.ignore.label }}
+                              {{ make_form.ignore(size=32) }}</div>
+        <div class="col-md-6" style="font-size:20px">{{ make_form.include.label }}
+                              {{ make_form.include(size=32) }}</div>
+        <div class="col-md-6" style="font-size:20px">{{ make_form.make_commands.label }}
+                              {{ make_form.make_commands(size=32) }}</div>
+        <div class="col-md-3" style="font-size:20px">{{ make_form.make_op.label }}
+                              {{ make_form.make_op(size=32) }}</div>
+        <div class="col-md-3" style="font-size:20px">{{ make_form.make_on.label }}
+                              {{ make_form.make_on(size=32) }}</div>
+        <div class="col-md-6" style="font-size:20px">{{ make_form.main_file.label }}
+                              {{ make_form.main_file(size=32) }}</div>
+        <div class="col-md-3" style="font-size:20px">{{ make_form.main_file_p.label }}
+                              {{ make_form.main_file_p(size=32) }}</div>
+        <div class="col-md-6" style="font-size:20px">{{ make_form.main_file_r_p.label }}
+                              {{ make_form.main_file_r_p(size=32) }}</div>
+        <div class="col-md-3" style="font-size:20px">{{ make_form.nas_file.label }}<br>
+                              {{ make_form.nas_file() }}</div>
+        <div class="col-md-3" style="font-size:20px">{{ start_form.submit3() }}</div>
+      </div>
+      </form>
+      {% endif %}
+
+      {% if binary_comp_form %}
+      <h2>Choose binary compiler:</h2>
+      <form action="/" method="POST" >
+      <div class="row">
+        <div class="col-md-8" style="font-size:20px">{{ binary_comp_form.binary_comp_name.label }}
+                              {{ binary_comp_form.binary_comp_name(size=32) }}</div>
+        <div class="col-md-4" style="font-size:20px">{{ binary_comp_form.binary_comp_version.label }}
+                              {{ binary_comp_form.binary_comp_version(size=32) }}</div>
+        <div class="col-md-4" style="font-size:20px">{{ binary_comp_form.binary_comp_flags.label }}
+                              {{ binary_comp_form.binary_comp_flags(size=32) }}</div>
+      </div>
+
+      <hr>
+
+        <div class="row">
+        <div class="col-md-8" style="font-size:20px">{{ exists_file_form.exists_file.label }}<br>
+                              {{ exists_file_form.exists_file() }}</div>
+        <div class="col-md-8" style="font-size:20px">{{ exists_file_form.submit2() }}</div>
+      </div>
+
+        <hr>
+
+       {% if exists_c_file_form %}
+        <div class="row">
+        <div class="col-md-8" style="font-size:20px">{{ exists_c_file_form.input_dir.label }}
+                              {{ exists_c_file_form.input_dir(size=30) }}</div>
+        <div class="col-md-6" style="font-size:20px">{{ exists_c_file_form.main_file.label }}
+                              {{ exists_c_file_form.main_file(size=32) }}</div>
+        <div class="col-md-3" style="font-size:20px">{{ exists_c_file_form.main_file_p.label }}
+                              {{ exists_c_file_form.main_file_p(size=32) }}</div>
+        <div class="col-md-6" style="font-size:20px">{{ exists_c_file_form.main_file_r_p.label }}
+                              {{ exists_c_file_form.main_file_r_p(size=32) }}</div>
+        <div class="col-md-3" style="font-size:20px">{{ exists_c_file_form.nas_file.label }}<br>
+                              {{ exists_c_file_form.nas_file() }}</div>
+        <div class="col-md-8" style="font-size:20px">{{ start_form.submit3() }}</div>
+      </div>
+      {% endif %}
+
+      {% if editor_c_form %}
+       <div class="col-md-8" style="font-size:20px">{{ editor_c_form.editor.label }}<br>
+                              {{ editor_c_form.editor(cols="150", rows="150") }}</div>
+       <div class="col-md-8" style="font-size:20px">{{ start_form.submit3() }}</div>
+      {% endif %}
+      </form>
+      {% endif %}
+
+    </div> <!-- /container -->
+
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>
+
