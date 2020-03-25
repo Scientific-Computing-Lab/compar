@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
-bootstrap = Bootstrap(app)
+Bootstrap(app)
 
 DATA = {}
 
@@ -25,7 +25,7 @@ class BasicComparForm(Form):
 
 class MakeFileForm(Form):
     input_dir = StringField('Write path for input directory: ', validators=[DataRequired()])
-    ignore = StringField('relative folder paths to be ignored: ', validators=[DataRequired()])
+    ignore = StringField('Relative folder paths to be ignored: ', validators=[DataRequired()])
     include = StringField('Include dir names for compilation (relative paths): ', validators=[DataRequired()])
     make_commands = StringField('Makefile Commands: ', validators=[DataRequired()])
     make_op = StringField('Makefile output executable folder (relative path): ', validators=[DataRequired()])
@@ -75,7 +75,7 @@ def is_equal_to_yes(data):
 
 @app.route("/", methods=["GET", "POST"])
 @app.route("/compar", methods=["GET", "POST"])
-def welcome_label():
+def main_page():
     main_form = BasicComparForm()
     make_form = MakeFileForm()
     binary_comp_form = BinaryCompilerForm()
@@ -96,12 +96,14 @@ def welcome_label():
             else:
                 DATA['save_folder'] = False
             if is_equal_to_yes(request.form.get('make_file_choice')):
+                print(True)
                 DATA['is_make_file'] = True
-                return render_template('index.html', main_form=main_form, comp_form=comp_form, make_form=make_form,
+                return render_template('home.html', main_form=main_form, comp_form=comp_form, make_form=make_form,
                                        start_form=start_form)
             else:
+                print(False)
                 DATA['is_make_file'] = False
-                return render_template('index.html', main_form=main_form, comp_form=comp_form,
+                return render_template('home.html', main_form=main_form, comp_form=comp_form,
                                        binary_comp_form=binary_comp_form, exists_file_form=exists_file_form)
         elif exists_file_form.submit2.data:
             DATA['binary_comp_name'] = request.form.get('binary_comp_name')
@@ -109,12 +111,12 @@ def welcome_label():
             DATA['binary_comp_flags'] = request.form.get('binary_comp_flags')
             if is_equal_to_yes(request.form.get('exists_file')):
                 DATA['exists_c_file'] = True
-                return render_template('index.html', main_form=main_form, comp_form=comp_form,
+                return render_template('home.html', main_form=main_form, comp_form=comp_form,
                                        binary_comp_form=binary_comp_form, exists_file_form=exists_file_form,
                                        exists_c_file_form=exists_c_file_form, start_form=start_form)
             else:
                 DATA['exists_c_file'] = False
-                return render_template('index.html', main_form=main_form, comp_form=comp_form,
+                return render_template('home.html', main_form=main_form, comp_form=comp_form,
                                        binary_comp_form=binary_comp_form, exists_file_form=exists_file_form,
                                        editor_c_form=editor_c_form, start_form=start_form)
         elif start_form.submit3.data:
@@ -129,6 +131,7 @@ def welcome_label():
                 DATA['main_file_p'] = request.form.get('main_file_p')
                 DATA['main_file_r_p'] = request.form.get('main_file_r_p')
                 DATA['nas_file'] = request.form.get('nas_file')
+                return "Run..."
             else:
                 if DATA['exists_c_file']:
                     DATA['input_dir'] = request.form.get('input_dir')
@@ -136,12 +139,15 @@ def welcome_label():
                     DATA['main_file_p'] = request.form.get('main_file_p')
                     DATA['main_file_r_p'] = request.form.get('main_file_r_p')
                     DATA['nas_file'] = request.form.get('nas_file')
+                    return "Run..."
                 else:
                     pass
-    return render_template('index.html', main_form=main_form, comp_form=comp_form)
+    return render_template('home.html', main_form=main_form, comp_form=comp_form)
 
 
 if __name__ == "__main__":
     app.debug = True
     app.run()
+
+# host='0.0.0.0', port=5000
 
