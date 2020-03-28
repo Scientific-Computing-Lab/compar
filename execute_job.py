@@ -18,7 +18,7 @@ class ExecuteJob:
     #TODO: need to ask if it is ok (yoel)
     MY_BUSY_NODE_NUMBER_LIST = []
 
-    def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list):
+    def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list, time_limit=None):
         self.job = job
         self.node_number_list = INTEL_XEON_CPU_E5_2683_V4
         self.run_node_number = 0
@@ -27,6 +27,7 @@ class ExecuteJob:
         self.db_lock = db_lock
         self.serial_run_time_dict = serial_run_time  # {(<file_id_by_rel_path>, <loop_label>) : <run_time>, ... }
         self.relative_c_file_list = relative_c_file_list
+        self.time_limit = time_limit
 
     def get_job(self):
         return self.job
@@ -206,31 +207,26 @@ class ExecuteJob:
                     sbatch_script_file,
                     x_file_path,
                     self.get_job().get_exec_file_args())
-
         result = subprocess.check_output(cmd, shell=True)
         # set job id
         result = re.findall('[0-9]', str(result))
         result = ''.join(result)
         self.get_job().set_job_id(result)
-
         # thread_name = threading.current_thread().getName()
         cmd = "squeue | grep {0}".format(self.get_job().get_job_id())
         while os.system(cmd) == 0:
             time.sleep(30)
-
         if ExecuteJob.MY_BUSY_NODE_NUMBER_LIST:
             ExecuteJob.MY_BUSY_NODE_NUMBER_LIST.remove(self.get_run_node_number())
 
     def __make_sbatch_script_file(self, job_name=''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
         batch_file = open(batch_file_path, 'w')
-        batch_file.write(
-            '#!/bin/bash\n'
-            + f'#SBATCH --job-name={job_name}\n'
-            + '#SBATCH --partition=grid\n'
-            + '#SBATCH --exclusive\n'
-            + '$@\n'
-        )
+        command = f'#!/bin/bash\n#SBATCH --job-name={job_name}\n'
+        if self.time_limit:
+            command += f'#SBATCH --time={self.time_limit}\n'
+        command += f'#SBATCH --partition=grid\n#SBATCH --exclusive\n$@\n'
+        batch_file.write(command)
         batch_file.close()
         return batch_file_path
 

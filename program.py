@@ -35,7 +35,7 @@ def main():
     parser.add_argument('-nas', '--is_nas', help='Is NAS Benchmark', action='store_true')
     parser.add_argument('-main_file_r_p', '--main_file_rel_path', help='Main c file name relative path',
                         default="", required=True)
-    parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution')
+    parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution', default=None)
     args = vars(parser.parse_args())
 
     # TODO: should be depend on users choice
@@ -66,7 +66,8 @@ def main():
         main_file_parameters=args['main_file_parameters'],
         slurm_parameters=args['slurm_parameters'],
         is_nas=args['is_nas'],
-        main_file_rel_path=args['main_file_rel_path']
+        main_file_rel_path=args['main_file_rel_path'],
+        time_limit=args['time_limit']
     )
     # TODO: change fragment_and_add_timers main file path
     compar_obj.fragment_and_add_timers()
