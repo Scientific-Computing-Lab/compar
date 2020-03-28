@@ -8,13 +8,13 @@ class Executor:
 
     @staticmethod
     def execute_jobs(jobs, num_of_loops_in_files, db, relative_c_file_list, number_of_threads=1, slurm_parameters=None,
-                     save_results=True, serial_run_time=None):
+                     serial_run_time=None, time_limit=None):
         if not slurm_parameters:
             slurm_parameters = []
         pool = ThreadPoolExecutor(max_workers=number_of_threads)
         db_lock = Lock()
         for job in jobs:
-            pool.submit(execute_job.ExecuteJob(job, num_of_loops_in_files, db, db_lock, save_results, serial_run_time,
-                                               relative_c_file_list).run, slurm_parameters)
+            pool.submit(execute_job.ExecuteJob(job, num_of_loops_in_files, db, db_lock, serial_run_time,
+                                               relative_c_file_list, time_limit).run, slurm_parameters)
         pool.shutdown()
         return jobs

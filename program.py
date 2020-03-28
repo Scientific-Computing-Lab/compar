@@ -29,13 +29,13 @@ def main():
     parser.add_argument('-cetus_f', '--cetus_flags', nargs="*", help='Cetus flags', default=None)
     parser.add_argument('-include', '--include_dirs_list', nargs="*",
                         help='Include dir names for compilation - relative paths', default=None)
-    parser.add_argument('-main_file', '--main_file_name', help='Main c file name', default="")
     parser.add_argument('-main_file_p', '--main_file_parameters', nargs="*", help='Main c file parameters',
                         default=None)
     parser.add_argument('-slurm_p', '--slurm_parameters', nargs="*", help='Slurm parameters', default=None)
     parser.add_argument('-nas', '--is_nas', help='Is NAS Benchmark', action='store_true')
     parser.add_argument('-main_file_r_p', '--main_file_rel_path', help='Main c file name relative path',
                         default="", required=True)
+    parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution', default=None)
     args = vars(parser.parse_args())
 
     # TODO: should be depend on users choice
@@ -63,11 +63,11 @@ def main():
         autopar_flags=args['autopar_flags'],
         cetus_flags=args['cetus_flags'],
         include_dirs_list=args['include_dirs_list'],
-        main_file_name=args['main_file_name'],
         main_file_parameters=args['main_file_parameters'],
         slurm_parameters=args['slurm_parameters'],
         is_nas=args['is_nas'],
-        main_file_rel_path=args['main_file_rel_path']
+        main_file_rel_path=args['main_file_rel_path'],
+        time_limit=args['time_limit']
     )
     # TODO: change fragment_and_add_timers main file path
     compar_obj.fragment_and_add_timers()
@@ -79,9 +79,5 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except CompilationError as e:
-        print("The optimal code could not be compiled!")
-        print("Please check manually if there are some duplicate variables declaration in the same scope")
-        print("This is probably Cetus side effects")
     except Exception as e:
         traceback.print_exc()

@@ -3,6 +3,7 @@ import re
 import subprocess
 # import threading
 import time
+from datetime import timedelta
 from exceptions import FileError
 
 AMD_OPTERON_PROCESSOE_6376 = list(range(1, 15))
@@ -17,16 +18,16 @@ class ExecuteJob:
     #TODO: need to ask if it is ok (yoel)
     MY_BUSY_NODE_NUMBER_LIST = []
 
-    def __init__(self, job, num_of_loops_in_files, db, db_lock, save_results, serial_run_time, relative_c_file_list):
+    def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list, time_limit=None):
         self.job = job
         self.node_number_list = INTEL_XEON_CPU_E5_2683_V4
         self.run_node_number = 0
         self.num_of_loops_in_files = num_of_loops_in_files
         self.db = db
         self.db_lock = db_lock
-        self.save_results = save_results
         self.serial_run_time_dict = serial_run_time  # {(<file_id_by_rel_path>, <loop_label>) : <run_time>, ... }
         self.relative_c_file_list = relative_c_file_list
+        self.time_limit = time_limit
 
     def get_job(self):
         return self.job
@@ -170,10 +171,10 @@ class ExecuteJob:
     def run(self, user_slurm_parameters):
         try:
             self.__run_with_sbatch(user_slurm_parameters)
+            self.__analyze_elapsed_time()
             self.__analysis_output_file()
             self.update_dead_code_files()
-            if self.save_results:
-                self.save_successful_job()
+            self.save_successful_job()
         except Exception as ex:
             if self.job.get_job_results()['run_time_results']:
                 self.save_successful_job()
@@ -206,31 +207,26 @@ class ExecuteJob:
                     sbatch_script_file,
                     x_file_path,
                     self.get_job().get_exec_file_args())
-
         result = subprocess.check_output(cmd, shell=True)
         # set job id
         result = re.findall('[0-9]', str(result))
         result = ''.join(result)
         self.get_job().set_job_id(result)
-
         # thread_name = threading.current_thread().getName()
         cmd = "squeue | grep {0}".format(self.get_job().get_job_id())
         while os.system(cmd) == 0:
             time.sleep(30)
-
         if ExecuteJob.MY_BUSY_NODE_NUMBER_LIST:
             ExecuteJob.MY_BUSY_NODE_NUMBER_LIST.remove(self.get_run_node_number())
 
     def __make_sbatch_script_file(self, job_name=''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
         batch_file = open(batch_file_path, 'w')
-        batch_file.write(
-            '#!/bin/bash\n'
-            + f'#SBATCH --job-name={job_name}\n'
-            + '#SBATCH --partition=grid\n'
-            + '#SBATCH --exclusive\n'
-            + '$@\n'
-        )
+        command = f'#!/bin/bash\n#SBATCH --job-name={job_name}\n'
+        if self.time_limit:
+            command += f'#SBATCH --time={self.time_limit}\n'
+        command += f'#SBATCH --partition=grid\n#SBATCH --exclusive\n$@\n'
+        batch_file.write(command)
         batch_file.close()
         return batch_file_path
 
@@ -261,3 +257,28 @@ class ExecuteJob:
                                 self.get_job().set_loop_in_file_results(file_id_by_rel_path, str(i), loops_dict[str(i)])
                     except OSError as e:
                         raise FileError(str(e))
+
+    def __analyze_elapsed_time(self):
+        job_id = self.get_job().get_job_id()
+        command = f"sacct -j {job_id} --format=elapsed,exitcode"
+        result = str(subprocess.check_output(command, shell=True))
+        result = result.replace("\r", "").split("\n")
+        if len(result) < 3:
+            # TODO: check the length of output command - sacct
+            raise Exception(f"sacct command - no results for job id: {job_id}.")
+        job_result = result[2].split()
+        # TODO: check the list values (check the logic)
+        elapsed_time_string = job_result[0]
+        exit_code = int(job_result[1])
+        if exit_code != 0:
+            raise Exception(f"Job id: {job_id} ended with return code: {exit_code}.")
+        # TODO: check the time calculations && IF
+        total_elapsed_seconds = 0
+        if '-' in elapsed_time_string:
+            day, elapsed_time_string = elapsed_time_string.split('-')
+            total_elapsed_seconds += int(day) * 60*60*24
+        h, m, s = elapsed_time_string.split(':')
+        total_elapsed_seconds += int(timedelta(hours=int(h), minutes=int(m), seconds=int(s)).total_seconds())
+        self.get_job().set_job_total_elapsed_time(total_elapsed_seconds)
+
+
