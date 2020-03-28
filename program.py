@@ -29,7 +29,6 @@ def main():
     parser.add_argument('-cetus_f', '--cetus_flags', nargs="*", help='Cetus flags', default=None)
     parser.add_argument('-include', '--include_dirs_list', nargs="*",
                         help='Include dir names for compilation - relative paths', default=None)
-    parser.add_argument('-main_file', '--main_file_name', help='Main c file name', default="")
     parser.add_argument('-main_file_p', '--main_file_parameters', nargs="*", help='Main c file parameters',
                         default=None)
     parser.add_argument('-slurm_p', '--slurm_parameters', nargs="*", help='Slurm parameters', default=None)
@@ -63,7 +62,6 @@ def main():
         autopar_flags=args['autopar_flags'],
         cetus_flags=args['cetus_flags'],
         include_dirs_list=args['include_dirs_list'],
-        main_file_name=args['main_file_name'],
         main_file_parameters=args['main_file_parameters'],
         slurm_parameters=args['slurm_parameters'],
         is_nas=args['is_nas'],

@@ -97,7 +97,6 @@ class Compar:
                  autopar_flags=None,
                  cetus_flags=None,
                  include_dirs_list=None,
-                 main_file_name="",
                  main_file_parameters=None,
                  slurm_parameters=None,
                  is_nas=False):
@@ -170,7 +169,6 @@ class Compar:
         # -----------------------------------------------------------
 
         # Main file--------------------------------------------------
-        self.main_file_name = main_file_name
         self.main_file_parameters = main_file_parameters
         # ----------------------------------------------------------
 
@@ -421,7 +419,7 @@ class Compar:
                 compilation_flags += extra_flags_list
             self.binary_compiler.initiate_for_new_task(compilation_flags,
                                                        combination_folder_path,
-                                                       self.main_file_name)
+                                                       self.main_file_rel_path)
             self.binary_compiler.compile()
 
     def calculate_speedups(self):
@@ -522,7 +520,7 @@ class Compar:
     def __run_binary_compiler(self, serial_dir_path):
         self.binary_compiler.initiate_for_new_task(compilation_flags=self.user_binary_compiler_flags,
                                                    input_file_directory=serial_dir_path,
-                                                   main_c_file=self.main_file_name)
+                                                   main_c_file=self.main_file_rel_path)
         self.binary_compiler.compile()
 
     def run_serial(self):
