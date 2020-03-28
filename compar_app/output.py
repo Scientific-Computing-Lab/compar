@@ -9,7 +9,7 @@ output_log = ""
 @app.route('/')
 def index():
     # render the template (below) that will use JavaScript to read the stream
-    return render_template('stam.html')
+    return render_template('progress.html')
 
 
 @app.route('/stream_progress')
