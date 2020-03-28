@@ -35,6 +35,7 @@ def main():
     parser.add_argument('-nas', '--is_nas', help='Is NAS Benchmark', action='store_true')
     parser.add_argument('-main_file_r_p', '--main_file_rel_path', help='Main c file name relative path',
                         default="", required=True)
+    parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution')
     args = vars(parser.parse_args())
 
     # TODO: should be depend on users choice
