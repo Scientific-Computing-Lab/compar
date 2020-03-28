@@ -1,7 +1,7 @@
 import os
 from flask import Flask, flash, redirect, render_template, request, session, abort
 from flask_wtf import Form
-from wtforms import StringField, SubmitField, FileField, RadioField, TextAreaField
+from wtforms import StringField, SubmitField, RadioField, SelectField
 from wtforms.validators import DataRequired
 from wtforms.widgets import TextArea
 from flask_bootstrap import Bootstrap
@@ -16,44 +16,42 @@ DATA = {}
 
 
 class BasicComparForm(Form):
-    work_dir = StringField('Write path for working directory: ', validators=[DataRequired()])
-    slum_params = StringField('Slum parameters: ', validators=[DataRequired()])
-    save = RadioField('Save folders?', choices=[('yes', 'Yes'), ('no', 'No')], default='yes')
-    make_file_choice = RadioField('Do you want make file?', choices=[('yes', 'Yes'), ('no', 'No')], default='no')
+    work_dir = StringField('Path for output folder: ', validators=[DataRequired()])
+    slum_params = StringField('Slum parameters: ')
+    save = RadioField('Delete all combinations folder?', choices=[('yes', 'Yes'), ('no', 'No')], default='yes')
+    make_file_choice = RadioField('Do you want a make file?', choices=[('yes', 'Yes'), ('no', 'No')], default='no')
     submit1 = SubmitField('Next')
 
 
 class MakeFileForm(Form):
-    input_dir = StringField('Write path for input directory: ', validators=[DataRequired()])
-    ignore = StringField('Relative folder paths to be ignored: ', validators=[DataRequired()])
-    include = StringField('Include dir names for compilation (relative paths): ', validators=[DataRequired()])
+    input_dir = StringField('Path for source file directory: ', validators=[DataRequired()])
+    ignore = StringField('Folder path to be ignored (rel path): ')
+    include = StringField('Folder path to be included (rel path): ')
     make_commands = StringField('Makefile Commands: ', validators=[DataRequired()])
-    make_op = StringField('Makefile output executable folder (relative path): ', validators=[DataRequired()])
-    make_on = StringField('Makefile output executable file name: ', validators=[DataRequired()])
-    main_file = StringField('Main c file name: ', validators=[DataRequired()])
-    main_file_p = StringField('Main c file parameters: ', validators=[DataRequired()])
-    main_file_r_p = StringField('Main c file name relative path: ', validators=[DataRequired()])
+    make_op = StringField('Output executable folder (rel path): ', validators=[DataRequired()])
+    make_on = StringField('Output executable file name: ', validators=[DataRequired()])
+    main_file_p = StringField('Main c file parameters: ')
+    main_file_r_p = StringField('Main c file name (rel path): ', validators=[DataRequired()])
     nas_file = RadioField('NAS file?', choices=[('yes', 'Yes'), ('no', 'No')], default='no')
 
 
 class BinaryCompilerForm(Form):
-    binary_comp_name = StringField('compiler name: ', validators=[DataRequired()])
-    binary_comp_version = StringField('Version: ', validators=[DataRequired()])
-    binary_comp_flags = StringField('Flags: ', validators=[DataRequired()])
+    binary_comp_name = SelectField('Compiler name: ', choices=[('gcc', 'GCC'), ('icc', 'ICC')])
+    binary_comp_version = StringField('Version: ')
+    binary_comp_flags = StringField('Flags: ')
 
 
 class CompilersForm(Form):
-    p4a = StringField('Par4All flags: ', validators=[DataRequired()])
-    autopar = StringField('Autopar flags: ', validators=[DataRequired()])
-    cetus = StringField('Cetus flags: ', validators=[DataRequired()])
+    p4a = StringField('Par4All flags: ')
+    autopar = StringField('Autopar flags: ')
+    cetus = StringField('Cetus flags: ')
 
 
 class ExistsCFileForm(Form):
-    input_dir = StringField('Write path for input directory: ', validators=[DataRequired()])
-    main_file = StringField('Main c file name: ', validators=[DataRequired()])
-    main_file_p = StringField('Main c file parameters: ', validators=[DataRequired()])
+    input_dir = StringField('Path for source file directory: ', validators=[DataRequired()])
+    main_file_p = StringField('Main c file parameters: ')
     nas_file = RadioField('NAS file?', choices=[('yes', 'Yes'), ('no', 'No')], default='no')
-    main_file_r_p = StringField('Main c file name relative path: ', validators=[DataRequired()])
+    main_file_r_p = StringField('Main c file name (rel path): ', validators=[DataRequired()])
 
 
 class EditorCForm(Form):
@@ -61,7 +59,8 @@ class EditorCForm(Form):
 
 
 class DoYouHaveExistsFileForm(Form):
-    exists_file = RadioField('Do you have an exists files?', choices=[('yes', 'Yes'), ('no', 'No')], default='yes')
+    exists_file = RadioField('Do you want to work with exists c file or paste the code?',
+                             choices=[('yes', 'Exists file'), ('no', 'Paste code')], default='yes')
     submit2 = SubmitField('Next')
 
 
@@ -149,5 +148,4 @@ if __name__ == "__main__":
     app.debug = True
     app.run()
 
-# host='0.0.0.0', port=5000
 
