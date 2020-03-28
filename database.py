@@ -226,6 +226,10 @@ class Database:
         finally:
             return combination
 
+    def get_total_runtime_best_combination(self):
+        return self.dynamic_db[self.collection_name].find_one({"error": {"$exists": False}},
+                                                              sort=[("job_total_elapsed_time", 1)])["_id"]
+
 
 def generate_combinations():
     env_params = []

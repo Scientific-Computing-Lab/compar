@@ -36,6 +36,7 @@ class Compar:
     ORIGINAL_FILES_FOLDER_NAME = "original_files"
     COMBINATIONS_FOLDER_NAME = "combinations"
     LOGS_FOLDER_NAME = 'logs'
+    SUMMARY_FILE_NAME = 'summary.csv'
     NUM_OF_THREADS = 4
 
     @staticmethod
@@ -245,12 +246,31 @@ class Compar:
             self.compile_combination_to_binary(final_folder_path, inject=False)
         except Exception as ex:
             raise CompilationError(str(ex) + 'exception in Compar. generate_optimal_code: cannot compile optimal code')
+        # Check for best total runtime
         try:
             job = Job(final_folder_path, Combination("final", "mixed", []), [])
             self.jobs.append(job)
-            self.run_and_save_job_list(False)
+            self.run_and_save_job_list()
+            best_runtime_combination_id = self.db.get_total_runtime_best_combination()
+            if best_runtime_combination_id != 'final':
+                combination_obj = self.__combination_json_to_obj(
+                    self.db.get_combination_from_static_db(best_runtime_combination_id))
+                combination_folder_path = self.create_combination_folder(
+                    str(combination_obj.get_combination_id()), final_folder_path)
+                try:
+                    self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
+                    self.compile_combination_to_binary(combination_folder_path)
+                    self.update_summary_file(combination_obj, final_folder_path)
+                except Exception as ex:
+                    raise Exception(f"Total runtime calculation - The optimal file could not be compiled, combination"
+                                    f" {best_runtime_combination_id}.\n{ex}")
+
         except Exception as ex:
-            raise ExecutionError(str(ex) + 'exception in Compar. generate_optimal_code: cannot run optimal code')
+            msg = ''' The optimal code could not be compiled! 
+            Please check manually if there are some duplicate variables declaration in the same scope
+            This is probably Cetus side effects'''
+            raise ExecutionError(str(ex) + 'exception in Compar. generate_optimal_code: cannot run optimal code. '
+                                 + msg)
 
     @staticmethod
     def get_file_content(file_path):
@@ -407,12 +427,11 @@ class Compar:
     def calculate_speedups(self):
         self.db.update_all_speedups()
 
-    def run_and_save_job_list(self, save_results=True):
+    def run_and_save_job_list(self):
         job_list = []
         try:
             job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.db, self.relative_c_file_list,
-                                             self.NUM_OF_THREADS, self.slurm_parameters, save_results,
-                                             self.serial_run_time)
+                                             self.NUM_OF_THREADS, self.slurm_parameters, self.serial_run_time)
         except Exception as ex:
             traceback.print_exc()
         finally:
@@ -625,7 +644,7 @@ class Compar:
                     c_file_dict['file_full_path']) + str(ex))
 
     def generate_summary_file(self, optimal_data, dir_path):
-        file_path = os.path.join(dir_path, 'summary.csv')
+        file_path = os.path.join(dir_path, self.SUMMARY_FILE_NAME)
         with open(file_path, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(["File", "Loop", "Combination", "Compiler", "Compilation Params", "Env flags",
@@ -647,3 +666,15 @@ class Compar:
                                          combination_obj.get_parameters().get_compilation_params(),
                                          combination_obj.get_parameters().get_env_params(),
                                          loop['run_time'], loop['speedup']])
+
+    def update_summary_file(self, best_runtime_combination, dir_path):
+        file_path = os.path.join(dir_path, self.SUMMARY_FILE_NAME)
+        with open(file_path, 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([""])
+            writer.writerow([f"Combination {best_runtime_combination.get_combination_id()}"
+                             f" gave the best total runtime"])
+            writer.writerow(["Compiler", "Compilation Params", "Env flags"])
+            writer.writerow([best_runtime_combination.get_compiler(),
+                             best_runtime_combination.get_parameters().get_compilation_params(),
+                             best_runtime_combination.get_parameters().get_env_params()])
