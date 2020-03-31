@@ -5,6 +5,7 @@ import subprocess
 import time
 from datetime import timedelta
 from exceptions import FileError
+from subprocess_handler import run_subprocess
 
 AMD_OPTERON_PROCESSOE_6376 = list(range(1, 15))
 INTEL_XEON_CPU_E5_2683_V4 = list(range(16, 19)) + list(range(20, 24))  # no 15
@@ -47,7 +48,8 @@ class ExecuteJob:
     @staticmethod
     def get_list_of_busy_nodes_numbers_from_squeue():
         cmd = 'squeue | grep node'
-        squeue = subprocess.check_output(cmd, shell=True)
+        stdout, stderr, ret_code = run_subprocess(cmd)
+        squeue = stdout
         squeue_text = [x for x in str(squeue).split(" ") if x != '']
         node_lists_in_use = []
         for word in squeue_text:
@@ -207,7 +209,8 @@ class ExecuteJob:
                     sbatch_script_file,
                     x_file_path,
                     self.get_job().get_exec_file_args())
-        result = subprocess.check_output(cmd, shell=True)
+        stdout, stderr, ret_code = run_subprocess(cmd)
+        result = stdout
         # set job id
         result = re.findall('[0-9]', str(result))
         result = ''.join(result)
@@ -261,7 +264,8 @@ class ExecuteJob:
     def __analyze_elapsed_time(self):
         job_id = self.get_job().get_job_id()
         command = f"sacct -j {job_id} --format=elapsed,exitcode"
-        result = str(subprocess.check_output(command, shell=True))
+        stdout, stderr, ret_code = run_subprocess(command)
+        result = stdout
         result = result.replace("\r", "").split("\n")
         if len(result) < 3:
             # TODO: check the length of output command - sacct

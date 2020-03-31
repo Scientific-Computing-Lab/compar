@@ -4,6 +4,7 @@ import subprocess
 import shutil
 import os
 import exceptions as e
+from subprocess_handler import run_subprocess
 
 
 class Cetus(ParallelCompiler):
@@ -19,9 +20,10 @@ class Cetus(ParallelCompiler):
                 Cetus.replace_line_in_code(file["file_full_path"], '#include <omp.h>', '')
                 cwd_path = os.path.dirname(file["file_full_path"])
                 self.copy_headers(cwd_path)
-                output = subprocess.check_output(['module load cetus && cetus {} {}'.format(
-                    " ".join(self.get_compilation_flags()), file["file_name"])], shell=True, cwd=cwd_path)
-                print('cetus compilation output: ' + str(output))
+                command = ['module load cetus && cetus {} {}'.format(
+                    " ".join(self.get_compilation_flags()), file["file_name"])]
+                stdout, stderr, ret_code = run_subprocess(command, cwd_path)
+                print('cetus compilation output: ' + str(stdout))
                 # Replace file from cetus output folder into original file folder
                 if os.path.isdir(os.path.join(cwd_path, "cetus_output")):
                     src_file = os.path.join(cwd_path, "cetus_output", file["file_name"])

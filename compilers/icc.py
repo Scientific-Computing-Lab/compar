@@ -1,6 +1,7 @@
 from compilers.binaryCompiler import BinaryCompiler
 import os
 import subprocess
+from subprocess_handler import run_subprocess
 
 
 class Icc(BinaryCompiler):
@@ -13,9 +14,8 @@ class Icc(BinaryCompiler):
         dir_name = os.path.basename(input_file_path_only)
 
         print("Compiling " + self.get_main_c_file())
-        output = subprocess.check_output(['module load intel', '&&', self.get_compiler_name()] + ["-fopenmp"]
+        stdout, stderr, ret_code = run_subprocess(['module load intel', '&&', self.get_compiler_name()] + ["-fopenmp"]
                                          + self.get_compilation_flags() + [self.get_main_c_file()]
-                                         + ["-o"] + [dir_name + ".x"],
-                                         cwd=self.get_input_file_directory())
-        print(self._compiler_name + ' compilation output: ' + str(output))
+                                         + ["-o"] + [dir_name + ".x"], self.get_input_file_directory())
+        print(self._compiler_name + ' compilation output: ' + str(stdout))
         print("Done Compile work")

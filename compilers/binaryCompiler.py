@@ -2,6 +2,7 @@ from compilers.compiler import Compiler
 import os
 import subprocess
 from exceptions import CompilationError, CombinationFailure
+from subprocess_handler import run_subprocess
 
 
 class BinaryCompiler(Compiler):
@@ -47,8 +48,8 @@ class BinaryCompiler(Compiler):
         dir_name = os.path.basename(input_file_path_only)
 
         print("Compiling " + self.get_main_c_file())
-        output = subprocess.check_output([self.get_compiler_name()] + ["-fopenmp"] + self.get_compilation_flags() +
-                                         [self.get_main_c_file()] + ["-o"] + [dir_name + ".x"],
-                                         cwd=self.get_input_file_directory())
-        print(self._compiler_name + ' compilation output: ' + str(output))
+        command = [self.get_compiler_name(), "-fopenmp"] + self.get_compilation_flags()
+        command += [self.get_main_c_file(), "-o", dir_name + ".x"]
+        stdout, stderr, ret_code = run_subprocess(command, self.get_input_file_directory())
+        print(self._compiler_name + ' compilation output: ' + str(stdout))
         print("Done Compile work")
