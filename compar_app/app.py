@@ -17,7 +17,7 @@ DATA = {}
 
 class BasicComparForm(Form):
     work_dir = StringField('Path for output folder: ', validators=[DataRequired()])
-    slum_params = StringField('Slum parameters: ')
+    slum_params = StringField('*Slum parameters: ')
     save = RadioField('Delete all combinations folder?', choices=[('yes', 'Yes'), ('no', 'No')], default='yes')
     make_file_choice = RadioField('Do you want a make file?', choices=[('yes', 'Yes'), ('no', 'No')], default='no')
     submit1 = SubmitField('Next')
@@ -27,10 +27,10 @@ class MakeFileForm(Form):
     input_dir = StringField('Path for source file directory: ', validators=[DataRequired()])
     ignore = StringField('Folder path to be ignored (rel path): ')
     include = StringField('Folder path to be included (rel path): ')
-    make_commands = StringField('Makefile Commands: ', validators=[DataRequired()])
+    make_commands = StringField('*Makefile Commands: ', validators=[DataRequired()])
     make_op = StringField('Output executable folder (rel path): ', validators=[DataRequired()])
     make_on = StringField('Output executable file name: ', validators=[DataRequired()])
-    main_file_p = StringField('Main c file parameters: ')
+    main_file_p = StringField('*Main c file parameters: ')
     main_file_r_p = StringField('Main c file name (rel path): ', validators=[DataRequired()])
     nas_file = RadioField('NAS file?', choices=[('yes', 'Yes'), ('no', 'No')], default='no')
 
@@ -42,14 +42,14 @@ class BinaryCompilerForm(Form):
 
 
 class CompilersForm(Form):
-    p4a = StringField('Par4All flags: ')
-    autopar = StringField('Autopar flags: ')
-    cetus = StringField('Cetus flags: ')
+    p4a = StringField('*Par4All flags: ')
+    autopar = StringField('*Autopar flags: ')
+    cetus = StringField('*Cetus flags: ')
 
 
 class ExistsCFileForm(Form):
     input_dir = StringField('Path for source file directory: ', validators=[DataRequired()])
-    main_file_p = StringField('Main c file parameters: ')
+    main_file_p = StringField('*Main c file parameters: ')
     nas_file = RadioField('NAS file?', choices=[('yes', 'Yes'), ('no', 'No')], default='no')
     main_file_r_p = StringField('Main c file name (rel path): ', validators=[DataRequired()])
 
@@ -140,7 +140,7 @@ def main_page():
                     DATA['nas_file'] = request.form.get('nas_file')
                     return "Run..."
                 else:
-                    pass
+                    return "Run..."
     return render_template('home.html', main_form=main_form, comp_form=comp_form)
 
 

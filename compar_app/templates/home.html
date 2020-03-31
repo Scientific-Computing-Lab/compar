@@ -6,6 +6,7 @@
     <div class="page-header"><h1>Welcome To Compar!</h1></div>
     <div style="margin:35px">
         <h2>Basic information</h2>
+        <h4 style="margin:40px">* Slum parameters need to be separate by comma - ','</h4>
         <form action="/" method="post">
             <div class="col-md-12" style="font-size:20px">
               <div class="form-row" style="margin:35px">
@@ -24,9 +25,7 @@
               </div>
             </div>
             <h2>Choose flags for parallel compilers:</h2>
-            <div style="margin:20px">
-                <h5>Please separate flags by comma - ','</h5>
-            </div>
+            <h4 style="margin:40px">* Flags need to be separate by comma - ','</h4>
             <div class="col-md-12" style="font-size:20px">
                 <div class="form-row" style="margin:35px">
                     <div class="form-group col-md-6" style="width: 25%">
@@ -56,6 +55,7 @@
             </div>
             {% if make_form %}
             <h2>Makefile:</h2>
+            <h4 style="margin:40px">* Need to be separate by comma - ','</h4>
             <div class="col-md-12" style="font-size:20px">
                 <div class="form-row" style="margin:35px">
                     <div class="form-group col-md-4" style="width: 25%">
@@ -136,6 +136,7 @@
             {% endif %}
 
             {% if exists_c_file_form %}
+            <h4 style="margin:40px">* Need to be separate by comma - ','</h4>
             <div class="col-md-12" style="font-size:20px">
                 <div class="form-row" style="margin:35px">
                     <div class="form-group col-md-4" style="width: 25%">
