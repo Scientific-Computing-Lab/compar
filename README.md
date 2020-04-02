@@ -67,7 +67,7 @@ You can see an example for such a file in *compilation_params.json* under *asset
 
 ### Environment Parameters
 
-The parameters of the OpenMP environments, e.g. the number of threads to be used.
+The parameters of the OpenMP environment, e.g. the number of threads to be used.
 You can see an example for such a file in *assets/env_params.json*.
 
 ### Run
