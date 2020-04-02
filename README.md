@@ -4,6 +4,9 @@ ComPar is a source-to-source compiler that generates the best parallelized code 
 
 **Note:** The correctness of the input parameters affects the correctness of the parallelized code. It is the responsibility of the user to provide the right parameters as the user is familiar with the input code's logic and its dependencies.
 
+## ComPar Architecture
+![](images/ComPar_architecture.PNG)
+
 ## Getting Started
 
 ### Prerequisites
