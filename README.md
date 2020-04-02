@@ -6,7 +6,7 @@ ComPar is a source-to-source compiler that generates the best parallelized code 
 
 ## ComPar Architecture
 
-![](images/‏‏ComPar_architecture.png)
+![](images/ComPar_architecture.png)
 
 ## Getting Started
 
