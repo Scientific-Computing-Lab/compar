@@ -67,11 +67,17 @@ The compilation parameters are divided into 2 main groups: essential and optiona
 The essential parameters are the ones to appear in all combinations, while the optional parameter might be excluded from one or more combinations (depends on ComPar choice).
 You can see an example for such a file in *compilation_params.json* under *assets* directory.
 
+### Environment Parameters
+
+The parameters of the OpenMP environments, e.g. the number of threads to be used.
+You can see an example for such a file in *assets/env_params.json*.
+
 ### Run
-You should run *program.py* using Python3 with the relevant flags (as described in
+You should run *program.py* using Python3 with the relevant flags (as was described in (https://github.com/Mosseridan/compar/blob/master/README.md#know-your-flags)).
+
 #### Example
 
 In the following example,
 ```
-python program.py -dir /home/gemm -wd /home/gemm -make -make_c "make clean" "make" -make_op "." -make_on gemm -include "/home/utilities" "/home/utilities/polybench.c" -save_folders -main_file_r_p gemm.c
+python program.py -dir /home/gemm -wd /home/gemm -make -make_c "make clean" "make" -make_op "." -make_on gemm -include "/home/utilities" -save_folders -main_file_r_p gemm.c
 ```
