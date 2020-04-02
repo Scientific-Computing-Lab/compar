@@ -6,7 +6,7 @@ ComPar is a source-to-source compiler that generates the best parallelized code 
 
 ## ComPar Architecture
 
-![](images/ComPar_architecture.PNG)
+![](images/‏‏ComPar_architecture.png)
 
 ## Getting Started
 
@@ -71,7 +71,7 @@ The parameters of the OpenMP environments, e.g. the number of threads to be used
 You can see an example for such a file in *assets/env_params.json*.
 
 ### Run
-You should run *program.py* using Python3 with the relevant flags (as was described in (https://github.com/Mosseridan/compar/blob/master/README.md#know-your-flags)).
+You should run *program.py* using Python3 with the relevant flags (as was described in [here](https://github.com/Mosseridan/compar/blob/master/README.md#know-your-flags)).
 
 #### Example
 
