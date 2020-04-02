@@ -26,9 +26,15 @@ Then, you should install and load the supported compilers (i.e. Cetus, Par4All a
   * Default=None.
 * -comp_f (or --binary_compiler_flags): Specify the binary compiler flags.
   * Default=None.
+  
+  
 * -save_folders (or --delete_combinations_folders): Save all combinations folders.
                         action='store_false')
+                        
+                        
     parser.add_argument('-make', '--is_make_file', help='Use makefile flag', action='store_true')
+    
+    
 * -make_c (or --makefile_commands): Makefile commands.
   * Default=None.
 * -make_op (or --makefile_exe_folder_rel_path): Makefile output executable folder relative path to input directory.
@@ -49,10 +55,23 @@ Then, you should install and load the supported compilers (i.e. Cetus, Par4All a
   * Default=None.
 * -slurm_p (or --slurm_parameters): List of SLURM parameters.
   * Default=None.
+  
+  
     parser.add_argument('-nas', '--is_nas', help='Is NAS Benchmark', action='store_true')
 * -t (or --time_limit): Time limit for runtime execution.
   * Default=None.
     
+### Compliation Parameters
+
+The compilation parameters are divided into 2 main groups: essential and optional.
+The essential parameters are the ones to appear in all combinations, while the optional parameter might be excluded from one or more combinations (depends on ComPar choice).
+You can see an example for such a file in *compilation_params.json* under *assets* directory.
+
+### Run
+You should run *program.py* using Python3 with the relevant flags (as described in
+#### Example
+
+In the following example,
 ```
-d
+python program.py -dir /home/gemm -wd /home/gemm -make -make_c "make clean" "make" -make_op "." -make_on gemm -include "/home/utilities" "/home/utilities/polybench.c" -save_folders -main_file_r_p gemm.c
 ```
