@@ -602,6 +602,7 @@ class Compar:
         struct_regex_version_2 = r'struct ____compar____[^\}]+int[^\}]+\}[^;]*;'
         struct_regex_version_3 = r'typedef struct ____compar____[^\;]*____compar____struct;'
         compar_dummy_var_regex = fr'{Timer.COMPAR_DUMMY_VAR}[^;]+;'
+        content = re.sub(rf'{Timer.DECL_GLOBAL_TIMER_VAR_CODE}', '', content)
         content = re.sub(struct_regex_version_1, '', content, flags=re.DOTALL)
         content = re.sub(struct_regex_version_2, '', content, flags=re.DOTALL)
         content = re.sub(struct_regex_version_3, '', content, flags=re.DOTALL)
@@ -612,6 +613,7 @@ class Compar:
 
     @staticmethod
     def remove_run_time_calculation_code_code(content):
+        content = re.sub(rf'{Timer.GLOBAL_TIMER_VAR_NAME}[^;]+omp_get_wtime[^;]+;', '', content)
         content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, flags=re.DOTALL)
         content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}struct[ ]+extern[^;]+;', '', content, flags=re.DOTALL)
         content = re.sub(Timer.COMPAR_VAR_PREFIX + r'struct[^\}]+arr[^\}]+\}[ ]*;', '', content, flags=re.DOTALL)

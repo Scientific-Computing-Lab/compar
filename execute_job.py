@@ -6,6 +6,7 @@ import time
 from datetime import timedelta
 from exceptions import FileError
 from subprocess_handler import run_subprocess
+from timer import Timer
 
 AMD_OPTERON_PROCESSOE_6376 = list(range(1, 15))
 INTEL_XEON_CPU_E5_2683_V4 = list(range(16, 19)) + list(range(20, 24))  # no 15
@@ -173,7 +174,7 @@ class ExecuteJob:
     def run(self, user_slurm_parameters):
         try:
             self.__run_with_sbatch(user_slurm_parameters)
-            self.__analyze_elapsed_time()
+            # self.__analyze_elapsed_time()
             self.__analysis_output_file()
             self.update_dead_code_files()
             self.save_successful_job()
@@ -237,6 +238,12 @@ class ExecuteJob:
         last_string = 'loop '
         for root, dirs, files in os.walk(self.get_job().get_directory_path()):
             for file in files:
+                # total run time analysis
+                if re.search(rf"{Timer.TOTAL_RUNTIME_FILENAME}$", file):
+                    total_runtime_file_path = os.path.join(root, file)
+                    with open(total_runtime_file_path, 'r') as f:
+                        self.get_job().set_job_total_elapsed_time(float(f.read()))
+                # loops runtime analysis
                 if re.search("_run_time_result.txt$", file):
                     loops_dict = {}
                     file_full_path = os.path.join(root, file)
@@ -273,6 +280,7 @@ class ExecuteJob:
         job_result = result[2].split()
         # TODO: check the list values (check the logic)
         elapsed_time_string = job_result[0]
+        left_code, right_code = job_result[1].split(":")
         left_code, right_code = job_result[1].split(":")
         left_code, right_code = int(left_code), int(right_code)
         if left_code !=0 or right_code != 0:
