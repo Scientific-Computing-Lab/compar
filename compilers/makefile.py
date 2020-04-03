@@ -2,6 +2,7 @@ import os
 import subprocess
 import shutil
 from exceptions import MakefileError, CombinationFailure, CompilationError
+from subprocess_handler import run_subprocess
 
 
 class Makefile:
@@ -28,8 +29,8 @@ class Makefile:
     def run_makefile(self):
         print("Running makefile")
         command = 'module load intel && ' + ' && '.join(self.commands)
-        output = subprocess.check_output([command], cwd=self.working_directory, shell=True)
-        print('Makefile output: ' + str(output))
+        stdout, stderr, ret_code = run_subprocess(command, self.working_directory)
+        print('Makefile output: ' + str(stdout))
         print("Done makefile work")
 
     def get_exe_full_path(self):

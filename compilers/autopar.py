@@ -2,6 +2,7 @@ import os
 import subprocess
 from compilers.parallelCompiler import ParallelCompiler
 from exceptions import CompilationError, CombinationFailure
+from subprocess_handler import run_subprocess
 
 
 class Autopar(ParallelCompiler):
@@ -30,11 +31,11 @@ class Autopar(ParallelCompiler):
             command += ' -I' + ' -I'.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
                                            self.include_dirs_list))
         command += f' {" ".join(options)} -c {file_name}'
-        output = subprocess.check_output([command], shell=True, cwd=os.path.dirname(file_full_path))
+        stdout, stderr, ret_code = run_subprocess([command], os.path.dirname(file_full_path))
         dir, file_name = os.path.split(file_full_path)
         parallel_file_full_path = os.path.join(dir, f'rose_{file_name}')
         if os.path.exists(parallel_file_full_path):
             os.remove(file_full_path)
             os.rename(parallel_file_full_path, file_full_path)
-        print('autopar compilation output: ' + str(output))
+        print('autopar compilation output: ' + str(stdout))
         print("Done parallel work")

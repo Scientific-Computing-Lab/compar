@@ -3,6 +3,7 @@ from exceptions import CompilationError, FileError, CombinationFailure
 import subprocess
 import os
 import re
+from subprocess_handler import run_subprocess
 
 
 class Par4all(ParallelCompiler):
@@ -71,8 +72,8 @@ class Par4all(ParallelCompiler):
             command += ' -I ' + ' -I '.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
                                            self.include_dirs_list))
         try:
-            output = subprocess.check_output([command, ], shell=True, cwd=self.get_input_file_directory())
-            print('par4all compilation output: ' + str(output))
+            stdout, stderr, ret_code = run_subprocess([command, ], self.get_input_file_directory())
+            print('par4all compilation output: ' + str(stdout))
         except subprocess.CalledProcessError as e:
             raise CombinationFailure(f'par4all return with {e.returncode} code: {str(e)} : {e.output} : {e.stderr}')
         except Exception as e:
