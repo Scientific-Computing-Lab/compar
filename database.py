@@ -13,6 +13,7 @@ DB = "mongodb://10.10.10.120:27017"
 class Database:
 
     SERIAL_COMBINATION_ID = '0'
+    SERIAL_COMPILER_NAME = 'serial'
 
     def __init__(self, collection_name):
         try:
@@ -211,7 +212,7 @@ class Database:
         if combination_id == self.SERIAL_COMBINATION_ID:
             return {
                 "_id": "0",
-                "compiler_name": "serial",
+                "compiler_name": Database.SERIAL_COMPILER_NAME,
                 "parameters": {
                     "env_params": [],
                     "code_params": [],

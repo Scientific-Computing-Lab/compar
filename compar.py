@@ -258,7 +258,8 @@ class Compar:
                 combination_folder_path = self.create_combination_folder(
                     str(combination_obj.get_combination_id()), final_folder_path)
                 try:
-                    self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
+                    if best_runtime_combination_id != Database.SERIAL_COMBINATION_ID:
+                        self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
                     self.compile_combination_to_binary(combination_folder_path)
                     self.update_summary_file(combination_obj, final_folder_path)
                 except Exception as ex:
