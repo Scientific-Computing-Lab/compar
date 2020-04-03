@@ -273,9 +273,10 @@ class ExecuteJob:
         job_result = result[2].split()
         # TODO: check the list values (check the logic)
         elapsed_time_string = job_result[0]
-        exit_code = int(job_result[1])
-        if exit_code != 0:
-            raise Exception(f"Job id: {job_id} ended with return code: {exit_code}.")
+        left_code, right_code = job_result[1].split(":")
+        left_code, right_code = int(left_code), int(right_code)
+        if left_code !=0 or right_code != 0:
+            raise Exception(f"Job id: {job_id} ended with return code: {left_code}:{right_code}.")
         # TODO: check the time calculations && IF
         total_elapsed_seconds = 0
         if '-' in elapsed_time_string:
