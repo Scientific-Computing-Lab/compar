@@ -2,6 +2,7 @@ import pymongo
 import itertools
 from bson import json_util
 from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile
+from job import Job
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
@@ -228,8 +229,9 @@ class Database:
             return combination
 
     def get_total_runtime_best_combination(self):
-        return self.dynamic_db[self.collection_name].find_one({"error": {"$exists": False}},
-                                                              sort=[("job_total_elapsed_time", 1)])["_id"]
+        return self.dynamic_db[self.collection_name].find_one(
+            {"$and": [{"error": {"$exists": False}}, {"job_total_elapsed_time": {"$ne": Job.RUNTIME_ERROR}}]},
+            sort=[("job_total_elapsed_time", 1)])["_id"]
 
     def remove_unused_data(self, combination_name):
         self.dynamic_db[self.collection_name].update({"_id": combination_name}, {'$unset': {'run_time_results': ""}})
