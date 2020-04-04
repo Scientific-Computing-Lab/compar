@@ -239,6 +239,9 @@ class Compar:
 
         # remove timers code
         self.remove_timer_code(final_folder_path)
+        # inject new code
+        Timer.inject_timer_to_compar_mixed_file(os.path.join(final_folder_path,
+                                                             self.main_file_rel_path), final_folder_path)
         # format all optimal files
         self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
         self.generate_summary_file(optimal_loops_data, final_folder_path)
@@ -248,7 +251,7 @@ class Compar:
             raise CompilationError(str(ex) + 'exception in Compar. generate_optimal_code: cannot compile optimal code')
         # Check for best total runtime
         try:
-            job = Job(final_folder_path, Combination("final", "mixed", []), [])
+            job = Job(final_folder_path, Combination(Combination.FINAL_COMBINATION_ID, "mixed", []), [])
             self.jobs.append(job)
             self.run_and_save_job_list()
             best_runtime_combination_id = self.db.get_total_runtime_best_combination()
@@ -265,13 +268,14 @@ class Compar:
                 except Exception as ex:
                     raise Exception(f"Total runtime calculation - The optimal file could not be compiled, combination"
                                     f" {best_runtime_combination_id}.\n{ex}")
-
+            self.db.remove_unused_data(Combination.FINAL_COMBINATION_ID)
         except Exception as ex:
             msg = ''' The optimal code could not be compiled! 
             Please check manually if there are some duplicate variables declaration in the same scope
             This is probably Cetus side effects'''
             raise ExecutionError(str(ex) + 'exception in Compar. generate_optimal_code: cannot run optimal code. '
                                  + msg)
+
 
     @staticmethod
     def get_file_content(file_path):

@@ -133,6 +133,35 @@ class Timer(object):
             raise e.FileError(str(err))
 
     @staticmethod
+    def inject_timer_to_compar_mixed_file(file_path, working_dir_path):
+        with open(file_path, 'r') as input_file:
+            input_file_text = Timer.DECL_GLOBAL_TIMER_VAR_CODE + "\n"
+            input_file_text += input_file.read()
+            with open(file_path, 'w') as output_file:
+                output_file.write(input_file_text)
+
+        with open(file_path, 'r') as input_file:
+            input_file_text = input_file.read()
+            regex_pattern = "((int|void)[ ]*main[ ]*[(].*[)][ ]*[\\n]?{\\n)"
+            code_to_replace = re.findall(regex_pattern, input_file_text)
+            if len(code_to_replace) < 1:
+                raise Exception('atexit function could not be injected.')
+            code_to_replace = code_to_replace[0][0]
+            code = 'void ____compar____atExit() {\n'
+            total_runtime_file_path = os.path.join(working_dir_path, Timer.TOTAL_RUNTIME_FILENAME)
+            code += f'{Timer.STOP_GLOBAL_TIMER_VAR_CODE}'
+            code += Timer.WRITE_TO_FILE_CODE_1.format(Timer.GLOBAL_TIMER_VAR_NAME, total_runtime_file_path)
+            code += Timer.WRITE_TO_FILE_CODE_4.format(Timer.GLOBAL_TIMER_VAR_NAME, Timer.GLOBAL_TIMER_VAR_NAME)
+            code += Timer.WRITE_TO_FILE_CODE_3.format(Timer.GLOBAL_TIMER_VAR_NAME)
+            code += '}\n'
+            code_to_replace += code
+            new_code = f'{code_to_replace} atexit(____compar____atExit);\n'
+            new_code += f'{Timer.INIT_GLOBAL_TIMER_VAR_CODE}'
+            c_code = re.sub(regex_pattern, new_code, input_file_text)
+            with open(file_path, 'w') as output_file:
+                output_file.write(c_code)
+
+    @staticmethod
     def inject_declarations_to_main_file(file_path, declaration_code_to_inject):
         with open(file_path, 'r') as input_file:
             input_file_text = Timer.DECL_GLOBAL_STRUCT_CODE

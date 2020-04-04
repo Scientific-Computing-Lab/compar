@@ -231,6 +231,9 @@ class Database:
         return self.dynamic_db[self.collection_name].find_one({"error": {"$exists": False}},
                                                               sort=[("job_total_elapsed_time", 1)])["_id"]
 
+    def remove_unused_data(self, combination_name):
+        self.dynamic_db[self.collection_name].update({"_id": combination_name}, {'$unset': {'run_time_results': ""}})
+
 
 def generate_combinations():
     env_params = []
