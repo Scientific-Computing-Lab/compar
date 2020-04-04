@@ -17,10 +17,10 @@ MIXEDP = GRID + CLUSTES
 
 
 class ExecuteJob:
-    #TODO: need to ask if it is ok (yoel)
     MY_BUSY_NODE_NUMBER_LIST = []
 
-    def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list, time_limit=None):
+    def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list,
+                 slurm_partition, time_limit=None):
         self.job = job
         self.node_number_list = INTEL_XEON_CPU_E5_2683_V4
         self.run_node_number = 0
@@ -30,6 +30,7 @@ class ExecuteJob:
         self.serial_run_time_dict = serial_run_time  # {(<file_id_by_rel_path>, <loop_label>) : <run_time>, ... }
         self.relative_c_file_list = relative_c_file_list
         self.time_limit = time_limit
+        self.slurm_partition = slurm_partition
 
     def get_job(self):
         return self.job
@@ -229,7 +230,7 @@ class ExecuteJob:
         command = f'#!/bin/bash\n#SBATCH --job-name={job_name}\n'
         if self.time_limit:
             command += f'#SBATCH --time={self.time_limit}\n'
-        command += f'#SBATCH --partition=grid\n#SBATCH --exclusive\n$@\n'
+        command += f'#SBATCH --partition={self.slurm_partition}\n#SBATCH --exclusive\n$@\n'
         batch_file.write(command)
         batch_file.close()
         return batch_file_path

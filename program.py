@@ -36,6 +36,7 @@ def main():
     parser.add_argument('-main_file_r_p', '--main_file_rel_path', help='Main c file name relative path',
                         default="", required=True)
     parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution', default=None)
+    parser.add_argument('-partition', '--slurm_partition', help='Slurm partition name', default='grid')
     args = vars(parser.parse_args())
 
     # TODO: should be depend on users choice
@@ -67,7 +68,8 @@ def main():
         slurm_parameters=args['slurm_parameters'],
         is_nas=args['is_nas'],
         main_file_rel_path=args['main_file_rel_path'],
-        time_limit=args['time_limit']
+        time_limit=args['time_limit'],
+        slurm_partition=args['slurm_partition']
     )
     # TODO: change fragment_and_add_timers main file path
     compar_obj.fragment_and_add_timers()

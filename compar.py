@@ -100,7 +100,8 @@ class Compar:
                  main_file_parameters=None,
                  slurm_parameters=None,
                  is_nas=False,
-                 time_limit=None):
+                 time_limit=None,
+                 slurm_partition='grid'):
 
         if not is_make_file:
             e.assert_only_files(input_dir)
@@ -135,6 +136,7 @@ class Compar:
         self.include_dirs_list = include_dirs_list
         self.is_nas = is_nas
         self.time_limit = time_limit
+        self.slurm_partition = slurm_partition
 
         # Build compar environment-----------------------------------
         e.assert_forbidden_characters(working_directory)
@@ -436,8 +438,8 @@ class Compar:
         job_list = []
         try:
             job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.db, self.relative_c_file_list,
-                                             self.NUM_OF_THREADS, self.slurm_parameters,
-                                             self.serial_run_time, time_limit=self.time_limit)
+                                             self.slurm_partition, self.NUM_OF_THREADS,
+                                             self.slurm_parameters, self.serial_run_time, time_limit=self.time_limit)
         except Exception as ex:
             traceback.print_exc()
         finally:
@@ -560,7 +562,8 @@ class Compar:
                   combination=combination)
 
         job = Executor.execute_jobs([job, ], self.files_loop_dict, self.db, self.relative_c_file_list,
-                                    self.NUM_OF_THREADS, self.slurm_parameters, time_limit=self.time_limit)[0]
+                                    self.slurm_partition, self.NUM_OF_THREADS, self.slurm_parameters,
+                                    time_limit=self.time_limit)[0]
         job_results = job.get_job_results()['run_time_results']
         for file_dict in job_results:
             if 'dead_code_file' not in file_dict.keys():
