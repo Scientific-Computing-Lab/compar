@@ -5,8 +5,8 @@ from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFi
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
-STATIC_DB_NAME = "combinations"
-DYNAMIC_DB_NAME = "results"
+STATIC_DB_NAME = "compar_combinations"
+DYNAMIC_DB_NAME = "compar_results"
 DB = "mongodb://10.10.10.120:27017"
 
 
