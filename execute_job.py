@@ -1,12 +1,12 @@
 import os
 import re
 import subprocess
-# import threading
 import time
 from datetime import timedelta
 from exceptions import FileError
 from subprocess_handler import run_subprocess
 from timer import Timer
+from traceback import print_exc
 
 AMD_OPTERON_PROCESSOE_6376 = list(range(1, 15))
 INTEL_XEON_CPU_E5_2683_V4 = list(range(16, 19)) + list(range(20, 24))  # no 15
@@ -211,7 +211,16 @@ class ExecuteJob:
                     sbatch_script_file,
                     x_file_path,
                     self.get_job().get_exec_file_args())
-        stdout, stderr, ret_code = run_subprocess(cmd)
+        stdout = ""
+        done = False
+        while not done:
+            # TODO: add timeout instead of done var
+            try:
+                stdout, stderr, ret_code = run_subprocess(cmd)
+                done = True
+            except subprocess.CalledProcessError:
+                print_exc()
+                time.sleep(300)
         result = stdout
         # set job id
         result = re.findall('[0-9]', str(result))
