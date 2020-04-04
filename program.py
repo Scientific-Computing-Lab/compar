@@ -13,8 +13,8 @@ def main():
     parser.add_argument('-comp', '--binary_compiler_type', help='Binary compiler type', default="")
     parser.add_argument('-comp_v', '--binary_compiler_version', help='Binary compiler version', default=None)
     parser.add_argument('-comp_f', '--binary_compiler_flags', nargs="*", help='Binary compiler flags', default=None)
-    parser.add_argument('-save_folders', '--delete_combinations_folders', help='Save all combinations folders',
-                        action='store_false')
+    parser.add_argument('-save_folders', '--save_combinations_folders', help='Save all combinations folders',
+                        action='store_true', default=False)
     parser.add_argument('-make', '--is_make_file', help='Use makefile flag', action='store_true')
     parser.add_argument('-make_c', '--makefile_commands', nargs="*", help='Makefile commands', default=None)
     parser.add_argument('-make_op', '--makefile_exe_folder_rel_path',
@@ -53,7 +53,7 @@ def main():
         binary_compiler_type=args['binary_compiler_type'],
         binary_compiler_version=['args.binary_compiler_version'],
         binary_compiler_flags=args['binary_compiler_flags'],
-        delete_combinations_folders=args['delete_combinations_folders'],
+        save_combinations_folders=args['save_combinations_folders'],
         is_make_file=args['is_make_file'],
         makefile_commands=args['makefile_commands'],
         makefile_exe_folder_rel_path=args['makefile_exe_folder_rel_path'],

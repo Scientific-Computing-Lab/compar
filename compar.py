@@ -87,7 +87,7 @@ class Compar:
                  binary_compiler_type="",
                  binary_compiler_version=None,
                  binary_compiler_flags=None,
-                 delete_combinations_folders=True,
+                 save_combinations_folders=False,
                  is_make_file=False,
                  makefile_commands=None,
                  makefile_exe_folder_rel_path="",
@@ -125,7 +125,7 @@ class Compar:
 
         self.serial_run_time = {}
         self.main_file_rel_path = main_file_rel_path
-        self.delete_combinations_folders = delete_combinations_folders
+        self.save_combinations_folders = save_combinations_folders
         self.binary_compiler = None
         self.binary_compiler_version = binary_compiler_version
         self.jobs = []
@@ -442,7 +442,7 @@ class Compar:
             traceback.print_exc()
         finally:
             for job in job_list:
-                if self.delete_combinations_folders:
+                if not self.save_combinations_folders:
                     self.__delete_combination_folder(job.get_directory_path())
             self.jobs.clear()
 
@@ -453,7 +453,7 @@ class Compar:
         }
         self.db.insert_new_combination(combination_dict)
         sleep(1)
-        if self.delete_combinations_folders:
+        if not self.save_combinations_folders:
             self.__delete_combination_folder(combination_folder_path)
 
     def run_parallel_combinations(self):
@@ -550,7 +550,6 @@ class Compar:
             try:
                 self.__run_binary_compiler(serial_dir_path)
             except e.CombinationFailure as ex:
-                # TODO: delete all the folders and the collection from the database
                 raise e.CompilationError(str(ex))
 
         combination = Combination(combination_id=Database.SERIAL_COMBINATION_ID,
@@ -569,7 +568,7 @@ class Compar:
                     if 'dead_code' not in loop_dict.keys():
                         key = (file_dict['file_id_by_rel_path'], loop_dict['loop_label'])
                         self.serial_run_time[key] = loop_dict['run_time']
-        if self.delete_combinations_folders:
+        if not self.save_combinations_folders:
             self.__delete_combination_folder(serial_dir_path)
 
     def fragment_and_add_timers(self):
