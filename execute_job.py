@@ -1,3 +1,4 @@
+import sys
 import os
 import re
 import subprocess
@@ -175,7 +176,7 @@ class ExecuteJob:
     def run(self, user_slurm_parameters):
         try:
             self.__run_with_sbatch(user_slurm_parameters)
-            # self.__analyze_elapsed_time()
+            self.__analyze_exit_code()
             self.__analysis_output_file()
             self.update_dead_code_files()
             self.save_successful_job()
@@ -236,10 +237,14 @@ class ExecuteJob:
     def __make_sbatch_script_file(self, job_name=''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
         batch_file = open(batch_file_path, 'w')
-        command = f'#!/bin/bash\n#SBATCH --job-name={job_name}\n'
+        command = '#!/bin/bash\n'
+        command += f'#SBATCH --job-name={job_name}\n'
         if self.time_limit:
             command += f'#SBATCH --time={self.time_limit}\n'
-        command += f'#SBATCH --partition={self.slurm_partition}\n#SBATCH --exclusive\n$@\n'
+        command += f'#SBATCH --partition={self.slurm_partition}\n'
+        command += '#SBATCH --exclusive\n'
+        command += '$@\n'
+        command += 'exit $?\n'
         batch_file.write(command)
         batch_file.close()
         return batch_file_path
@@ -278,30 +283,16 @@ class ExecuteJob:
                     except OSError as e:
                         raise FileError(str(e))
 
-    def __analyze_elapsed_time(self):
+    def __analyze_exit_code(self):
         job_id = self.get_job().get_job_id()
-        command = f"sacct -j {job_id} --format=elapsed,exitcode"
+        command = f"sacct -j {job_id} --format=exitcode"
         stdout, stderr, ret_code = run_subprocess(command)
         result = stdout
         result = result.replace("\r", "").split("\n")
         if len(result) < 3:
-            # TODO: check the length of output command - sacct
-            raise Exception(f"sacct command - no results for job id: {job_id}.")
-        job_result = result[2].split()
-        # TODO: check the list values (check the logic)
-        elapsed_time_string = job_result[0]
-        left_code, right_code = job_result[1].split(":")
-        left_code, right_code = job_result[1].split(":")
+            print(f"Warning: sacct command - no results for job id: {job_id}.", file=sys.stderr)
+            return
+        left_code, right_code = result[2].replace(" ", "").split(":")
         left_code, right_code = int(left_code), int(right_code)
-        if left_code !=0 or right_code != 0:
+        if left_code != 0 or right_code != 0:
             raise Exception(f"Job id: {job_id} ended with return code: {left_code}:{right_code}.")
-        # TODO: check the time calculations && IF
-        total_elapsed_seconds = 0
-        if '-' in elapsed_time_string:
-            day, elapsed_time_string = elapsed_time_string.split('-')
-            total_elapsed_seconds += int(day) * 60*60*24
-        h, m, s = elapsed_time_string.split(':')
-        total_elapsed_seconds += int(timedelta(hours=int(h), minutes=int(m), seconds=int(s)).total_seconds())
-        self.get_job().set_job_total_elapsed_time(total_elapsed_seconds)
-
-
