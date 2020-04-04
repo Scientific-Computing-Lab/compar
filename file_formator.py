@@ -3,7 +3,7 @@ from exceptions import FileError
 from subprocess_handler import run_subprocess
 
 
-def format_c_code(c_files_path_list, style_arguments='{AccessModifierOffset: -4, IndentWidth: 4}'):
+def format_c_code(c_files_path_list, style_arguments='\"{AccessModifierOffset: -4, IndentWidth: 4}\"'):
     try:
         format_command = ['clang-format', '-i'] + c_files_path_list + ['-style', style_arguments]
         stdout, stderr, ret_code = run_subprocess(format_command)

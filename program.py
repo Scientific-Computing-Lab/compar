@@ -13,8 +13,8 @@ def main():
     parser.add_argument('-comp', '--binary_compiler_type', help='Binary compiler type', default="")
     parser.add_argument('-comp_v', '--binary_compiler_version', help='Binary compiler version', default=None)
     parser.add_argument('-comp_f', '--binary_compiler_flags', nargs="*", help='Binary compiler flags', default=None)
-    parser.add_argument('-save_folders', '--delete_combinations_folders', help='Save all combinations folders',
-                        action='store_false')
+    parser.add_argument('-save_folders', '--save_combinations_folders', help='Save all combinations folders',
+                        action='store_true', default=False)
     parser.add_argument('-make', '--is_make_file', help='Use makefile flag', action='store_true')
     parser.add_argument('-make_c', '--makefile_commands', nargs="*", help='Makefile commands', default=None)
     parser.add_argument('-make_op', '--makefile_exe_folder_rel_path',
@@ -36,6 +36,7 @@ def main():
     parser.add_argument('-main_file_r_p', '--main_file_rel_path', help='Main c file name relative path',
                         default="", required=True)
     parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution', default=None)
+    parser.add_argument('-partition', '--slurm_partition', help='Slurm partition name', default='grid')
     args = vars(parser.parse_args())
 
     # TODO: should be depend on users choice
@@ -53,7 +54,7 @@ def main():
         binary_compiler_type=args['binary_compiler_type'],
         binary_compiler_version=['args.binary_compiler_version'],
         binary_compiler_flags=args['binary_compiler_flags'],
-        delete_combinations_folders=args['delete_combinations_folders'],
+        save_combinations_folders=args['save_combinations_folders'],
         is_make_file=args['is_make_file'],
         makefile_commands=args['makefile_commands'],
         makefile_exe_folder_rel_path=args['makefile_exe_folder_rel_path'],
@@ -67,7 +68,8 @@ def main():
         slurm_parameters=args['slurm_parameters'],
         is_nas=args['is_nas'],
         main_file_rel_path=args['main_file_rel_path'],
-        time_limit=args['time_limit']
+        time_limit=args['time_limit'],
+        slurm_partition=args['slurm_partition']
     )
     # TODO: change fragment_and_add_timers main file path
     compar_obj.fragment_and_add_timers()

@@ -24,6 +24,8 @@ class Job:
                                          }
     """
 
+    RUNTIME_ERROR = -1
+
     def __init__(self, directory, combination, exec_file_args=""):
         self.directory = directory
         self.exec_file_args = exec_file_args
@@ -35,7 +37,7 @@ class Job:
             'job_id': self.get_job_id(),
             '_id': str(self.get_combination().get_combination_id()),
             'run_time_results': [],
-            'job_total_elapsed_time': -1
+            'job_total_elapsed_time': Job.RUNTIME_ERROR
         }
 
     def set_job_id(self, job_id):

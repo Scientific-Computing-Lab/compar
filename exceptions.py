@@ -45,6 +45,10 @@ class DeadCodeLoop(Exception):
     pass
 
 
+class NoOptimalCombinationError(Exception):
+    pass
+
+
 class DeadCodeFile(Exception):
     pass
 

@@ -1,18 +1,20 @@
 import pymongo
 import itertools
 from bson import json_util
-from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile
+from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile, NoOptimalCombinationError
+from job import Job
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
-STATIC_DB_NAME = "combinations"
-DYNAMIC_DB_NAME = "results"
+STATIC_DB_NAME = "compar_combinations"
+DYNAMIC_DB_NAME = "compar_results"
 DB = "mongodb://10.10.10.120:27017"
 
 
 class Database:
 
     SERIAL_COMBINATION_ID = '0'
+    SERIAL_COMPILER_NAME = 'serial'
 
     def __init__(self, collection_name):
         try:
@@ -211,7 +213,7 @@ class Database:
         if combination_id == self.SERIAL_COMBINATION_ID:
             return {
                 "_id": "0",
-                "compiler_name": "serial",
+                "compiler_name": Database.SERIAL_COMPILER_NAME,
                 "parameters": {
                     "env_params": [],
                     "code_params": [],
@@ -227,8 +229,15 @@ class Database:
             return combination
 
     def get_total_runtime_best_combination(self):
-        return self.dynamic_db[self.collection_name].find_one({"error": {"$exists": False}},
-                                                              sort=[("job_total_elapsed_time", 1)])["_id"]
+        best_combination = self.dynamic_db[self.collection_name].find_one(
+            {"$and": [{"error": {"$exists": False}}, {"job_total_elapsed_time": {"$ne": Job.RUNTIME_ERROR}}]},
+            sort=[("job_total_elapsed_time", 1)])
+        if not best_combination:
+            raise NoOptimalCombinationError("All Compar combinations finished with error.")
+        return best_combination["_id"]
+
+    def remove_unused_data(self, combination_name):
+        self.dynamic_db[self.collection_name].update({"_id": combination_name}, {'$unset': {'run_time_results': ""}})
 
 
 def generate_combinations():

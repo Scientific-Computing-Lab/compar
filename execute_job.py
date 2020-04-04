@@ -1,11 +1,13 @@
+import sys
 import os
 import re
 import subprocess
-# import threading
 import time
 from datetime import timedelta
 from exceptions import FileError
 from subprocess_handler import run_subprocess
+from timer import Timer
+from traceback import print_exc
 
 AMD_OPTERON_PROCESSOE_6376 = list(range(1, 15))
 INTEL_XEON_CPU_E5_2683_V4 = list(range(16, 19)) + list(range(20, 24))  # no 15
@@ -16,10 +18,10 @@ MIXEDP = GRID + CLUSTES
 
 
 class ExecuteJob:
-    #TODO: need to ask if it is ok (yoel)
     MY_BUSY_NODE_NUMBER_LIST = []
 
-    def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list, time_limit=None):
+    def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list,
+                 slurm_partition, time_limit=None):
         self.job = job
         self.node_number_list = INTEL_XEON_CPU_E5_2683_V4
         self.run_node_number = 0
@@ -29,6 +31,7 @@ class ExecuteJob:
         self.serial_run_time_dict = serial_run_time  # {(<file_id_by_rel_path>, <loop_label>) : <run_time>, ... }
         self.relative_c_file_list = relative_c_file_list
         self.time_limit = time_limit
+        self.slurm_partition = slurm_partition
 
     def get_job(self):
         return self.job
@@ -173,7 +176,7 @@ class ExecuteJob:
     def run(self, user_slurm_parameters):
         try:
             self.__run_with_sbatch(user_slurm_parameters)
-            self.__analyze_elapsed_time()
+            self.__analyze_exit_code()
             self.__analysis_output_file()
             self.update_dead_code_files()
             self.save_successful_job()
@@ -209,7 +212,16 @@ class ExecuteJob:
                     sbatch_script_file,
                     x_file_path,
                     self.get_job().get_exec_file_args())
-        stdout, stderr, ret_code = run_subprocess(cmd)
+        stdout = ""
+        done = False
+        while not done:
+            # TODO: add timeout instead of done var
+            try:
+                stdout, stderr, ret_code = run_subprocess(cmd)
+                done = True
+            except subprocess.CalledProcessError:
+                print_exc()
+                time.sleep(300)
         result = stdout
         # set job id
         result = re.findall('[0-9]', str(result))
@@ -225,10 +237,14 @@ class ExecuteJob:
     def __make_sbatch_script_file(self, job_name=''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
         batch_file = open(batch_file_path, 'w')
-        command = f'#!/bin/bash\n#SBATCH --job-name={job_name}\n'
+        command = '#!/bin/bash\n'
+        command += f'#SBATCH --job-name={job_name}\n'
         if self.time_limit:
             command += f'#SBATCH --time={self.time_limit}\n'
-        command += f'#SBATCH --partition=grid\n#SBATCH --exclusive\n$@\n'
+        command += f'#SBATCH --partition={self.slurm_partition}\n'
+        command += '#SBATCH --exclusive\n'
+        command += '$@\n'
+        command += 'exit $?\n'
         batch_file.write(command)
         batch_file.close()
         return batch_file_path
@@ -237,6 +253,12 @@ class ExecuteJob:
         last_string = 'loop '
         for root, dirs, files in os.walk(self.get_job().get_directory_path()):
             for file in files:
+                # total run time analysis
+                if re.search(rf"{Timer.TOTAL_RUNTIME_FILENAME}$", file):
+                    total_runtime_file_path = os.path.join(root, file)
+                    with open(total_runtime_file_path, 'r') as f:
+                        self.get_job().set_job_total_elapsed_time(float(f.read()))
+                # loops runtime analysis
                 if re.search("_run_time_result.txt$", file):
                     loops_dict = {}
                     file_full_path = os.path.join(root, file)
@@ -261,28 +283,16 @@ class ExecuteJob:
                     except OSError as e:
                         raise FileError(str(e))
 
-    def __analyze_elapsed_time(self):
+    def __analyze_exit_code(self):
         job_id = self.get_job().get_job_id()
-        command = f"sacct -j {job_id} --format=elapsed,exitcode"
+        command = f"sacct -j {job_id} --format=exitcode"
         stdout, stderr, ret_code = run_subprocess(command)
         result = stdout
         result = result.replace("\r", "").split("\n")
         if len(result) < 3:
-            # TODO: check the length of output command - sacct
-            raise Exception(f"sacct command - no results for job id: {job_id}.")
-        job_result = result[2].split()
-        # TODO: check the list values (check the logic)
-        elapsed_time_string = job_result[0]
-        exit_code = int(job_result[1])
-        if exit_code != 0:
-            raise Exception(f"Job id: {job_id} ended with return code: {exit_code}.")
-        # TODO: check the time calculations && IF
-        total_elapsed_seconds = 0
-        if '-' in elapsed_time_string:
-            day, elapsed_time_string = elapsed_time_string.split('-')
-            total_elapsed_seconds += int(day) * 60*60*24
-        h, m, s = elapsed_time_string.split(':')
-        total_elapsed_seconds += int(timedelta(hours=int(h), minutes=int(m), seconds=int(s)).total_seconds())
-        self.get_job().set_job_total_elapsed_time(total_elapsed_seconds)
-
-
+            print(f"Warning: sacct command - no results for job id: {job_id}.", file=sys.stderr)
+            return
+        left_code, right_code = result[2].replace(" ", "").split(":")
+        left_code, right_code = int(left_code), int(right_code)
+        if left_code != 0 or right_code != 0:
+            raise Exception(f"Job id: {job_id} ended with return code: {left_code}:{right_code}.")
