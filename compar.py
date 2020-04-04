@@ -249,34 +249,29 @@ class Compar:
         self.generate_summary_file(optimal_loops_data, final_folder_path)
         try:
             self.compile_combination_to_binary(final_folder_path, inject=False)
-        except Exception as ex:
-            raise CompilationError(str(ex) + 'exception in Compar. generate_optimal_code: cannot compile optimal code')
-        # Check for best total runtime
-        try:
             job = Job(final_folder_path, Combination(Combination.FINAL_COMBINATION_ID, "mixed", []), [])
             self.jobs.append(job)
             self.run_and_save_job_list()
-            best_runtime_combination_id = self.db.get_total_runtime_best_combination()
-            if best_runtime_combination_id != 'final':
-                combination_obj = self.__combination_json_to_obj(
-                    self.db.get_combination_from_static_db(best_runtime_combination_id))
-                combination_folder_path = self.create_combination_folder(
-                    str(combination_obj.get_combination_id()), final_folder_path)
-                try:
-                    if best_runtime_combination_id != Database.SERIAL_COMBINATION_ID:
-                        self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
-                    self.compile_combination_to_binary(combination_folder_path)
-                    self.update_summary_file(combination_obj, final_folder_path)
-                except Exception as ex:
-                    raise Exception(f"Total runtime calculation - The optimal file could not be compiled, combination"
-                                    f" {best_runtime_combination_id}.\n{ex}")
-            self.db.remove_unused_data(Combination.FINAL_COMBINATION_ID)
         except Exception as ex:
-            msg = ''' The optimal code could not be compiled! 
-            Please check manually if there are some duplicate variables declaration in the same scope
-            This is probably Cetus side effects'''
-            raise ExecutionError(str(ex) + 'exception in Compar. generate_optimal_code: cannot run optimal code. '
-                                 + msg)
+            self.save_combination_as_failure(Combination.FINAL_COMBINATION_ID, str(ex) +
+                                             'exception in Compar. generate_optimal_code: cannot compile compar' +
+                                             'mixed combination code', final_folder_path)
+        # Check for best total runtime
+        best_runtime_combination_id = self.db.get_total_runtime_best_combination()
+        if best_runtime_combination_id != 'final':
+            combination_obj = self.__combination_json_to_obj(
+                self.db.get_combination_from_static_db(best_runtime_combination_id))
+            combination_folder_path = self.create_combination_folder(
+                str(combination_obj.get_combination_id()), final_folder_path)
+            try:
+                if best_runtime_combination_id != Database.SERIAL_COMBINATION_ID:
+                    self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
+                self.compile_combination_to_binary(combination_folder_path)
+                self.update_summary_file(combination_obj, final_folder_path)
+            except Exception as ex:
+                raise Exception(f"Total runtime calculation - The optimal file could not be compiled, combination"
+                                f" {best_runtime_combination_id}.\n{ex}")
+        self.db.remove_unused_data(Combination.FINAL_COMBINATION_ID)
 
 
     @staticmethod
