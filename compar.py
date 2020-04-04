@@ -192,7 +192,8 @@ class Compar:
         optimal_loops_data = []
 
         # copy final results into this folder
-        compar_combination_folder_path = self.create_combination_folder(compar_combination_folder_name, base_dir=self.working_directory)
+        compar_combination_folder_path = self.create_combination_folder(compar_combination_folder_name,
+                                                                        base_dir=self.working_directory)
         final_files_list = self.make_absolute_file_list(compar_combination_folder_path)
 
         for file_id_by_rel_path, loops in self.files_loop_dict.items():
