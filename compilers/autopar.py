@@ -26,7 +26,7 @@ class Autopar(ParallelCompiler):
 
     def run_autopar(self, file_name, file_full_path, options):
         print("Parallelizing " + file_name)
-        command = 'module load autopar && autoPar'
+        command = 'autoPar'
         if self.include_dirs_list:
             command += ' -I' + ' -I'.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
                                            self.include_dirs_list))

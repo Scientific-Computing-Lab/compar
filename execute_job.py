@@ -206,7 +206,7 @@ class ExecuteJob:
         x_file_path = os.path.join(dir_path, x_file)
         log_file_path = os.path.join(dir_path, log_file)
         slurm_parameters = " ".join(slurm_parameters)
-        cmd = 'module load intel && sbatch {0} -o {1} {2} {3} {4} ' \
+        cmd = 'sbatch {0} -o {1} {2} {3} {4} ' \
             .format(slurm_parameters,
                     log_file_path,
                     sbatch_script_file,

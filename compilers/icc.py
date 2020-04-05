@@ -14,7 +14,7 @@ class Icc(BinaryCompiler):
         dir_name = os.path.basename(input_file_path_only)
 
         print("Compiling " + self.get_main_c_file())
-        stdout, stderr, ret_code = run_subprocess(['module load intel', '&&', self.get_compiler_name()] + ["-fopenmp"]
+        stdout, stderr, ret_code = run_subprocess([self.get_compiler_name()] + ["-fopenmp"]
                                          + self.get_compilation_flags() + [self.get_main_c_file()]
                                          + ["-o"] + [dir_name + ".x"], self.get_input_file_directory())
         print(self._compiler_name + ' compilation output: ' + str(stdout))

@@ -63,8 +63,7 @@ class Par4all(ParallelCompiler):
             pips_stub_path = os.path.join(self.get_input_file_directory(), 'pips_stubs.c')
         if os.path.exists(pips_stub_path):
             files_to_compile.append(pips_stub_path)
-        command = 'module load par4all && source $set_p4a_env'
-        command += ' && PATH=/bin:$PATH p4a --log -vv ' + ' '.join(files_to_compile)
+        command = 'PATH=/bin:$PATH p4a --log -vv ' + ' '.join(files_to_compile)
         if self.is_nas:
             command += ' common/*.c'
         command += ' ' + ' '.join(map(str, super().get_compilation_flags()))

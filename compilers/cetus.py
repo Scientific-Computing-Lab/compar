@@ -20,7 +20,7 @@ class Cetus(ParallelCompiler):
                 Cetus.replace_line_in_code(file["file_full_path"], '#include <omp.h>', '')
                 cwd_path = os.path.dirname(file["file_full_path"])
                 self.copy_headers(cwd_path)
-                command = ['module load cetus && cetus {} {}'.format(
+                command = ['cetus {} {}'.format(
                     " ".join(self.get_compilation_flags()), file["file_name"])]
                 stdout, stderr, ret_code = run_subprocess(command, cwd_path)
                 print('cetus compilation output: ' + str(stdout))
