@@ -48,6 +48,9 @@ def main():
     for path in args.makefile_exe_folder_rel_path:
         assert_rel_path_starts_without_sep(path)
 
+    if args.slurm_parameters and len(args.slurm_parameters) == 1:
+        args.slurm_parameters = str(args.slurm_parameters[0]).split(' ')
+
     compar_obj = Compar(
         working_directory=args.working_directory,
         input_dir=args.input_dir,
