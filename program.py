@@ -37,39 +37,39 @@ def main():
                         default="", required=True)
     parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution', default=None)
     parser.add_argument('-partition', '--slurm_partition', help='Slurm partition name', default='grid')
-    args = vars(parser.parse_args())
+    args = parser.parse_args()
 
     # TODO: should be depend on users choice
-    if os.path.exists(args['working_directory']):
-        shutil.rmtree(args['working_directory'])
-    os.mkdir(args['working_directory'])
+    if os.path.exists(args.working_directory):
+        shutil.rmtree(args.working_directory)
+    os.mkdir(args.working_directory)
 
-    assert_rel_path_starts_without_sep(args['makefile_exe_folder_rel_path'])
-    for path in args['makefile_exe_folder_rel_path']:
+    assert_rel_path_starts_without_sep(args.makefile_exe_folder_rel_path)
+    for path in args.makefile_exe_folder_rel_path:
         assert_rel_path_starts_without_sep(path)
 
     compar_obj = Compar(
-        working_directory=args['working_directory'],
-        input_dir=args['input_dir'],
-        binary_compiler_type=args['binary_compiler_type'],
-        binary_compiler_version=['args.binary_compiler_version'],
-        binary_compiler_flags=args['binary_compiler_flags'],
-        save_combinations_folders=args['save_combinations_folders'],
-        is_make_file=args['is_make_file'],
-        makefile_commands=args['makefile_commands'],
-        makefile_exe_folder_rel_path=args['makefile_exe_folder_rel_path'],
-        makefile_output_exe_file_name=args['makefile_output_exe_file_name'],
-        ignored_rel_paths=args['ignored_rel_paths'],
-        par4all_flags=args['par4all_flags'],
-        autopar_flags=args['autopar_flags'],
-        cetus_flags=args['cetus_flags'],
-        include_dirs_list=args['include_dirs_list'],
-        main_file_parameters=args['main_file_parameters'],
-        slurm_parameters=args['slurm_parameters'],
-        is_nas=args['is_nas'],
-        main_file_rel_path=args['main_file_rel_path'],
-        time_limit=args['time_limit'],
-        slurm_partition=args['slurm_partition']
+        working_directory=args.working_directory,
+        input_dir=args.input_dir,
+        binary_compiler_type=args.binary_compiler_type,
+        binary_compiler_version=args.binary_compiler_version,
+        binary_compiler_flags=args.binary_compiler_flags,
+        save_combinations_folders=args.save_combinations_folders,
+        is_make_file=args.is_make_file,
+        makefile_commands=args.makefile_commands,
+        makefile_exe_folder_rel_path=args.makefile_exe_folder_rel_path,
+        makefile_output_exe_file_name=args.makefile_output_exe_file_name,
+        ignored_rel_paths=args.ignored_rel_paths,
+        par4all_flags=args.par4all_flags,
+        autopar_flags=args.autopar_flags,
+        cetus_flags=args.cetus_flags,
+        include_dirs_list=args.include_dirs_list,
+        main_file_parameters=args.main_file_parameters,
+        slurm_parameters=args.slurm_parameters,
+        is_nas=args.is_nas,
+        main_file_rel_path=args.main_file_rel_path,
+        time_limit=args.time_limit,
+        slurm_partition=args.slurm_partition
     )
     # TODO: change fragment_and_add_timers main file path
     compar_obj.fragment_and_add_timers()
