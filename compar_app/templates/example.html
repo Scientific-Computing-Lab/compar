@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+{% import "bootstrap/wtf.html" as wtf %}
+
+<html lang="en">
+<head>
+    <title>Compar</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+         #loader {
+            border: 12px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 12px solid #444444;
+            width: 150px;
+            height: 150px;
+            animation: spin 1s linear infinite;
+        }
+
+        #parent {
+            display: flex;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        div.scroll {
+            display: flex;
+            background-color: whitesmoke ;
+            -webkit-box-shadow: 13px 17px 13px 6px rgba(0,0,0,0.48);
+            -moz-box-shadow: 13px 17px 13px 6px rgba(0,0,0,0.48);
+            box-shadow: 13px 17px 13px 6px rgba(0,0,0,0.48);
+            border: 4px solid lightskyblue;
+            color: black;
+            font-size: 14px;
+            padding: 0px 20px;
+            width: 100%;
+            min-height: 300px;
+            height: 500px;
+            overflow: scroll;
+        }
+ div.scrollBox {
+            display: flex;
+            background-color: lightblue ;
+            border: 4px solid lightskyblue;
+            color: black;
+            font-size: 14px;
+            padding: 0px 20px;
+            width: 100%;
+            min-height: 300px;
+            height: 500px;
+            overflow: scroll;
+        }
+ .button {
+  background-color: gray;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+ div.scrollInput {
+            display: flex;
+            background-color: lightblue ;
+
+            border: 4px solid lightskyblue;
+            color: black;
+            font-size: 14px;
+            padding: 0px 20px;
+            width: 100%;
+            min-width: 100%;
+            min-height: 500px;
+            height: 1000px;
+            overflow: scroll;
+        }
+
+          div.scrollOutput {
+            display: flex;
+            background-color: gray;
+
+            border: 4px solid lightskyblue;
+            color: white;
+            font-size: 14px;
+            padding: 0px 20px;
+            width: 100%;
+            min-height: 300px;
+            height: 500px;
+            overflow: scroll;
+        }
+
+    </style>
+</head>
+
+
+
+
+<body>
+
+<div style="margin:30px" class="page-header"><h1>Welcome To Compar!</h1></div>
+<!-- start -->
+<div class="container-fluid ">
+        <!--Input column-->
+        <div class="col-sm-2  " style="background-color:lightblue;" >
+            <div class="scrollInput">
+                <form action="/" method="post">
+                    <p style="background-color: lightgrey; font-size: 150%">Basic information</p>
+                    {{ wtf.form_field(main_form.work_dir) }}
+
+                    <p>* Slum parameters need to be separate by comma - ','</p>
+                    {{ wtf.form_field(main_form.slum_params) }}
+                    {{ main_form.save.label }}
+                    {{ main_form.save() }}
+                    <p style="background-color: lightgrey; font-size: 150%">Choose flags for parallel compilers:</p>
+                    <p>* Flags need to be separate by comma - ','</p>
+                    {{ wtf.form_field(comp_form.p4a) }}
+                    {{ wtf.form_field(comp_form.autopar) }}
+                    {{ wtf.form_field(comp_form.autopar) }}
+                    {{ main_form.make_file_choice.label }}
+                    {{ main_form.make_file_choice() }}
+                    {{ main_form.submit1(class_="button") }}
+                    {{ main_form.test(class_="button") }}
+
+                    {% if make_form %}
+                        <p style="background-color: lightgrey; font-size: 150%">Makefile:</p>
+                        <p>* Need to be separate by comma - ','</p>
+                        {{ wtf.form_field(make_form.input_dir) }}
+                        {{ wtf.form_field(make_form.ignore) }}
+                        {{ wtf.form_field(make_form.include) }}
+                        {{ wtf.form_field(make_form.make_commands) }}
+                        {{ wtf.form_field(make_form.make_op) }}
+                        {{ wtf.form_field(make_form.make_on) }}
+                        {{ wtf.form_field(make_form.main_file_p) }}
+                        {{ wtf.form_field(make_form.main_file_r_p) }}
+                        {{ start_form.submit3(class_="button") }}
+                    {% endif %}
+
+                    {% if binary_comp_form %}
+                        <p style="background-color: lightgrey; font-size: 150%">Choose binary compiler:</p>
+                        {{ wtf.form_field(binary_comp_form.binary_comp_name) }}
+                        {{ wtf.form_field(binary_comp_form.binary_comp_version) }}
+                        {{ wtf.form_field(binary_comp_form.binary_comp_flags) }}
+                        {{ exists_file_form.exists_file.label }}
+                        {{ exists_file_form.exists_file() }}
+                        {{ exists_file_form.submit2(class_="button") }}
+                    {% endif %}
+
+                    {% if exists_c_file_form %}
+                        <p>* Need to be separate by comma - ','</p>
+                        {{ wtf.form_field(exists_c_file_form.input_dir) }}
+                        {{ wtf.form_field(exists_c_file_form.main_file_p) }}
+                        {{ wtf.form_field(exists_c_file_form.main_file_r_p) }}
+                        {{ start_form.submit3(class_="button") }}
+                    {% endif %}
+
+                {% if editor_c_form %}
+                    {{ editor_c_form.editor.label }}
+                    {{ editor_c_form.editor(cols="150", rows="15") }}
+                    {{ start_form.submit3(class_="button") }}
+                {% endif %}
+                </form>
+            </div>
+        </div>
+
+
+
+
+        <!--Source Code and Result and Output Log-->
+        <div class="col-sm-10 " style="background-color:lightblue;">
+            <!-- Source Code and Result -->
+            <div class="row">
+                 <!-- Source Code -->
+                 <div class="col-sm-6" >
+                      <p style="background-color: lightgrey; font-size: 150%">Source File</p>
+                      <div class="scrollBox" >
+                           <code style="background-color: lightblue; font-size: 120%; white-space: pre-line">
+                               {{source_file}}
+                           </code>
+                      </div>
+                 </div>
+
+                 <!-- Result File -->
+                 <div class="col-sm-6" >
+                     <p style="background-color: lightgrey; font-size: 150%">Result File</p>
+                     <div class="scrollBox" >
+                         <code style="background-color: lightblue; font-size: 120%; white-space: pre-line">
+                             {{result_file}}
+                         </code>
+
+                     </div>
+                 </div>
+            </div>
+            <!-- Output Log -->
+            <div class="row">
+
+                <div class="scrollOutput">
+                     <div class="my_output" id="output"></div>
+                </div>
+            </div>
+
+        </div>
+
+
+</div>
+</body>
+
+
+
+<script>
+    
+    var output = document.getElementById('output');
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '{{ url_for('stream') }}');
+    xhr.send();
+    var position = 0;
+
+    function handleNewData() {
+        // the response text include the entire response so far
+        // split the messages, then take the messages that haven't been handled yet
+        // position tracks how many messages have been handled
+        // messages end with a newline, so split will always show one extra empty message at the end
+        var messages = xhr.responseText.split('\n');
+        messages.slice(position, -1).forEach(function(value) {
+            // build and append a new item to a list to log all output
+            var item = document.createElement('li');
+            item.textContent = value;
+            output.appendChild(item);
+        });
+        position = messages.length - 1;
+    }
+
+    var timer;
+    timer = setInterval(function() {
+        // check the response for new data
+        handleNewData();
+        // stop checking once the response has ended
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            clearInterval(timer);
+
+        }
+    }, 1000);
+</script>
+</html>
