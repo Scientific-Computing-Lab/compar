@@ -3,7 +3,8 @@ from compar import Compar
 import traceback
 import os
 import shutil
-from exceptions import assert_rel_path_starts_without_sep, CompilationError
+from exceptions import assert_rel_path_starts_without_sep
+import logger
 
 
 def main():
@@ -37,6 +38,8 @@ def main():
                         default="", required=True)
     parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution', default=None)
     parser.add_argument('-partition', '--slurm_partition', help='Slurm partition name', default='grid')
+    parser.add_argument('-v', '--verbose', help="Get more verbose output", action="store_const", dest="log_level",
+                        const=logger.VERBOSE, default=logger.REGULAR)
     args = parser.parse_args()
 
     # TODO: should be depend on users choice
@@ -50,6 +53,8 @@ def main():
 
     if args.slurm_parameters and len(args.slurm_parameters) == 1:
         args.slurm_parameters = str(args.slurm_parameters[0]).split(' ')
+
+    logger.initialize(args.log_level)
 
     compar_obj = Compar(
         working_directory=args.working_directory,
