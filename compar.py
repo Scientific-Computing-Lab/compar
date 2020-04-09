@@ -280,7 +280,7 @@ class Compar:
                                 f" {best_runtime_combination_id}.\n{ex}")
         else:
             final_folder_path = os.path.join(self.working_directory, final_result_folder_name)
-            os.rename(compar_combination_folder_path, final_folder_path)
+            shutil.copytree(compar_combination_folder_path, final_folder_path, dirs_exist_ok=True)
         self.db.remove_unused_data(Combination.FINAL_COMBINATION_ID)
 
     @staticmethod
