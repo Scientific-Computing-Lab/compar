@@ -11,6 +11,9 @@ import logger
 
 class ExecuteJob:
 
+    CHECK_SQUEUE_SECOND_TIME = 30
+    TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME = 300
+
     def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list,
                  slurm_partition, time_limit=None):
         self.job = job
@@ -103,17 +106,17 @@ class ExecuteJob:
         cmd = f'sbatch {slurm_parameters} -o {log_file_path} {sbatch_script_file} {x_file_path}'
         cmd += f' {self.get_job().get_exec_file_args()} '
         stdout = ""
-        done = False
-        while not done:
-            # TODO: add timeout instead of done var
+        batch_job_sent = False
+        while not batch_job_sent:
+            # TODO: add timeout instead of batch_job_sent var
             stderr = ''
             try:
                 stdout, stderr, ret_code = run_subprocess(cmd)
-                done = True
+                batch_job_sent = True
             except subprocess.CalledProcessError as ex:
-                logger.info_error(f'Exception at {ExecuteJob.__name__}: {ex}\n{stderr}')
+                logger.info_error(f'Exception at {ExecuteJob.__name__}: {ex}\n{ex.output}\n{ex.stderr}')
                 logger.debug_error(f'{traceback.format_exc()}')
-                time.sleep(300)
+                time.sleep(ExecuteJob.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
         result = stdout
         # set job id
         result = re.findall('[0-9]', str(result))
