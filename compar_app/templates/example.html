@@ -262,7 +262,10 @@
         }
 
         #parameters {
-
+            color:white;
+            background: none;
+            border: none;
+            max-width: 100%;
         }
 
         .mybutton:active{
@@ -421,7 +424,7 @@
                              <button onclick="addParameter()" class="mybutton positive">+</button>
                              <button class="mybutton negative">-</button>
                     </div>
-                    <p style="width: 50px" id="parameters"></p>
+                    <textarea readonly style="width: 100%" id="parameters"></textarea>
                     <div class="horizontal-separator"></div>
                     <div style="align-items: center" class="flex-row">
                         <div class="form-title">Save combination folders:</div>
