@@ -4,6 +4,8 @@ import subprocess
 import os
 import re
 from subprocess_handler import run_subprocess
+import logger
+import traceback
 
 
 class Par4all(ParallelCompiler):
@@ -50,7 +52,8 @@ class Par4all(ParallelCompiler):
                     f.write(content)
                     f.truncate()
         except Exception as e:
-            print(e)
+            logger.info_error(f'{Par4all.__name__} {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
 
     def set_make_obj(self, make_obj):
         self.make_obj = make_obj
@@ -63,7 +66,7 @@ class Par4all(ParallelCompiler):
             pips_stub_path = os.path.join(self.get_input_file_directory(), 'pips_stubs.c')
         if os.path.exists(pips_stub_path):
             files_to_compile.append(pips_stub_path)
-        command = 'PATH=/bin:$PATH p4a --log -vv ' + ' '.join(files_to_compile)
+        command = 'PATH=/bin:$PATH p4a -vv ' + ' '.join(files_to_compile)
         if self.is_nas:
             command += ' common/*.c'
         command += ' ' + ' '.join(map(str, super().get_compilation_flags()))
@@ -71,8 +74,11 @@ class Par4all(ParallelCompiler):
             command += ' -I ' + ' -I '.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
                                            self.include_dirs_list))
         try:
+            logger.info(f'{Par4all.__name__} start to parallelizing')
             stdout, stderr, ret_code = run_subprocess([command, ], self.get_input_file_directory())
-            print('par4all compilation output: ' + str(stdout))
+            logger.debug(f'{Par4all.__name__} {stdout}')
+            logger.debug_error(f'{Par4all.__name__} {stderr}')
+            logger.info(f'{Par4all.__name__} finish to parallelizing')
         except subprocess.CalledProcessError as e:
             raise CombinationFailure(f'par4all return with {e.returncode} code: {str(e)} : {e.output} : {e.stderr}')
         except Exception as e:
