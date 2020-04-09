@@ -52,7 +52,7 @@ class Par4all(ParallelCompiler):
                     f.write(content)
                     f.truncate()
         except Exception as e:
-            logger.info_error(f'{Par4all.__name__} {e}')
+            logger.info_error(f'Exception at {Par4all.__name__}: {e}')
             logger.debug_error(f'{traceback.format_exc()}')
 
     def set_make_obj(self, make_obj):
