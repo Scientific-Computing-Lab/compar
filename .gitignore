@@ -40,3 +40,4 @@
 !/compar_app/output.py
 !subprocess_handler.py
 !python_compar.sh
+!logger.py
