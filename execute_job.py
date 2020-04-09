@@ -176,13 +176,15 @@ class ExecuteJob:
     def __analyze_exit_code(self):
         job_id = self.get_job().get_job_id()
         command = f"sacct -j {job_id} --format=exitcode"
-        stdout, stderr, ret_code = run_subprocess(command)
-        result = stdout
-        result = result.replace("\r", "").split("\n")
-        if len(result) < 3:
-            logger.info_error(f'Warning: sacct command - no results for job id: {job_id}.')
-            return
-        left_code, right_code = result[2].replace(" ", "").split(":")
-        left_code, right_code = int(left_code), int(right_code)
-        if left_code != 0 or right_code != 0:
-            raise Exception(f"Job id: {job_id} ended with return code: {left_code}:{right_code}.")
+        try:
+            stdout, stderr, ret_code = run_subprocess(command)
+            result = stdout.replace("\r", "").split("\n")
+            if len(result) < 3:
+                logger.info_error(f'Warning: sacct command - no results for job id: {job_id}.')
+                return
+            left_code, right_code = result[2].replace(" ", "").split(":")
+            left_code, right_code = int(left_code), int(right_code)
+            if left_code != 0 or right_code != 0:
+                raise Exception(f"Job id: {job_id} ended with return code: {left_code}:{right_code}.")
+        except subprocess.CalledProcessError as ex:
+            logger.info_error(f'Warning: sacct command:\n{ex.output}\n{ex.stderr}')
