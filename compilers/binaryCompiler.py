@@ -3,6 +3,7 @@ import os
 import subprocess
 from exceptions import CompilationError, CombinationFailure
 from subprocess_handler import run_subprocess
+import logger
 
 
 class BinaryCompiler(Compiler):
@@ -47,9 +48,10 @@ class BinaryCompiler(Compiler):
         input_file_path_only = os.path.dirname(self.get_input_file_directory() + os.path.sep)
         dir_name = os.path.basename(input_file_path_only)
 
-        print("Compiling " + self.get_main_c_file())
+        logger.info(f'{BinaryCompiler.__name__} start to compiling {self.get_main_c_file()}')
         command = [self.get_compiler_name(), "-fopenmp"] + self.get_compilation_flags()
         command += [self.get_main_c_file(), "-o", dir_name + ".x"]
         stdout, stderr, ret_code = run_subprocess(command, self.get_input_file_directory())
-        print(self._compiler_name + ' compilation output: ' + str(stdout))
-        print("Done Compile work")
+        logger.debug(f'{BinaryCompiler.__name__} {stdout}')
+        logger.debug_error(f'{BinaryCompiler.__name__} {stderr}')
+        logger.info(f'{BinaryCompiler.__name__} finish to compiling {self.get_main_c_file()}')

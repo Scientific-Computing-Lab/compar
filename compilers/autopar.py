@@ -26,7 +26,7 @@ class Autopar(ParallelCompiler):
                                    " failed to be parallel!")
 
     def run_autopar(self, file_name, file_full_path, options):
-        logger.info(f'Autopar start to parallelizing {file_name}')
+        logger.info(f'{Autopar.__name__} start to parallelizing {file_name}')
         command = 'autoPar'
         if self.include_dirs_list:
             command += ' -I' + ' -I'.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
@@ -38,6 +38,6 @@ class Autopar(ParallelCompiler):
         if os.path.exists(parallel_file_full_path):
             os.remove(file_full_path)
             os.rename(parallel_file_full_path, file_full_path)
-        logger.debug(stdout)
-        logger.debug_error(stderr)
-        logger.info(f'Autopar finish to parallelizing {file_name}')
+        logger.debug(f'{Autopar.__name__} {stdout}')
+        logger.debug_error(f'{Autopar.__name__} {stderr}')
+        logger.info(f'{Autopar.__name__} finish to parallelizing {file_name}')
