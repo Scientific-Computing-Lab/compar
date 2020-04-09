@@ -3,6 +3,8 @@ import itertools
 from bson import json_util
 from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile, NoOptimalCombinationError
 from job import Job
+import logger
+import traceback
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
@@ -50,8 +52,8 @@ class Database:
             return True
 
         except Exception as e:
-            print("cannot initialize static DB!")
-            print(e)
+            logger.info_error(f'Exception at {Database.__name__}: cannot initialize static DB: {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
             raise DatabaseError()
 
     def get_next_combination(self):
@@ -68,8 +70,8 @@ class Database:
             self.dynamic_db[self.collection_name].insert_one(combination_result)
             return True
         except Exception as e:
-            print("Combination insertion failed")
-            print(e)
+            logger.info_error(f'{Database.__name__} cannot initialize static DB: {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
             return False
 
     def delete_combination(self, combination_id):
@@ -77,8 +79,8 @@ class Database:
             self.dynamic_db[self.collection_name].delete_one({"_id": combination_id})
             return True
         except Exception as e:
-            print("Could not delete combination")
-            print(e)
+            logger.info_error(f'Exception at {Database.__name__}: Could not delete combination: {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
             return False
 
     def update_serial_combination_speedup(self):
@@ -223,8 +225,8 @@ class Database:
         try:
             combination = self.static_db[self.collection_name].find_one({"_id": combination_id})
         except Exception as e:
-            print("Could not find combination")
-            print(e)
+            logger.info_error(f'Exception at {Database.__name__}: Could not find combination: {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
         finally:
             return combination
 
