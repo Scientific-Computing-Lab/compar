@@ -90,4 +90,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        traceback.print_exc()
+        logger.info_error('Exception in Compar: ' + str(e))
+        logger.debug_error(traceback.format_exc())
