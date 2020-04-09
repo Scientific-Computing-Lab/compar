@@ -105,7 +105,7 @@ class Par4all(ParallelCompiler):
                         with open(full_path, "r+") as f:
                             input_file_text = f.read()
                             if '#include <omp.h>' not in input_file_text:
-                                input_file_text = '#ifdef _OPENMP\n#include <omp.h>\n#endif\n{}'.format(input_file_text)
+                                input_file_text = f'#ifdef _OPENMP\n#include <omp.h>\n#endif\n{input_file_text}'
                                 f.seek(0)
                                 f.write(input_file_text)
                                 f.truncate()

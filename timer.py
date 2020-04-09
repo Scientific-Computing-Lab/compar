@@ -108,9 +108,9 @@ class Timer(object):
                 input_file_text, self.__number_of_loops, name_of_global_array)
 
         if '#include <omp.h>' not in input_file_text:
-            input_file_text = '#ifdef _OPENMP\n#include <omp.h>\n#endif\n{}'.format(input_file_text)
+            input_file_text = f'#ifdef _OPENMP\n#include <omp.h>\n#endif\n{input_file_text}'
         if '#include <stdio.h>' not in input_file_text:
-            input_file_text = '#include <stdio.h>\n{}'.format(input_file_text)
+            input_file_text = f'#include <stdio.h>\n{input_file_text}'
         for label, loop_fragment in enumerate(fragments, 1):
             prefix_code = self.get_prefix_loop_code(str(label))
             suffix_code = self.get_suffix_loop_code(str(label), name_of_global_array)

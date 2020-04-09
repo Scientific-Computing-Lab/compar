@@ -22,8 +22,7 @@ class Cetus(ParallelCompiler):
                 cwd_path = os.path.dirname(file["file_full_path"])
                 self.copy_headers(cwd_path)
                 logger.info(f'{Cetus.__name__} start to parallelizing {file["file_name"]}')
-                command = ['cetus {} {}'.format(
-                    " ".join(self.get_compilation_flags()), file["file_name"])]
+                command = [f'cetus {" ".join(self.get_compilation_flags())} {file["file_name"]}']
                 stdout, stderr, ret_code = run_subprocess(command, cwd_path)
                 logger.debug(f'{Cetus.__name__} {stdout}')
                 logger.debug_error(f'{Cetus.__name__} {stderr}')

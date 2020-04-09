@@ -207,12 +207,8 @@ class ExecuteJob:
         x_file_path = os.path.join(dir_path, x_file)
         log_file_path = os.path.join(dir_path, log_file)
         slurm_parameters = " ".join(slurm_parameters)
-        cmd = 'sbatch {0} -o {1} {2} {3} {4} ' \
-            .format(slurm_parameters,
-                    log_file_path,
-                    sbatch_script_file,
-                    x_file_path,
-                    self.get_job().get_exec_file_args())
+        cmd = f'sbatch {slurm_parameters} -o {log_file_path} {sbatch_script_file} {x_file_path}'
+        cmd += f' {self.get_job().get_exec_file_args()} '
         stdout = ""
         done = False
         while not done:
@@ -231,7 +227,7 @@ class ExecuteJob:
         result = ''.join(result)
         self.get_job().set_job_id(result)
         # thread_name = threading.current_thread().getName()
-        cmd = "squeue | grep {0}".format(self.get_job().get_job_id())
+        cmd = f"squeue | grep {self.get_job().get_job_id()}"
         while os.system(cmd) == 0:
             time.sleep(30)
         if ExecuteJob.MY_BUSY_NODE_NUMBER_LIST:

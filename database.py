@@ -35,7 +35,7 @@ class Database:
             self.initialize_static_db()
 
             if self.collection_name in self.dynamic_db.list_collection_names():
-                # raise DatabaseError("results DB already has {0} name collection!".format(self.collection_name))
+                # raise DatabaseError(f"results DB already has {self.collection_name} name collection!")
                 self.dynamic_db.drop_collection(self.collection_name)
 
             self.dynamic_db.create_collection(self.collection_name)
@@ -338,7 +338,7 @@ def generate_env_params(param):
     lst = []
     param_name = param["param"]
     for val in param["vals"]:
-        lst.append("{0}({1});".format(param_name, val))
+        lst.append(f"{param_name}({val});")
     return lst
 
 

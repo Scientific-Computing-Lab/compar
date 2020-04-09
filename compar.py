@@ -289,7 +289,7 @@ class Compar:
             with open(file_path, 'r') as input_file:
                 return input_file.read()
         except FileNotFoundError:
-            raise FileError('File {0} not exist'.format(file_path))
+            raise FileError(f'File {file_path} not exist')
 
     @staticmethod
     def add_to_loop_details_about_comp_and_combination(file_path, start_label, combination_id, comp_name):
@@ -337,7 +337,7 @@ class Compar:
         elif option == "env":
             params = parameters.get_env_params()
         else:
-            raise UserInputError('The input {0} is not supported'.format(option))
+            raise UserInputError(f'The input {option} is not supported')
 
         c_code = ""
         for param in params:
@@ -656,8 +656,7 @@ class Compar:
                 with open(c_file_dict['file_full_path'], 'w') as f:
                     f.write(content)
             except Exception as ex:
-                raise e.FileError('exception in Compar.remove_timer_code: {}'.format(
-                    c_file_dict['file_full_path']) + str(ex))
+                raise e.FileError(f'exception in Compar.remove_timer_code: {c_file_dict["file_full_path"]}: {str(ex)}')
 
     def generate_summary_file(self, optimal_data, dir_path):
         file_path = os.path.join(dir_path, self.SUMMARY_FILE_NAME)
