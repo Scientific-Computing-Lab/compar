@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="{{ url_for('static', filename='js/codemirror.js')}}"></script>
     <script src="{{ url_for('static', filename='js/clike/clike.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/simplescrollbars.js')}}"></script>
     <!--<script src="{{ url_for('static', filename='js/closebrackets.js')}}"></script>-->
     <!--<script src="{{ url_for('static', filename='js/simplescrollbars.js')}}"></script>-->
     <link href="{{ url_for('static', filename='css/codemirror.css')}}" rel="stylesheet"/>
     <link href="{{ url_for('static', filename='css/dracula.css')}}" rel="stylesheet" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
     <script>
 
@@ -22,8 +22,7 @@
             var editor1 = CodeMirror.fromTextArea(document.getElementById('editor1'), {
                 mode: "clike",
                 theme: "dracula",
-                lineNumbers: true,
-
+                lineNumbers: true
             });
 
             var editor2 = CodeMirror.fromTextArea(document.getElementById('editor2'), {
@@ -32,8 +31,33 @@
                 lineNumbers: true
             });
 
+            var singleModNav = document.getElementById('singlemod');
+            singleModNav.style.color = "white";
+            singleModNav.style.fontWeight = "bold";
+            singleModNav.style.fontSize = "16px";
+            singleModNav.style.textDecoration = "underline"
         }
 
+    </script>
+    <script>
+        var showAdvanced = false;
+
+        function showAdvancedOptions() {
+            showAdvanced = !showAdvanced;
+            var advanced = document.getElementById('advanced');
+            if(showAdvanced){
+                advanced.style.display = "flex";
+            }
+            else{
+                advanced.style.display = "none";
+            }
+        }
+
+        function addParameter() {
+            var paramsInput = document.getElementById('slurm-params');
+            var params = document.getElementById('parameters');
+            params.innerHTML += paramsInput.value;
+        }
     </script>
     <style>
 
@@ -69,7 +93,7 @@
         .form-container {
             height: 100%;
             border: 2px solid gray;
-            min-width: 250px;
+            min-width: 280px;
             width: 20%;
             background: #282a36;
         }
@@ -144,6 +168,22 @@
             box-shadow: 0px 0px 5px black;
         }
 
+        .startbtn {
+            width: 150px;
+            border: 1px solid white;
+            font-weight: bold;
+            background: black;
+            margin: 30px 0px 0px 0px;
+        }
+
+        .startbtn:active{
+            background: darkgrey;
+        }
+
+        .startbtn:focus{
+            outline: none;
+        }
+
         .navtitle {
             font-weight: bold;
             font-size: 24px;
@@ -205,11 +245,13 @@
         }
 
         .mybutton {
-            border-radius: 100%;
+            border-radius: 30%;
             width: 26px;
+            max-height: 26px;
             max-width: 26px;
-            border: 1px solid gray;
+            border: 1px solid white;
             font-weight: bold;
+            margin-left: 20px;
         }
 
         .horizontal-separator {
@@ -217,6 +259,10 @@
             height: 1px;
             background: white;
             margin: 8px 0px;
+        }
+
+        #parameters {
+
         }
 
         .mybutton:active{
@@ -234,6 +280,35 @@
         .negative {
             background: red;
         }
+
+        .advanced {
+            font-weight: bold;
+            color: #989898;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        #advanced {
+            display: none;
+        }
+
+        .advanced:active {
+            color: white;
+            text-decoration: none;
+            cursor: wait;
+        }
+
+        .advanced:hover {
+            font-size:16px;
+            transition: 0.7s;
+        }
+
+        .advanced:hover {
+            font-size:16px;
+            color: white;
+            transition: 2s;
+        }
+
 
          #loader {
             border: 12px solid #f3f3f3;
@@ -331,8 +406,8 @@
     <nav>
         <div class="navtitle">Compar</div>
         <div class="separator"></div>
-        <a class="ref">Single File Mode</a>
-        <a class="seperate ref">Multiple file Mode</a>
+        <a id="singlemod" class="ref">Single File Mode</a>
+        <a class="seperate ref">Multiple files Mode</a>
         <a class="seperate ref">Makefile Mode</a>
     </nav>
     <div class="page-layout">
@@ -341,21 +416,21 @@
                 <div class="title">Compar Parameters</div>
                 <div class="form">
                     <div class="form-title">Slurm parameters:</div>
-                    <div class="flex-row-spaced">
+                    <div style="align-items: center" class="flex-row">
                         <input type="text" id="slurm-params"/>
-                        <button class="mybutton positive">+</button>
-                        <button class="mybutton negative">-</button>
-                        <div id="parameters"></div>
+                             <button onclick="addParameter()" class="mybutton positive">+</button>
+                             <button class="mybutton negative">-</button>
+                    </div>
+                    <p style="width: 50px" id="parameters"></p>
+                    <div class="horizontal-separator"></div>
+                    <div style="align-items: center" class="flex-row">
+                        <div class="form-title">Save combination folders:</div>
+                        <input  style="margin-left:30px" type="checkbox" value="yes">
                     </div>
                     <div class="horizontal-separator"></div>
-                    <div class="flex-row-spaced">
-                        <div class="form-title">Save combination folders</div>
-                        <input type="checkbox" id="combination-folders-no" value="yes">
-                    </div>
-                    <div class="horizontal-separator"></div>
-                    <div class="flex-row-spaced">
-                       <div class="form-title">Compiler</div>
-                        <select>
+                    <div style="align-items: center" class="flex-row">
+                       <div class="form-title">Compiler:</div>
+                        <select style="margin-left: 30px">
                             <option value="GCC">GCC</option>
                             <option value="ICC">ICC</option>
                          </select>
@@ -365,12 +440,21 @@
                     <input type="text" id="compiler-version"/>
                     <div class="horizontal-separator"></div>
                     <div class="form-title">Compiler flags:</div>
-                    <div class="flex-row-spaced">
+                    <div style="align-items: center" class="flex-row">
                         <input type="text" id="compiler-flags"/>
                         <button class="mybutton positive">+</button>
                         <button class="mybutton negative">-</button>
-                        <div id="flags"></div>
                     </div>
+                    <div id="flags"></div>
+                    <div class="horizontal-separator"></div>
+                    <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
+                    <div id="advanced">
+                        <div style="align-items: center" class="flex-row">
+                        <div class="form-title">Save combination folders:</div>
+                        <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
+                    </div>
+                    </div>
+                    <button class="startbtn">START</button>
                 </div>
             </div>
             <div class="screen-container">
