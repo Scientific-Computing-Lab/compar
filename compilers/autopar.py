@@ -3,6 +3,7 @@ import subprocess
 from compilers.parallelCompiler import ParallelCompiler
 from exceptions import CompilationError, CombinationFailure
 from subprocess_handler import run_subprocess
+import logger
 
 
 class Autopar(ParallelCompiler):
@@ -25,11 +26,11 @@ class Autopar(ParallelCompiler):
                                    " failed to be parallel!")
 
     def run_autopar(self, file_name, file_full_path, options):
-        print("Parallelizing " + file_name)
+        logger.info(f'Autopar start to parallelizing {file_name}')
         command = 'autoPar'
         if self.include_dirs_list:
             command += ' -I' + ' -I'.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
-                                           self.include_dirs_list))
+                                              self.include_dirs_list))
         command += f' {" ".join(options)} -c {file_name}'
         stdout, stderr, ret_code = run_subprocess([command], os.path.dirname(file_full_path))
         dir, file_name = os.path.split(file_full_path)
@@ -37,5 +38,6 @@ class Autopar(ParallelCompiler):
         if os.path.exists(parallel_file_full_path):
             os.remove(file_full_path)
             os.rename(parallel_file_full_path, file_full_path)
-        print('autopar compilation output: ' + str(stdout))
-        print("Done parallel work")
+        logger.debug(stdout)
+        logger.debug_error(stderr)
+        logger.info(f'Autopar finish to parallelizing {file_name}')
