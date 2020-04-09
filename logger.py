@@ -1,3 +1,4 @@
+import traceback
 import sys
 
 REGULAR = 1
@@ -26,3 +27,12 @@ def info_error(message):
 def debug_error(message):
     if _log_level == VERBOSE:
         print(message, file=sys.stderr)
+
+
+def log_to_file(message, file_path):
+    try:
+        with open(file_path, 'w') as log_file:
+            log_file.write(message)
+    except Exception as e:
+        info_error(f'Logger cannot write to {file_path}: {e}')
+        debug_error(f'{traceback.format_exc()}')
