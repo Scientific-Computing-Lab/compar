@@ -33,7 +33,9 @@ def log_to_file(message, file_path, append=False):
     mode = 'a' if append else 'w'
     try:
         with open(file_path, mode) as log_file:
-            log_file.write(message + '\n\n')
+            log_file.write(message)
+            if append:
+                log_file.write('\n\n')
     except Exception as e:
         info_error(f'Logger cannot write to {file_path}: {e}')
         debug_error(f'{traceback.format_exc()}')

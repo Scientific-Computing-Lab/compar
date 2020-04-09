@@ -76,10 +76,14 @@ class Par4all(ParallelCompiler):
         try:
             logger.info(f'{Par4all.__name__} start to parallelizing')
             stdout, stderr, ret_code = run_subprocess([command, ], self.get_input_file_directory())
+            log_file_path = os.path.join(self.get_input_file_directory(), 'par4all_output.log')
+            logger.log_to_file(f'{stdout}\n{stderr}', log_file_path)
             logger.debug(f'{Par4all.__name__} {stdout}')
             logger.debug_error(f'{Par4all.__name__} {stderr}')
             logger.info(f'{Par4all.__name__} finish to parallelizing')
         except subprocess.CalledProcessError as e:
+            log_file_path = os.path.join(self.get_input_file_directory(), 'par4all_output.log')
+            logger.log_to_file(f'{e.output}\n{e.stderr}', log_file_path)
             raise CombinationFailure(f'par4all return with {e.returncode} code: {str(e)} : {e.output} : {e.stderr}')
         except Exception as e:
             raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() + " failed to be parallel!")
