@@ -268,10 +268,8 @@ class ExecuteJob:
                         with open(file_full_path, 'r') as input_file:
                             for line in input_file:
                                 if ":" in line:
-                                    line = line[line.find(last_string) +
-                                                len(last_string)::].replace('\n', '').split(':')
-                                    loop_label = line[0]
-                                    loop_runtime = float(line[1])
+                                    loop_label, loop_runtime = line.replace('\n', '').split(':')
+                                    loop_runtime = float(loop_runtime)
                                     loops_dict[loop_label] = loop_runtime
                         ran_loops = list(loops_dict.keys())
                         for i in range(1, self.num_of_loops_in_files[file_id_by_rel_path][0] + 1):
