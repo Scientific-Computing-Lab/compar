@@ -116,7 +116,7 @@ def main_page():
                 DATA['save_folder'] = False
 
 
-            final_code_path = "testt.py"
+            final_code_path = "test.py"
             open_source_file(final_code_path)
 
             results()
@@ -193,7 +193,7 @@ def stream():
     def generate():
         print("GGGGGGGGGGGGGGGGGGGGGG")
         global output_log
-        proc = subprocess.Popen(['python3 -u testt.py'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(['python3 -u test.py'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         for line in proc.stdout:
             output_log += str(line) + "\n"
             print(line)
@@ -213,7 +213,7 @@ def results():
         result_lines = ""
         num_of_lines = 1
         # TODO - change it to the real file location
-        final_code_path = "testt.py"
+        final_code_path = "test.py"
         with open(final_code_path, "r") as f:
             for line in f:
                 result_lines += str(num_of_lines) + " "

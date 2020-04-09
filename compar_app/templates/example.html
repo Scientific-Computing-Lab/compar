@@ -1,15 +1,167 @@
 <!DOCTYPE html>
 {% import "bootstrap/wtf.html" as wtf %}
-
 <html lang="en">
 <head>
     <title>Compar</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="{{ url_for('static', filename='js/codemirror.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/clike/clike.js')}}"></script>
+    <!--<script src="{{ url_for('static', filename='js/closebrackets.js')}}"></script>-->
+    <!--<script src="{{ url_for('static', filename='js/simplescrollbars.js')}}"></script>-->
+    <link href="{{ url_for('static', filename='css/codemirror.css')}}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/dracula.css')}}" rel="stylesheet" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <script>
+
+        function init() {
+
+            var editor1 = CodeMirror.fromTextArea(document.getElementById('editor1'), {
+                mode: "clike",
+                theme: "dracula",
+                lineNumbers: true,
+
+            });
+
+            var editor2 = CodeMirror.fromTextArea(document.getElementById('editor2'), {
+                mode: "clike",
+                theme: "dracula",
+                lineNumbers: true
+            });
+
+        }
+
+    </script>
     <style>
+
+        .page-layout {
+            width: 100vw;
+            height: calc(100vh - 42px);
+            background: grey;
+        }
+        .CodeMirror {
+            box-sizing:border-box;
+            border: 1px solid red;
+            height: 100%;
+            width: 100%;
+        }
+
+        .title{
+            box-sizing: border-box;
+            padding: 2px;
+            color: black;
+            background: grey;
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%;
+            height: 100%;
+            background: black;
+            box-sizing: border-box;
+            padding: 20px 0px;
+            border: 2px solid gray;
+        }
+
+        .form-container {
+            height: 100%;
+            border: 2px solid gray;
+            padding: 12px;
+            min-width: 200px;
+            width: 20%;
+            background: #282a36;
+        }
+
+        .screen-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 75%;
+        }
+
+        .output-log {
+            background: #282a36;
+            border: 2px solid gray;
+            height: 50%;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .out {
+            height: 100%;
+            width: 100%;
+            padding: 8px;
+            color: white;
+            overflow: scroll;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            overflow: scroll;
+        }
+
+        .flex-row-spaced {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-direction: row;
+            width: 100%
+        }
+
+        .textarea-cover {
+            box-sizing: content-box;
+            display: flex;
+            align-items: center;
+            height: 100%;
+            overflow: hidden;
+        }
+        nav {
+            height: 42px;
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 4px;
+            align-items: center;
+            box-shadow: 0px 0px 5px black;
+        }
+
+        .navtitle {
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .separator {
+            width: 1px;
+            height: 100%;
+            background: black;
+            margin: 0px 12px;
+        }
+
+        .seperate {
+            margin: 0px 0px 0px 20px;
+        }
+
+        .ref {
+            color: black;
+        }
+
+        a:hover {
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
          #loader {
             border: 12px solid #f3f3f3;
             border-radius: 50%;
@@ -102,10 +254,47 @@
 
 
 
-<body>
+<body onLoad="init()">
+    <nav>
+        <div class="navtitle">Compar</div>
+        <div class="separator"></div>
+        <a class="ref">Copy Pase Mode</a>
+        <a class="seperate ref">Makefile Mode</a>
+        <a class="seperate ref">Single File Mode</a>
+    </nav>
+    <div class="page-layout">
+        <div class="container">
+            <div class="form-container">Hello</div>
+            <div class="screen-container">
+                <div style="height: 50%" class="flex-row">
+                    <div class="flex-col">
+                        <div class="flex-row-spaced title">
+                            <div>Source File</div>
+                            <button>Upload</button>
+                        </div>
+                        <div class="textarea-cover">
+                            <textarea id="editor1"></textarea>
+                        </div>
+                    </div>
+                    <div style="margin-left: 20px;" class="flex-col">
+                        <div class="flex-row-spaced title">
+                            <div>Result File</div>
+                            <button>Download</button>
+                        </div>
+                        <textarea readonly id="editor2"></textarea>
+                    </div>
+                </div>
+                <div class="output-log flex-col">
+                    <div class="title">Output Log</div>
+                    <div class="out">
+                        <div id="output"></div>
+                    </div>
+                </div>
 
-<div style="margin:30px" class="page-header"><h1>Welcome To Compar!</h1></div>
-<!-- start -->
+            </div>
+        </div>
+    </div>
+
 <div class="container-fluid ">
         <!--Input column-->
         <div class="col-sm-2  " style="background-color:lightblue;" >
@@ -201,7 +390,7 @@
             <div class="row">
 
                 <div class="scrollOutput">
-                     <div class="my_output" id="output"></div>
+                     <div class="my_output"></div>
                 </div>
             </div>
 
