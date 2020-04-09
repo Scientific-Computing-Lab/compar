@@ -7,7 +7,8 @@ from datetime import timedelta
 from exceptions import FileError
 from subprocess_handler import run_subprocess
 from timer import Timer
-from traceback import print_exc
+import traceback
+import logger
 
 AMD_OPTERON_PROCESSOE_6376 = list(range(1, 15))
 INTEL_XEON_CPU_E5_2683_V4 = list(range(16, 19)) + list(range(20, 24))  # no 15
@@ -91,7 +92,7 @@ class ExecuteJob:
                     # new call to get new INTEL node list
                     my_busy_node_number = self.__get_free_node_number_list()
                     while not my_busy_node_number:
-                        print("All nodes are occupide.")
+                        logger.info(f'{ExecuteJob.__name__}: All nodes are occupied.')
                         time.sleep(30)
                         my_busy_node_number = self.__get_free_node_number_list()
 
@@ -216,11 +217,13 @@ class ExecuteJob:
         done = False
         while not done:
             # TODO: add timeout instead of done var
+            stderr = ''
             try:
                 stdout, stderr, ret_code = run_subprocess(cmd)
                 done = True
-            except subprocess.CalledProcessError:
-                print_exc()
+            except subprocess.CalledProcessError as ex:
+                logger.info_error(f'Exception at {ExecuteJob.__name__}: {ex}\n{stderr}')
+                logger.debug_error(f'{traceback.format_exc()}')
                 time.sleep(300)
         result = stdout
         # set job id
@@ -290,7 +293,7 @@ class ExecuteJob:
         result = stdout
         result = result.replace("\r", "").split("\n")
         if len(result) < 3:
-            print(f"Warning: sacct command - no results for job id: {job_id}.", file=sys.stderr)
+            logger.info_error(f'Warning: sacct command - no results for job id: {job_id}.')
             return
         left_code, right_code = result[2].replace(" ", "").split(":")
         left_code, right_code = int(left_code), int(right_code)
