@@ -1,31 +1,19 @@
-import sys
 import os
 import re
 import subprocess
 import time
-from datetime import timedelta
 from exceptions import FileError
 from subprocess_handler import run_subprocess
 from timer import Timer
 import traceback
 import logger
 
-AMD_OPTERON_PROCESSOE_6376 = list(range(1, 15))
-INTEL_XEON_CPU_E5_2683_V4 = list(range(16, 19)) + list(range(20, 24))  # no 15
-INTEL_XEON_GOLD_6130_CPU = list(range(25, 36))
-GRID = AMD_OPTERON_PROCESSOE_6376 + INTEL_XEON_CPU_E5_2683_V4
-CLUSTES = INTEL_XEON_GOLD_6130_CPU
-MIXEDP = GRID + CLUSTES
-
 
 class ExecuteJob:
-    MY_BUSY_NODE_NUMBER_LIST = []
 
     def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list,
                  slurm_partition, time_limit=None):
         self.job = job
-        self.node_number_list = INTEL_XEON_CPU_E5_2683_V4
-        self.run_node_number = 0
         self.num_of_loops_in_files = num_of_loops_in_files
         self.db = db
         self.db_lock = db_lock
@@ -39,100 +27,6 @@ class ExecuteJob:
 
     def set_job(self, job):
         self.job = job
-
-    def get_node_number_list(self):
-        return self.node_number_list
-
-    def set_run_node_number(self, num):
-        self.run_node_number = num
-
-    def get_run_node_number(self):
-        return self.run_node_number
-
-    @staticmethod
-    def get_list_of_busy_nodes_numbers_from_squeue():
-        cmd = 'squeue | grep node'
-        stdout, stderr, ret_code = run_subprocess(cmd)
-        squeue = stdout
-        squeue_text = [x for x in str(squeue).split(" ") if x != '']
-        node_lists_in_use = []
-        for word in squeue_text:
-            if re.search("node\[([0-9]+|([0-9]+\-[0-9]+))+((,[0-9]+\-[0-9]+)|(,[0-9]+))*\]|node[0-9]+", word):
-                node_lists_in_use.append(word)
-        temp = []
-        for word in node_lists_in_use:
-            temp = temp + (list(re.findall("[0-9]+\-[0-9]+|[0-9]+", word)))
-        nodes_number_in_use = []
-        for word in temp:
-            if re.search("[0-9]+\-[0-9]+", word):
-                num = word.split("-")
-                nodes_number_in_use = nodes_number_in_use + list(range(int(num[0]), int(num[1]) + 1))
-            else:
-                nodes_number_in_use.append(int(word))
-        return list(set(nodes_number_in_use))
-
-    def __get_free_node_number_list(self):
-        busy_node_number_list = ExecuteJob.get_list_of_busy_nodes_numbers_from_squeue()
-        free_node_number_list = [num for num in self.get_node_number_list() if num not in busy_node_number_list]
-        return [num for num in free_node_number_list if num not in ExecuteJob.MY_BUSY_NODE_NUMBER_LIST]
-
-    def __get_free_node_number(self):
-        free_node_number_list = self.__get_free_node_number_list()
-        if not free_node_number_list:
-            # all INTEL nodes are busy so choose from my busy node
-            my_busy_node_number = ExecuteJob.MY_BUSY_NODE_NUMBER_LIST
-            if not my_busy_node_number:
-                # no INTEL nodes are available change to AMD
-                self.node_number_list = AMD_OPTERON_PROCESSOE_6376
-                #new call to get new AMD node list
-                my_busy_node_number = self.__get_free_node_number_list()
-                if not my_busy_node_number:
-                    # no INTEL and AMD nodes are available change to INTEL and wait
-                    self.node_number_list = INTEL_XEON_CPU_E5_2683_V4
-                    # new call to get new INTEL node list
-                    my_busy_node_number = self.__get_free_node_number_list()
-                    while not my_busy_node_number:
-                        logger.info(f'{ExecuteJob.__name__}: All nodes are occupied.')
-                        time.sleep(30)
-                        my_busy_node_number = self.__get_free_node_number_list()
-
-            return my_busy_node_number[0]
-
-        return free_node_number_list[0]
-
-    @staticmethod
-    def has_nodelist_flag_in_slurm_parameters(slurm_parameters):
-        if not slurm_parameters:
-            return False
-        for param in slurm_parameters:
-            if re.search("^--nodelist=", param):
-                return True
-        return False
-
-    @staticmethod
-    def rewrite_output_file(file_path, loops_list):
-        f = open(file_path, "w")
-        for loop in loops_list:
-            f.write(f'{loop[0]}:{loop[1]}\n')
-        f.close()
-
-    def add_nodelist_flag_into_slurm(self, user_slurm_parameters):
-
-        if not ExecuteJob.has_nodelist_flag_in_slurm_parameters(user_slurm_parameters):
-            new_slurm_parameters = user_slurm_parameters.copy()
-            node_number = self.__get_free_node_number()
-            self.set_run_node_number(node_number)
-            flag = '--nodelist='
-            if node_number < 10:
-                flag = flag + "node00" + str(node_number)
-            elif node_number < 100:
-                flag = flag + "node0" + str(node_number)
-            else:
-                flag = flag + "node" + str(node_number)
-            new_slurm_parameters.append(flag)
-            ExecuteJob.MY_BUSY_NODE_NUMBER_LIST.append(node_number)
-            return new_slurm_parameters
-        return user_slurm_parameters.copy()
 
     def save_successful_job(self):
         self.update_speedup()
@@ -196,7 +90,6 @@ class ExecuteJob:
                 job_results.append({'file_id_by_rel_path': file_id, 'dead_code_file': True})
 
     def __run_with_sbatch(self, user_slurm_parameters):
-        # slurm_parameters = self.add_nodelist_flag_into_slurm(user_slurm_parameters)
         slurm_parameters = user_slurm_parameters
         dir_path = self.get_job().get_directory_path()
         dir_name = os.path.basename(dir_path)
@@ -226,12 +119,9 @@ class ExecuteJob:
         result = re.findall('[0-9]', str(result))
         result = ''.join(result)
         self.get_job().set_job_id(result)
-        # thread_name = threading.current_thread().getName()
         cmd = f"squeue | grep {self.get_job().get_job_id()}"
         while os.system(cmd) == 0:
             time.sleep(30)
-        if ExecuteJob.MY_BUSY_NODE_NUMBER_LIST:
-            ExecuteJob.MY_BUSY_NODE_NUMBER_LIST.remove(self.get_run_node_number())
 
     def __make_sbatch_script_file(self, job_name=''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
