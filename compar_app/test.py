@@ -1,6 +1,6 @@
 import os
 from flask import Flask, flash, redirect, render_template, request, session, abort
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, RadioField, SelectField
 from wtforms.validators import DataRequired
 from wtforms.widgets import TextArea
@@ -20,7 +20,7 @@ DATA = {}
 output_log = ""
 
 
-class BasicComparForm(Form):
+class BasicComparForm(FlaskForm):
     work_dir = StringField('Path for output folder: ', validators=[DataRequired()])
     slum_params = StringField('*Slum parameters: ')
     save = RadioField('Delete all combinations folder?', choices=[('yes', 'Yes'), ('no', 'No')], default='yes')
@@ -30,7 +30,7 @@ class BasicComparForm(Form):
     test = SubmitField('TEST')
 
 
-class MakeFileForm(Form):
+class MakeFileForm(FlaskForm):
     input_dir = StringField('Path for source file directory: ', validators=[DataRequired()])
     ignore = StringField('Folder path to be ignored (rel path): ')
     include = StringField('Folder path to be included (rel path): ')
@@ -42,36 +42,36 @@ class MakeFileForm(Form):
     nas_file = RadioField('NAS file?', choices=[('yes', 'Yes'), ('no', 'No')], default='no')
 
 
-class BinaryCompilerForm(Form):
+class BinaryCompilerForm(FlaskForm):
     binary_comp_name = SelectField('Compiler name: ', choices=[('gcc', 'GCC'), ('icc', 'ICC')])
     binary_comp_version = StringField('Version: ')
     binary_comp_flags = StringField('Flags: ')
 
 
-class CompilersForm(Form):
+class CompilersForm(FlaskForm):
     p4a = StringField('*Par4All flags: ')
     autopar = StringField('*Autopar flags: ')
     cetus = StringField('*Cetus flags: ')
 
 
-class ExistsCFileForm(Form):
+class ExistsCFileForm(FlaskForm):
     input_dir = StringField('Path for source file directory: ', validators=[DataRequired()])
     main_file_p = StringField('*Main c file parameters: ')
     nas_file = RadioField('NAS file?', choices=[('yes', 'Yes'), ('no', 'No')], default='no')
     main_file_r_p = StringField('Main c file name (rel path): ', validators=[DataRequired()])
 
 
-class EditorCForm(Form):
+class EditorCForm(FlaskForm):
     editor = StringField(u'Write C code', widget=TextArea())
 
 
-class DoYouHaveExistsFileForm(Form):
+class DoYouHaveExistsFileForm(FlaskForm):
     exists_file = RadioField('Do you want to work with exists c file or paste the code?',
                              choices=[('yes', 'Exists file'), ('no', 'Paste code')], default='yes')
     submit2 = SubmitField('Next')
 
 
-class StartForm(Form):
+class StartForm(FlaskForm):
     submit3 = SubmitField('Start')
 
 
@@ -191,12 +191,10 @@ def main_page():
 @app.route('/stream_progress')
 def stream():
     def generate():
-        print("GGGGGGGGGGGGGGGGGGGGGG")
         global output_log
-        proc = subprocess.Popen(['python3 -u test.py'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(['python3 -u testt.py'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         for line in proc.stdout:
             output_log += str(line) + "\n"
-            print(line)
             yield line.rstrip() + b'\n'
         sleep(5)
 
