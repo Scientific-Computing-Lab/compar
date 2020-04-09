@@ -64,14 +64,12 @@
             background: black;
             box-sizing: border-box;
             padding: 20px 0px;
-            border: 2px solid gray;
         }
 
         .form-container {
             height: 100%;
             border: 2px solid gray;
-            padding: 12px;
-            min-width: 200px;
+            min-width: 250px;
             width: 20%;
             background: #282a36;
         }
@@ -106,6 +104,7 @@
         }
 
         .flex-row-spaced {
+
             display: flex;
             flex-direction: row;
             justify-content: space-between;
@@ -115,7 +114,14 @@
         .flex-row {
             display: flex;
             flex-direction: row;
-            width: 100%
+            width: 100%;
+        }
+
+        .flex-row-centered {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            align-items: center;
         }
 
         .textarea-cover {
@@ -128,6 +134,8 @@
         nav {
             height: 42px;
             display: flex;
+            background: gray;
+            color: white;
             flex-direction: row;
             width: 100%;
             box-sizing: border-box;
@@ -153,13 +161,78 @@
         }
 
         .ref {
+            color: white;
+        }
+
+        .form {
+            padding: 12px;
+            color: white;
+        }
+
+        .form input{
             color: black;
+            box-sizing: border-box;
+            padding: 0px 4px;
+            margin: 8px 0px;
+        }
+
+        .form input:focus {
+            outline: black;
+        }
+
+        .form-title {
+            font-weight: bold;
+            font-size: 16px;
         }
 
         a:hover {
-            color: black;
+            color: white;
             font-weight: bold;
             cursor: pointer;
+            font-size: 16px;
+            transition: 1s;
+        }
+
+        select {
+            color: black;
+            margin: 8px 0px;
+            width: 100px;
+            border-radius: 0px;
+        }
+
+        select:focus{
+            outline:none;
+        }
+
+        .mybutton {
+            border-radius: 100%;
+            width: 26px;
+            max-width: 26px;
+            border: 1px solid gray;
+            font-weight: bold;
+        }
+
+        .horizontal-separator {
+            width: 100%;
+            height: 1px;
+            background: white;
+            margin: 8px 0px;
+        }
+
+        .mybutton:active{
+            background: black;
+        }
+
+        .mybutton:focus {
+            outline: none;
+        }
+
+        .positive {
+            background: green;
+        }
+
+        .negative {
+            background: red;
         }
 
          #loader {
@@ -258,13 +331,48 @@
     <nav>
         <div class="navtitle">Compar</div>
         <div class="separator"></div>
-        <a class="ref">Copy Pase Mode</a>
+        <a class="ref">Single File Mode</a>
+        <a class="seperate ref">Multiple file Mode</a>
         <a class="seperate ref">Makefile Mode</a>
-        <a class="seperate ref">Single File Mode</a>
     </nav>
     <div class="page-layout">
         <div class="container">
-            <div class="form-container">Hello</div>
+            <div class="form-container">
+                <div class="title">Compar Parameters</div>
+                <div class="form">
+                    <div class="form-title">Slurm parameters:</div>
+                    <div class="flex-row-spaced">
+                        <input type="text" id="slurm-params"/>
+                        <button class="mybutton positive">+</button>
+                        <button class="mybutton negative">-</button>
+                        <div id="parameters"></div>
+                    </div>
+                    <div class="horizontal-separator"></div>
+                    <div class="flex-row-spaced">
+                        <div class="form-title">Save combination folders</div>
+                        <input type="checkbox" id="combination-folders-no" value="yes">
+                    </div>
+                    <div class="horizontal-separator"></div>
+                    <div class="flex-row-spaced">
+                       <div class="form-title">Compiler</div>
+                        <select>
+                            <option value="GCC">GCC</option>
+                            <option value="ICC">ICC</option>
+                         </select>
+                    </div>
+                    <div class="horizontal-separator"></div>
+                    <div class="form-title">Compiler version:</div>
+                    <input type="text" id="compiler-version"/>
+                    <div class="horizontal-separator"></div>
+                    <div class="form-title">Compiler flags:</div>
+                    <div class="flex-row-spaced">
+                        <input type="text" id="compiler-flags"/>
+                        <button class="mybutton positive">+</button>
+                        <button class="mybutton negative">-</button>
+                        <div id="flags"></div>
+                    </div>
+                </div>
+            </div>
             <div class="screen-container">
                 <div style="height: 50%" class="flex-row">
                     <div class="flex-col">
@@ -273,7 +381,7 @@
                             <button>Upload</button>
                         </div>
                         <div class="textarea-cover">
-                            <textarea id="editor1"></textarea>
+                            <textarea id="editor1">{{source_file}}</textarea>
                         </div>
                     </div>
                     <div style="margin-left: 20px;" class="flex-col">
@@ -281,7 +389,7 @@
                             <div>Result File</div>
                             <button>Download</button>
                         </div>
-                        <textarea readonly id="editor2"></textarea>
+                        <textarea readonly id="editor2">{{result_file}}</textarea>
                     </div>
                 </div>
                 <div class="output-log flex-col">
