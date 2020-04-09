@@ -256,7 +256,7 @@ class ExecuteJob:
                 if re.search(rf"{Timer.TOTAL_RUNTIME_FILENAME}$", file):
                     total_runtime_file_path = os.path.join(root, file)
                     with open(total_runtime_file_path, 'r') as f:
-                        self.get_job().set_job_total_elapsed_time(float(f.read()))
+                        self.get_job().set_total_run_time(float(f.read()))
                 # loops runtime analysis
                 if re.search("_run_time_result.txt$", file):
                     loops_dict = {}

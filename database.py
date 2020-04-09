@@ -232,8 +232,8 @@ class Database:
 
     def get_total_runtime_best_combination(self):
         best_combination = self.dynamic_db[self.collection_name].find_one(
-            {"$and": [{"error": {"$exists": False}}, {"job_total_elapsed_time": {"$ne": Job.RUNTIME_ERROR}}]},
-            sort=[("job_total_elapsed_time", 1)])
+            {"$and": [{"error": {"$exists": False}}, {"total_run_time": {"$ne": Job.RUNTIME_ERROR}}]},
+            sort=[("total_run_time", 1)])
         if not best_combination:
             raise NoOptimalCombinationError("All Compar combinations finished with error.")
         return best_combination["_id"]
