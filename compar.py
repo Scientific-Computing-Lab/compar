@@ -24,6 +24,7 @@ import exceptions as e
 from database import Database
 from compilers.makefile import Makefile
 import traceback
+import logger
 
 
 class Compar:
@@ -444,7 +445,8 @@ class Compar:
                                              self.slurm_partition, self.NUM_OF_THREADS,
                                              self.slurm_parameters, self.serial_run_time, time_limit=self.time_limit)
         except Exception as ex:
-            traceback.print_exc()
+            logger.info_error(f'Exception at {Compar.__name__}: {ex}')
+            logger.debug_error(f'{traceback.format_exc()}')
         finally:
             for job in job_list:
                 if not self.save_combinations_folders:
@@ -471,7 +473,8 @@ class Compar:
                 self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
                 self.compile_combination_to_binary(combination_folder_path)
             except Exception as ex:
-                traceback.print_exc()
+                logger.info_error(f'Exception at {Compar.__name__}: {ex}')
+                logger.debug_error(f'{traceback.format_exc()}')
                 self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
                 continue
             job = Job(combination_folder_path, combination_obj, self.main_file_parameters)
