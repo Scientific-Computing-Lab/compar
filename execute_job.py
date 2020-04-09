@@ -113,7 +113,7 @@ class ExecuteJob:
     def rewrite_output_file(file_path, loops_list):
         f = open(file_path, "w")
         for loop in loops_list:
-            f.write(f'run time of loop {loop[0]}: {loop[1]}\n')
+            f.write(f'{loop[0]}:{loop[1]}\n')
         f.close()
 
     def add_nodelist_flag_into_slurm(self, user_slurm_parameters):

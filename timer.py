@@ -23,7 +23,7 @@ class Timer(object):
                              COMPAR_VAR_PREFIX + 'start_time_{};\n'
 
     WRITE_TO_FILE_CODE_1 = 'FILE * fp{} = fopen(\"{}\", \"w\");\n'
-    WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'run time of loop %d: %.10lf'+r'\\n' + '"' + ', {}, {});\n'
+    WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'%d:%.10lf'+r'\\n' + '"' + ', {}, {});\n'  # <loop number>:<run time>
     WRITE_TO_FILE_CODE_3 = 'fclose(fp{});\n'
     WRITE_TO_FILE_CODE_4 = 'fprintf(fp{}, ' + '"' + '%.10lf' + r'\\n' + '"' + ', {});\n'
     COMPAR_DUMMY_VAR = f'int {COMPAR_VAR_PREFIX}dummy_var'
