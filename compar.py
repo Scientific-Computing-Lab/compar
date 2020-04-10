@@ -25,6 +25,7 @@ from database import Database
 from compilers.makefile import Makefile
 import traceback
 import logger
+from unit_test import UnitTest
 
 
 class Compar:
@@ -138,49 +139,41 @@ class Compar:
         self.time_limit = time_limit
         self.slurm_partition = slurm_partition
 
-        # Build compar environment-----------------------------------
+        # Initiate Compar environment
         e.assert_forbidden_characters(working_directory)
         self.working_directory = working_directory
         self.backup_files_dir = os.path.join(working_directory, Compar.BACKUP_FOLDER_NAME)
         self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
         self.combinations_dir = os.path.join(working_directory, Compar.COMBINATIONS_FOLDER_NAME)
         self.__create_directories_structure(input_dir)
-        # -----------------------------------------------------------
 
-        # Creating compiler variables----------------------------------
-        # TODO -fix version
-        version = ""  # don't know if getting this from the user
+        # Compilers variables
         self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
         self.binary_compiler_type = binary_compiler_type
-        self.par4all_compiler = Par4all(version, par4all_flags, include_dirs_list=self.include_dirs_list, is_nas=is_nas)
-        self.autopar_compiler = Autopar(version, autopar_flags, include_dirs_list=self.include_dirs_list)
-        self.cetus_compiler = Cetus(version, cetus_flags, include_dirs_list=self.include_dirs_list)
-        # -----------------------------------------------------------
+        self.par4all_compiler = Par4all("", par4all_flags, include_dirs_list=self.include_dirs_list, is_nas=is_nas)
+        self.autopar_compiler = Autopar("", autopar_flags, include_dirs_list=self.include_dirs_list)
+        self.cetus_compiler = Cetus("", cetus_flags, include_dirs_list=self.include_dirs_list)
 
-        # Saves compiler flags---------------------------------------
+        # Compiler flags
         self.user_par4all_flags = par4all_flags
         self.user_autopar_flags = autopar_flags
         self.user_cetus_flags = cetus_flags
         self.user_binary_compiler_flags = binary_compiler_flags
-        # -----------------------------------------------------------
 
-        # Makefile---------------------------------------------------
+        # Makefile
         self.is_make_file = is_make_file
         self.makefile_commands = makefile_commands
         self.makefile_exe_folder_rel_path = makefile_exe_folder_rel_path
         self.makefile_output_exe_file_name = makefile_output_exe_file_name
-        # -----------------------------------------------------------
 
-        # Main file--------------------------------------------------
+        # Main file
         self.main_file_parameters = main_file_parameters
-        # ----------------------------------------------------------
 
-        # SLURM------------------------------------------------------
+        # SLURM
         self.slurm_parameters = slurm_parameters
-        # ----------------------------------------------------------
-        self.files_loop_dict = {}
 
-        # INITIALIZATIONS
+        # Initialization
+        self.files_loop_dict = {}
         if not is_make_file:
             self.__initialize_binary_compiler()
         self.db = Database(self.__extract_working_directory_name())
