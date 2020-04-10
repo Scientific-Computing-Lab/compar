@@ -33,7 +33,7 @@ def main():
                         help='Include dir names for compilation - relative paths', default=None)
     parser.add_argument('-main_file_p', '--main_file_parameters', nargs="*", help='Main c file parameters',
                         default=None)
-    parser.add_argument('-slurm_p', '--slurm_parameters', nargs="*", help='Slurm parameters', default=None)
+    parser.add_argument('-slurm_p', '--slurm_parameters', nargs="*", help='Slurm parameters', default=['--exclusive', ])
     parser.add_argument('-nas', '--is_nas', help='Is NAS Benchmark', action='store_true')
     parser.add_argument('-main_file_r_p', '--main_file_rel_path', help='Main c file name relative path',
                         default="", required=True)

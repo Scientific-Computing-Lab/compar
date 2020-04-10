@@ -166,7 +166,6 @@ class ExecuteJob:
         if self.time_limit:
             command += f'#SBATCH --time={self.time_limit}\n'
         command += f'#SBATCH --partition={self.slurm_partition}\n'
-        command += '#SBATCH --exclusive\n'
         command += '$@\n'
         command += 'exit $?\n'
         batch_file.write(command)
