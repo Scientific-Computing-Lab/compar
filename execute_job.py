@@ -2,11 +2,14 @@ import os
 import re
 import subprocess
 import time
+
+from database import Database
 from exceptions import FileError
 from subprocess_handler import run_subprocess
 from timer import Timer
 import traceback
 import logger
+from unit_test import UnitTest
 
 
 class ExecuteJob:
@@ -15,7 +18,7 @@ class ExecuteJob:
     TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME = 300
 
     def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list,
-                 slurm_partition, time_limit=None):
+                 slurm_partition, test_file_path, time_limit=None):
         self.job = job
         self.num_of_loops_in_files = num_of_loops_in_files
         self.db = db
@@ -24,6 +27,7 @@ class ExecuteJob:
         self.relative_c_file_list = relative_c_file_list
         self.time_limit = time_limit
         self.slurm_partition = slurm_partition
+        self.test_file_path = test_file_path
 
     def get_job(self):
         return self.job
@@ -78,6 +82,8 @@ class ExecuteJob:
             self.__analysis_output_file()
             self.update_dead_code_files()
             self.save_successful_job()
+            if not UnitTest.run_unit_test(self.test_file_path):
+                Database.set_error_in_combination(self.job.combination.combination_id, "Unit test failed.")
         except Exception as ex:
             if self.job.get_job_results()['run_time_results']:
                 self.save_successful_job()

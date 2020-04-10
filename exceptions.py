@@ -1,5 +1,7 @@
 import os
 
+from unit_test import UnitTest
+
 
 class FileError(Exception):
     pass
@@ -86,3 +88,12 @@ def assert_forbidden_characters(path):
         if char in path:
             raise UserInputError(f'Path cannot contain any char from: {forbidden_characters}')
 
+
+def assert_test_file_name(test_file_name):
+    if test_file_name != UnitTest.UNIT_TEST_FILE_NAME:
+        raise UserInputError(f'Unit test file must be named as: {UnitTest.UNIT_TEST_FILE_NAME}!')
+
+
+def assert_test_file_function_name(test_file_path):
+    if not UnitTest.check_if_test_exists(test_file_path):
+        raise UserInputError(f'Unit test file must contain test named: "{UnitTest.UNIT_TEST_NAME}"!')
