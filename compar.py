@@ -472,7 +472,7 @@ class Compar:
             if len(self.jobs) >= self.__max_combinations_at_once:
                 self.run_and_save_job_list()
             combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
-            logger.info(f'Working on {combination_obj.combination_id} combination')
+            logger.info(f'Working on combination #{combination_obj.combination_id}')
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
             try:
                 self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
