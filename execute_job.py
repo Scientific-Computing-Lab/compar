@@ -74,7 +74,7 @@ class ExecuteJob:
     def run(self, user_slurm_parameters):
         try:
             self.__run_with_sbatch(user_slurm_parameters)
-            self.__analyze_exit_code()
+            self.__analyze_job_exit_code()
             self.__analysis_output_file()
             self.update_dead_code_files()
             self.save_successful_job()
@@ -137,13 +137,15 @@ class ExecuteJob:
                         raise
                     else:
                         is_finish = True
+                current_status = ''
                 try:
                     current_status = stdout.split('\n')[1]
-                except IndexError as ex:
-                    logger.info_error(f'Warning: check the squeue command output: {stdout} {stderr}')
-                    time.sleep(ExecuteJob.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
-                    continue
-                if current_status != last_status:
+                except IndexError:
+                    if not is_finish:
+                        logger.info_error(f'Warning: check the squeue command output: {stdout} {stderr}')
+                        time.sleep(ExecuteJob.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
+                        continue
+                if current_status != last_status and current_status != '':
                     logger.info(f'Job {self.get_job().get_job_id()} status is {current_status}')
                     last_status = current_status
                 if not is_finish:
@@ -153,6 +155,7 @@ class ExecuteJob:
                 logger.debug_error(f'{traceback.format_exc()}')
                 logger.info_error('squeue command not responding (slurm is down?)')
                 time.sleep(ExecuteJob.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
+        logger.info(f'Job {self.get_job().get_job_id()} status is COMPLETE')
 
     def __make_sbatch_script_file(self, job_name=''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
@@ -170,7 +173,7 @@ class ExecuteJob:
         return batch_file_path
 
     def __analysis_output_file(self):
-        last_string = 'loop '
+        logger.info(f'{ExecuteJob.__name__}: analysing job run time results')
         for root, dirs, files in os.walk(self.get_job().get_directory_path()):
             for file in files:
                 # total run time analysis
@@ -201,7 +204,7 @@ class ExecuteJob:
                     except OSError as e:
                         raise FileError(str(e))
 
-    def __analyze_exit_code(self):
+    def __analyze_job_exit_code(self):
         job_id = self.get_job().get_job_id()
         command = f"sacct -j {job_id} --format=exitcode"
         try:
