@@ -8,6 +8,7 @@ import logger
 
 
 def main():
+    logger.info('Starting Compar execution')
     parser = argparse.ArgumentParser(description='Compar')
     parser.add_argument('-wd', '--working_directory', help='Working directory path', required=True)
     parser.add_argument('-dir', '--input_dir', help='Input directory path', required=True)
@@ -86,6 +87,7 @@ def main():
     compar_obj.run_serial()
     compar_obj.run_parallel_combinations()
     compar_obj.generate_optimal_code()
+    logger.info('Finish Compar execution')
 
 
 if __name__ == "__main__":

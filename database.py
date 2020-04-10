@@ -19,6 +19,7 @@ class Database:
     SERIAL_COMPILER_NAME = 'serial'
 
     def __init__(self, collection_name):
+        logger.info(f'Initializing {collection_name} databases')
         try:
             self.current_combination = None
             self.current_combination_id = 1

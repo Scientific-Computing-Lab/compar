@@ -188,6 +188,7 @@ class Compar:
         self.db = Database(self.__extract_working_directory_name())
 
     def generate_optimal_code(self):
+        logger.info('Start to combine the Compar combination')
         compar_combination_folder_name = 'compar_combination'
         final_result_folder_name = 'final_results'
         optimal_loops_data = []
@@ -252,9 +253,11 @@ class Compar:
         self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
         self.generate_summary_file(optimal_loops_data, compar_combination_folder_path)
         try:
+            logger.info('Compiling Compar combination')
             self.compile_combination_to_binary(compar_combination_folder_path, inject=False)
             job = Job(compar_combination_folder_path, Combination(Combination.FINAL_COMBINATION_ID, "mixed", []), [])
             self.jobs.append(job)
+            logger.info('Running Compar combination')
             self.run_and_save_job_list()
         except Exception as ex:
             self.save_combination_as_failure(Combination.FINAL_COMBINATION_ID, str(ex) +
@@ -263,6 +266,7 @@ class Compar:
         # Check for best total runtime
         best_runtime_combination_id = self.db.get_total_runtime_best_combination()
         if best_runtime_combination_id != Combination.FINAL_COMBINATION_ID:
+            logger.info(f'Combination #{best_runtime_combination_id} is more optimal than Compar combination')
             combination_obj = self.__combination_json_to_obj(
                 self.db.get_combination_from_static_db(best_runtime_combination_id))
             final_results_folder_path = self.create_combination_folder(
@@ -279,6 +283,7 @@ class Compar:
                 raise Exception(f"Total runtime calculation - The optimal file could not be compiled, combination"
                                 f" {best_runtime_combination_id}.\n{ex}")
         else:
+            logger.info(f'Compar combination is the optimal combination')
             final_folder_path = os.path.join(self.working_directory, final_result_folder_name)
             shutil.copytree(compar_combination_folder_path, final_folder_path, dirs_exist_ok=True)
         self.db.remove_unused_data(Combination.FINAL_COMBINATION_ID)
@@ -464,10 +469,12 @@ class Compar:
             self.__delete_combination_folder(combination_folder_path)
 
     def run_parallel_combinations(self):
+        logger.info('Start to work on parallel combinations')
         while self.db.has_next_combination():
             if len(self.jobs) >= self.__max_combinations_at_once:
                 self.run_and_save_job_list()
             combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
+            logger.info(f'Working on {combination_obj.combination_id} combination')
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
             try:
                 self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
@@ -481,8 +488,10 @@ class Compar:
             self.jobs.append(job)
         if self.jobs:
             self.run_and_save_job_list()
+        logger.info('Finish to work on all the parallel combinations')
 
     def __create_directories_structure(self, input_dir):
+        logger.info('Creating Compar directories structure')
         os.makedirs(self.original_files_dir, exist_ok=True)
         os.makedirs(self.combinations_dir, exist_ok=True)
         os.makedirs(self.backup_files_dir, exist_ok=True)
@@ -540,6 +549,7 @@ class Compar:
         self.binary_compiler.compile()
 
     def run_serial(self):
+        logger.info('Start to work on serial combination')
         serial_dir_path = os.path.join(self.combinations_dir, 'serial')
         shutil.rmtree(serial_dir_path, ignore_errors=True)
         os.mkdir(serial_dir_path)
@@ -579,8 +589,10 @@ class Compar:
                         self.serial_run_time[key] = loop_dict['run_time']
         if not self.save_combinations_folders:
             self.__delete_combination_folder(serial_dir_path)
+        logger.info('Finish to work on serial combination')
 
     def fragment_and_add_timers(self):
+        logger.info('Start to enumerating loops and injecting run time timers')
         main_file_path = os.path.join(self.original_files_dir, self.main_file_rel_path)
         declaration_code_to_inject_to_main_file = ""
         for index, c_file_dict in enumerate(self.make_absolute_file_list(self.original_files_dir)):
@@ -595,6 +607,7 @@ class Compar:
             else:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, 'no_global_var')
         self.__timer.inject_declarations_to_main_file(main_file_path, declaration_code_to_inject_to_main_file)
+        logger.info('Finish to enumerating loops and injecting run time timers')
 
     def create_combination_folder(self, combination_folder_name, base_dir=None):
         if not base_dir:
