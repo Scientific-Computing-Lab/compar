@@ -43,6 +43,7 @@ def main():
                         const=logger.VERBOSE, default=logger.BASIC)
     parser.add_argument('-vv', '--debug', help="Get debug output", action="store_const", dest="log_level",
                         const=logger.DEBUG, default=logger.BASIC)
+    parser.add_argument('-test_file', '--test_file_path', help="Unit test file path", default="")
     args = parser.parse_args()
 
     # TODO: should be depend on users choice
@@ -80,7 +81,8 @@ def main():
         is_nas=args.is_nas,
         main_file_rel_path=args.main_file_rel_path,
         time_limit=args.time_limit,
-        slurm_partition=args.slurm_partition
+        slurm_partition=args.slurm_partition,
+        test_file_path=args.test_file_path
     )
     # TODO: change fragment_and_add_timers main file path
     compar_obj.fragment_and_add_timers()

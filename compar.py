@@ -25,6 +25,7 @@ from database import Database
 from compilers.makefile import Makefile
 import traceback
 import logger
+from unit_test import UnitTest
 
 
 class Compar:
@@ -101,7 +102,8 @@ class Compar:
                  slurm_parameters=None,
                  is_nas=False,
                  time_limit=None,
-                 slurm_partition='grid'):
+                 slurm_partition='grid',
+                 test_file_path=''):
 
         if not is_make_file:
             e.assert_only_files(input_dir)
@@ -123,64 +125,64 @@ class Compar:
             slurm_parameters = []
         if not ignored_rel_paths:
             ignored_rel_paths = []
+        if not test_file_path:
+            test_file_path = UnitTest.UNIT_TEST_DEFAULT_PATH
 
-        self.serial_run_time = {}
-        self.main_file_rel_path = main_file_rel_path
-        self.save_combinations_folders = save_combinations_folders
         self.binary_compiler = None
-        self.binary_compiler_version = binary_compiler_version
-        self.jobs = []
         self.__timer = None
         self.__max_combinations_at_once = 20
+        self.serial_run_time = {}
+        self.files_loop_dict = {}
+        self.jobs = []
+        self.main_file_rel_path = main_file_rel_path
+        self.save_combinations_folders = save_combinations_folders
+        self.binary_compiler_version = binary_compiler_version
         self.ignored_rel_paths = ignored_rel_paths
         self.include_dirs_list = include_dirs_list
         self.is_nas = is_nas
         self.time_limit = time_limit
         self.slurm_partition = slurm_partition
 
-        # Build compar environment-----------------------------------
+        # Unit test
+        self.test_file_path = test_file_path
+        e.assert_file_exist(self.test_file_path)
+        e.assert_test_file_name(os.path.basename(self.test_file_path))
+        e.assert_test_file_function_name(self.test_file_path)
+
+        # Initiate Compar environment
         e.assert_forbidden_characters(working_directory)
         self.working_directory = working_directory
         self.backup_files_dir = os.path.join(working_directory, Compar.BACKUP_FOLDER_NAME)
         self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
         self.combinations_dir = os.path.join(working_directory, Compar.COMBINATIONS_FOLDER_NAME)
         self.__create_directories_structure(input_dir)
-        # -----------------------------------------------------------
 
-        # Creating compiler variables----------------------------------
-        # TODO -fix version
-        version = ""  # don't know if getting this from the user
+        # Compilers variables
         self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
         self.binary_compiler_type = binary_compiler_type
-        self.par4all_compiler = Par4all(version, par4all_flags, include_dirs_list=self.include_dirs_list, is_nas=is_nas)
-        self.autopar_compiler = Autopar(version, autopar_flags, include_dirs_list=self.include_dirs_list)
-        self.cetus_compiler = Cetus(version, cetus_flags, include_dirs_list=self.include_dirs_list)
-        # -----------------------------------------------------------
+        self.par4all_compiler = Par4all("", par4all_flags, include_dirs_list=self.include_dirs_list, is_nas=is_nas)
+        self.autopar_compiler = Autopar("", autopar_flags, include_dirs_list=self.include_dirs_list)
+        self.cetus_compiler = Cetus("", cetus_flags, include_dirs_list=self.include_dirs_list)
 
-        # Saves compiler flags---------------------------------------
+        # Compiler flags
         self.user_par4all_flags = par4all_flags
         self.user_autopar_flags = autopar_flags
         self.user_cetus_flags = cetus_flags
         self.user_binary_compiler_flags = binary_compiler_flags
-        # -----------------------------------------------------------
 
-        # Makefile---------------------------------------------------
+        # Makefile
         self.is_make_file = is_make_file
         self.makefile_commands = makefile_commands
         self.makefile_exe_folder_rel_path = makefile_exe_folder_rel_path
         self.makefile_output_exe_file_name = makefile_output_exe_file_name
-        # -----------------------------------------------------------
 
-        # Main file--------------------------------------------------
+        # Main file
         self.main_file_parameters = main_file_parameters
-        # ----------------------------------------------------------
 
-        # SLURM------------------------------------------------------
+        # SLURM
         self.slurm_parameters = slurm_parameters
-        # ----------------------------------------------------------
-        self.files_loop_dict = {}
 
-        # INITIALIZATIONS
+        # Initialization
         if not is_make_file:
             self.__initialize_binary_compiler()
         self.db = Database(self.__extract_working_directory_name())
@@ -447,7 +449,7 @@ class Compar:
         job_list = []
         try:
             job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.db, self.relative_c_file_list,
-                                             self.slurm_partition, self.NUM_OF_THREADS,
+                                             self.slurm_partition, self.test_file_path, self.NUM_OF_THREADS,
                                              self.slurm_parameters, self.serial_run_time, time_limit=self.time_limit)
         except Exception as ex:
             logger.info_error(f'Exception at {Compar.__name__}: {ex}')
@@ -554,8 +556,7 @@ class Compar:
         os.mkdir(serial_dir_path)
         self.__copy_sources_to_combination_folder(serial_dir_path)
         Timer.inject_atexit_code_to_main_file(os.path.join(serial_dir_path, self.main_file_rel_path),
-                                                      self.files_loop_dict, serial_dir_path)
-        # self.__replace_result_file_name_prefix(serial_dir_path)
+                                              self.files_loop_dict, serial_dir_path)
 
         if self.is_make_file:
             compiler_type = "Makefile"
@@ -577,8 +578,8 @@ class Compar:
                   combination=combination)
 
         job = Executor.execute_jobs([job, ], self.files_loop_dict, self.db, self.relative_c_file_list,
-                                    self.slurm_partition, self.NUM_OF_THREADS, self.slurm_parameters,
-                                    time_limit=self.time_limit)[0]
+                                    self.slurm_partition, self.test_file_path, self.NUM_OF_THREADS,
+                                    self.slurm_parameters, time_limit=self.time_limit)[0]
         job_results = job.get_job_results()['run_time_results']
         for file_dict in job_results:
             if 'dead_code_file' not in file_dict.keys():
