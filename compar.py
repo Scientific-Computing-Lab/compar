@@ -283,7 +283,9 @@ class Compar:
         else:
             logger.info(f'Compar combination is the optimal combination')
             final_folder_path = os.path.join(self.working_directory, final_result_folder_name)
-            shutil.copytree(compar_combination_folder_path, final_folder_path, dirs_exist_ok=True)
+            if os.path.exists(final_folder_path):
+                shutil.rmtree(final_folder_path)
+            shutil.copytree(compar_combination_folder_path, final_folder_path)
         self.db.remove_unused_data(Combination.FINAL_COMBINATION_ID)
 
     @staticmethod
