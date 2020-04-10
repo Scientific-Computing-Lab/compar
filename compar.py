@@ -122,7 +122,7 @@ class Compar:
         if not main_file_parameters:
             main_file_parameters = []
         if not slurm_parameters:
-            slurm_parameters = []
+            slurm_parameters = ['--exclusive', ]
         if not ignored_rel_paths:
             ignored_rel_paths = []
         if not test_file_path:
