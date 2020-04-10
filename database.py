@@ -242,6 +242,18 @@ class Database:
     def remove_unused_data(self, combination_name):
         self.dynamic_db[self.collection_name].update({"_id": combination_name}, {'$unset': {'run_time_results': ""}})
 
+    def set_error_in_combination(self, combination_id, error):
+        self.dynamic_db[self.collection_name].update_one(
+            filter={
+                '_id': combination_id,
+            },
+            update={
+                '$set': {
+                    'error': error
+                }
+            }
+        )
+
 
 def generate_combinations():
     env_params = []
