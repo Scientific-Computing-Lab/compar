@@ -33,8 +33,13 @@
 !/compar_app/templates
 !/compar_app/templates/home.html
 !/compar_app/app.py
+!/compar_app/codemirror
+!/compar_app/codemirror/*
+!/compar_app/static
+!/compar_app/static/*
 !/compar_app/templates/base.html
 !/compar_app/templates/multiple-files-mode.html
+!/compar_app/templates/makefile-mode.html
 !/compar_app/templates/navigation.html
 !/compar_app/templates/output.html
 !/compar_app/templates/result.html

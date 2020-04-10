@@ -2,7 +2,7 @@
 {% import "bootstrap/wtf.html" as wtf %}
 <html lang="en">
 <head>
-    <title>Compar - Multiple files mode</title>
+    <title>Compar - Makefile mode</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
@@ -11,7 +11,7 @@
 
         function init() {
 
-            var multipleModNav = document.getElementById('multiplemod');
+            var multipleModNav = document.getElementById('makefilemode');
             multipleModNav.style.color = "white";
             multipleModNav.style.fontWeight = "bold";
             multipleModNav.style.fontSize = "16px";
@@ -255,15 +255,7 @@
             margin: 4px 0px;
         }
 
-        #flags {
-            color:white;
-            background: none;
-            border: none;
-            max-width: 100%;
-            border: 1px solid gray;
-            margin: 4px 0px;
-        }
-        #cfile-parameters {
+        #cfile-parameters, #ignore, #include {
             color:white;
             background: none;
             border: none;
@@ -272,8 +264,17 @@
             margin: 4px 0px;
         }
 
-        #parameters,#flags, #cfile-parameters:focus{
+        #parameters,#makecommands, #cfile-parameters, #ignore, #include:focus{
             outline: none;
+        }
+
+        #makecommands {
+             color:white;
+            background: none;
+            border: none;
+            max-width: 100%;
+            border: 1px solid gray;
+            margin: 4px 0px;
         }
 
         .mybutton:active{
@@ -331,8 +332,8 @@
         <div class="navtitle">Compar</div>
         <div class="separator"></div>
         <a class="ref">Single File Mode</a>
-        <a id="multiplemod" class="seperate ref">Multiple files Mode</a>
-        <a class="seperate ref">Makefile Mode</a>
+        <a class="seperate ref">Multiple files Mode</a>
+        <a id="makefilemode" class="seperate ref">Makefile Mode</a>
     </nav>
     <div class="page-layout">
         <div class="container">
@@ -358,24 +359,35 @@
                         <input  style="margin-left:30px" type="checkbox" value="yes">
                     </div>
                     <div class="horizontal-separator"></div>
+                    <div class="form-title">Folders to ignore:</div>
                     <div style="align-items: center" class="flex-row">
-                       <div class="form-title">Compiler:</div>
-                        <select style="margin-left: 30px">
-                            <option value="GCC">GCC</option>
-                            <option value="ICC">ICC</option>
-                         </select>
+                         <input type="text" id="ignore-folders"/>
+                         <button onclick="addParameter('ignore-folders','ignore')" class="mybutton positive">+</button>
+                         <button onclick="removeParameter('ignore')" class="mybutton negative">-</button>
                     </div>
+                    <textarea readonly style="width: 100%" id="ignore"></textarea>
                     <div class="horizontal-separator"></div>
-                    <div class="form-title">Compiler version:</div>
-                    <input type="text" id="compiler-version"/>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Compiler flags:</div>
+                    <div class="form-title">Folders to include:</div>
                     <div style="align-items: center" class="flex-row">
-                        <input type="text" id="compiler-flags"/>
-                        <button onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
-                        <button onclick="removeParameter('flags')" class="mybutton negative">-</button>
+                         <input type="text" id="include-folders"/>
+                         <button onclick="addParameter('include-folders','include')" class="mybutton positive">+</button>
+                         <button onclick="removeParameter('include')" class="mybutton negative">-</button>
                     </div>
-                    <textarea readonly style="width: 100%;" id="flags"></textarea>
+                    <textarea readonly style="width: 100%" id="include"></textarea>
+                    <div class="horizontal-separator"></div>
+                    <div class="form-title">Makefile commands:</div>
+                    <div style="align-items: center" class="flex-row">
+                        <input type="text" id="makefile-commands"/>
+                        <button onclick="addParameter('makefile-commands','makecommands')" class="mybutton positive">+</button>
+                        <button onclick="removeParameter('makecommands')" class="mybutton negative">-</button>
+                    </div>
+                    <textarea readonly style="width: 100%;" id="makecommands"></textarea>
+                    <div class="horizontal-separator"></div>
+                    <div class="form-title">Executable output directory:</div>
+                    <input type="text" id="executable-out-directory"/>
+                    <div class="horizontal-separator"></div>
+                    <div class="form-title">Executable file name:</div>
+                    <input type="text" id="executable-file-name"/>
                     <div class="horizontal-separator"></div>
                     <div class="form-title">Main c file:</div>
                     <input style="color:red; padding: 0px; display: flex; font-size: 16px; border: none; width: 100%; margin-bottom: 12px" type="file" class="choosefile"/>

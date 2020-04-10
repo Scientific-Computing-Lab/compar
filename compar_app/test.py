@@ -120,7 +120,7 @@ def main_page():
             open_source_file(final_code_path)
 
             results()
-            return render_template('multiple-files-mode.html', main_form=main_form, comp_form=comp_form,
+            return render_template('makefile-mode.html', main_form=main_form, comp_form=comp_form,
                                     source_file=DATA['source_file'],
                                     result_lines=DATA['result_lines'],
                                     output=output_log,
@@ -185,7 +185,7 @@ def main_page():
                     return "Run..."
                 else:
                     return "Run..."
-    return render_template('multiple-files-mode.html', main_form=main_form, comp_form=comp_form)
+    return render_template('makefile-mode.html', main_form=main_form, comp_form=comp_form)
 
 
 @app.route('/stream_progress')
