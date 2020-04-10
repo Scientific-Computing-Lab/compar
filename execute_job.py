@@ -111,7 +111,8 @@ class ExecuteJob:
         log_file_path = os.path.join(dir_path, log_file)
         slurm_parameters = " ".join(slurm_parameters)
         cmd = f'sbatch {slurm_parameters} -o {log_file_path} {sbatch_script_file} {x_file_path}'
-        cmd += f' {self.get_job().get_exec_file_args()} '
+        if self.get_job().get_exec_file_args():
+            cmd += f' {" ".join([str(arg) for arg in self.get_job().get_exec_file_args()])} '
         stdout = ""
         batch_job_sent = False
         while not batch_job_sent:
