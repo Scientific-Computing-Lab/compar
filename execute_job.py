@@ -185,7 +185,7 @@ class ExecuteJob:
 
     def __analysis_output_file(self):
         combination_id = self.get_job().get_combination().get_combination_id()
-        logger.info(f'{ExecuteJob.__name__}: analysing job run time results of #{combination_id} combination')
+        logger.info(f'{ExecuteJob.__name__}: analyzing job run time results of #{combination_id} combination')
         for root, dirs, files in os.walk(self.get_job().get_directory_path()):
             for file in files:
                 # total run time analysis
