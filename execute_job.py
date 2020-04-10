@@ -126,6 +126,7 @@ class ExecuteJob:
         self.get_job().set_job_id(result)
         cmd = f"squeue -j {self.get_job().get_job_id()} --format %t"
         last_status = ''
+        is_first_time = True
         is_finish = False
         while not is_finish:
             try:
@@ -149,8 +150,11 @@ class ExecuteJob:
                 if current_status != last_status and current_status != '':
                     logger.info(f'Job {self.get_job().get_job_id()} status is {current_status}')
                     last_status = current_status
-                if not is_finish:
+                if not is_finish and not is_first_time:
+                    # not is_first_time - some times the job go to COMPLETE immediately (fast running)
                     time.sleep(ExecuteJob.CHECK_SQUEUE_SECOND_TIME)
+                if is_first_time:
+                    is_first_time = False
             except subprocess.CalledProcessError as ex:  # squeue command not responding (slurm is down?)
                 logger.info_error(f'Exception at {ExecuteJob.__name__}: {ex}\n{ex.stdout}\n{ex.stderr}')
                 logger.debug_error(f'{traceback.format_exc()}')
