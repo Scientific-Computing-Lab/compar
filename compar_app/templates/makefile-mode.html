@@ -5,8 +5,10 @@
     <title>Compar - Makefile mode</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" />
     <script src="{{ url_for('static', filename='js/jquery-3.4.1.min.js')}}"></script>
+    <link href="{{ url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
+
     <script>
 
         function init() {
@@ -54,91 +56,6 @@
     </script>
     <style>
 
-        .page-layout {
-            width: 100vw;
-            height: calc(100vh - 42px);
-            background: grey;
-        }
-
-        .title{
-            box-sizing: border-box;
-            padding: 4px;
-            color: black;
-            background: grey;
-            font-weight: bold;
-
-        }
-        .container {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            width: 100%;
-            height: 100%;
-            background: black;
-            box-sizing: border-box;
-            padding: 20px 0px;
-        }
-
-        .form-container {
-            height: 100%;
-            border: 2px solid gray;
-            min-width: 280px;
-            width: 20%;
-            background: #282a36;
-            overflow-y: scroll;
-            overflow-x: hidden;
-        }
-
-        .screen-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 75%;
-        }
-
-        .output-log {
-            background: #282a36;
-            border: 2px solid gray;
-            height: 50%;
-            width: 100%;
-            margin-top: 8px;
-        }
-
-        .output-folder{
-            background: #282a36;
-            border: 2px solid gray;
-            height: 50%;
-            width: 100%;
-        }
-        .out {
-            height: 100%;
-            width: 100%;
-            padding: 8px;
-            color: white;
-            overflow: scroll;
-        }
-
-        .flex-col {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            overflow: scroll;
-        }
-
-        .flex-row-spaced {
-
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .flex-row {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-        }
-
         nav {
             height: 42px;
             display: flex;
@@ -152,173 +69,9 @@
             box-shadow: 0px 0px 5px black;
         }
 
-        .startbtn {
-            width: 150px;
-            border: 1px solid white;
-            font-weight: bold;
-            background: black;
-            margin: 30px 0px 0px 0px;
-        }
-
-        .startbtn:active{
-            background: gray;
-        }
-
-        .startbtn:focus{
-            outline: none;
-        }
-
         .navtitle {
             font-weight: bold;
             font-size: 24px;
-        }
-
-        .separator {
-            width: 1px;
-            height: 100%;
-            background: black;
-            margin: 0px 12px;
-        }
-
-        .seperate {
-            margin: 0px 0px 0px 20px;
-        }
-
-        .ref {
-            color: white;
-        }
-
-        .form {
-            padding: 12px;
-            color: white;
-        }
-
-        .form input{
-            color: black;
-            box-sizing: border-box;
-            padding: 0px 4px;
-            margin: 8px 0px;
-            border: 2px solid gray;
-        }
-
-        .form input:focus {
-            outline: black;
-        }
-
-        .form-title {
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        a:hover {
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 16px;
-            transition: 1s;
-        }
-
-        select {
-            color: black;
-            margin: 8px 0px;
-            width: 100px;
-            border-radius: 0px;
-        }
-
-        select:focus{
-            outline:none;
-        }
-
-        .mybutton {
-            border-radius: 30%;
-            width: 26px;
-            max-height: 26px;
-            max-width: 26px;
-            border: 1px solid white;
-            font-weight: bold;
-            margin-left: 20px;
-        }
-
-        .horizontal-separator {
-            width: 100%;
-            height: 1px;
-            background: white;
-            margin: 8px 0px;
-        }
-
-        #parameters {
-            color:white;
-            background: none;
-            border: none;
-            max-width: 100%;
-            border: 1px solid gray;
-            margin: 4px 0px;
-        }
-
-        #cfile-parameters, #ignore, #include {
-            color:white;
-            background: none;
-            border: none;
-            max-width: 100%;
-            border: 1px solid gray;
-            margin: 4px 0px;
-        }
-
-        #parameters,#makecommands, #cfile-parameters, #ignore, #include:focus{
-            outline: none;
-        }
-
-        #makecommands {
-             color:white;
-            background: none;
-            border: none;
-            max-width: 100%;
-            border: 1px solid gray;
-            margin: 4px 0px;
-        }
-
-        .mybutton:active{
-            background: black;
-        }
-
-        .mybutton:focus {
-            outline: none;
-        }
-
-        .positive {
-            background: green;
-        }
-
-        .negative {
-            background: red;
-        }
-
-        .advanced {
-            font-weight: bold;
-            color: #989898;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-
-        #advanced {
-            display: none;
-        }
-
-        .advanced:active {
-            color: white;
-            text-decoration: none;
-            cursor: wait;
-        }
-
-        .advanced:hover {
-            font-size:16px;
-            transition: 0.7s;
-        }
-
-        .advanced:hover {
-            font-size:16px;
-            color: white;
-            transition: 2s;
         }
 
     </style>
@@ -331,12 +84,12 @@
     <nav>
         <div class="navtitle">Compar</div>
         <div class="separator"></div>
-        <a class="ref">Single File Mode</a>
-        <a class="seperate ref">Multiple files Mode</a>
-        <a id="makefilemode" class="seperate ref">Makefile Mode</a>
+        <a href="/singlefile" class="ref">Single File Mode</a>
+        <a href="/multiplefiles" class="seperate ref">Multiple files Mode</a>
+        <a href="/makefile" id="makefilemode" class="seperate ref">Makefile Mode</a>
     </nav>
     <div class="page-layout">
-        <div class="container">
+        <div class="mycontainer">
             <div class="form-container">
                 <div class="title">Compar Parameters</div>
                 <div class="form">
