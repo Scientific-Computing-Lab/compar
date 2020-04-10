@@ -116,15 +116,43 @@ class ExecuteJob:
             except subprocess.CalledProcessError as ex:
                 logger.info_error(f'Exception at {ExecuteJob.__name__}: {ex}\n{ex.output}\n{ex.stderr}')
                 logger.debug_error(f'{traceback.format_exc()}')
+                logger.info_error('sbatch command not responding (slurm is down?)')
                 time.sleep(ExecuteJob.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
         result = stdout
         # set job id
         result = re.findall('[0-9]', str(result))
         result = ''.join(result)
         self.get_job().set_job_id(result)
-        cmd = f"squeue | grep {self.get_job().get_job_id()}"
-        while os.system(cmd) == 0:
-            time.sleep(30)
+        cmd = f"squeue -j {self.get_job().get_job_id()} --format %t"
+        last_status = ''
+        is_finish = False
+        while not is_finish:
+            try:
+                stdout, stderr = '', ''
+                try:
+                    stdout, stderr, ret_code = run_subprocess(cmd)
+                except subprocess.CalledProcessError:  # check if squeue is not working or if the job finished
+                    _, _, ret_code = run_subprocess('squeue')
+                    if ret_code != 0:
+                        raise
+                    else:
+                        is_finish = True
+                try:
+                    current_status = stdout.split('\n')[1]
+                except IndexError as ex:
+                    logger.info_error(f'Warning: check the squeue command output: {stdout} {stderr}')
+                    time.sleep(ExecuteJob.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
+                    continue
+                if current_status != last_status:
+                    logger.info(f'Job {self.get_job().get_job_id()} status is {current_status}')
+                    last_status = current_status
+                if not is_finish:
+                    time.sleep(ExecuteJob.CHECK_SQUEUE_SECOND_TIME)
+            except subprocess.CalledProcessError as ex:  # squeue command not responding (slurm is down?)
+                logger.info_error(f'Exception at {ExecuteJob.__name__}: {ex}\n{ex.stdout}\n{ex.stderr}')
+                logger.debug_error(f'{traceback.format_exc()}')
+                logger.info_error('squeue command not responding (slurm is down?)')
+                time.sleep(ExecuteJob.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
 
     def __make_sbatch_script_file(self, job_name=''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
@@ -187,4 +215,4 @@ class ExecuteJob:
             if left_code != 0 or right_code != 0:
                 raise Exception(f"Job id: {job_id} ended with return code: {left_code}:{right_code}.")
         except subprocess.CalledProcessError as ex:
-            logger.info_error(f'Warning: sacct command:\n{ex.output}\n{ex.stderr}')
+            logger.info_error(f'Warning: sacct command not responding (slurm is down?)\n{ex.output}\n{ex.stderr}')
