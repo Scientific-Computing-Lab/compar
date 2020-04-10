@@ -39,7 +39,9 @@ def main():
     parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution', default=None)
     parser.add_argument('-partition', '--slurm_partition', help='Slurm partition name', default='grid')
     parser.add_argument('-v', '--verbose', help="Get more verbose output", action="store_const", dest="log_level",
-                        const=logger.VERBOSE, default=logger.REGULAR)
+                        const=logger.VERBOSE, default=logger.BASIC)
+    parser.add_argument('-vv', '--debug', help="Get debug output", action="store_const", dest="log_level",
+                        const=logger.DEBUG, default=logger.BASIC)
     args = parser.parse_args()
 
     # TODO: should be depend on users choice

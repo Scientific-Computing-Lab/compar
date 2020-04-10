@@ -1,9 +1,11 @@
 import traceback
 import sys
 
-REGULAR = 1
+NO_OUTPUT = 0
+BASIC = 1
 VERBOSE = 2
-_log_level = REGULAR
+DEBUG = 3
+_log_level = BASIC
 
 
 def initialize(log_level):
@@ -12,20 +14,32 @@ def initialize(log_level):
 
 
 def info(message):
-    print(message)
+    if _log_level != NO_OUTPUT:
+        print(message)
+
+
+def verbose(message):
+    if _log_level in (VERBOSE, DEBUG):
+        print(message)
 
 
 def debug(message):
-    if _log_level == VERBOSE:
+    if _log_level == DEBUG:
         print(message)
 
 
 def info_error(message):
-    print(message, file=sys.stderr)
+    if _log_level != NO_OUTPUT:
+        print(message, file=sys.stderr)
+
+
+def verbose_error(message):
+    if _log_level in (VERBOSE, DEBUG):
+        print(message, file=sys.stderr)
 
 
 def debug_error(message):
-    if _log_level == VERBOSE:
+    if _log_level == DEBUG:
         print(message, file=sys.stderr)
 
 
