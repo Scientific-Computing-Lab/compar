@@ -36,7 +36,6 @@ class Compar:
     BACKUP_FOLDER_NAME = "backup"
     ORIGINAL_FILES_FOLDER_NAME = "original_files"
     COMBINATIONS_FOLDER_NAME = "combinations"
-    LOGS_FOLDER_NAME = 'logs'
     SUMMARY_FILE_NAME = 'summary.csv'
     NUM_OF_THREADS = 4
 
@@ -145,7 +144,6 @@ class Compar:
         self.backup_files_dir = os.path.join(working_directory, Compar.BACKUP_FOLDER_NAME)
         self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
         self.combinations_dir = os.path.join(working_directory, Compar.COMBINATIONS_FOLDER_NAME)
-        self.logs_dir = os.path.join(working_directory, Compar.LOGS_FOLDER_NAME)
         self.__create_directories_structure(input_dir)
         # -----------------------------------------------------------
 
@@ -495,7 +493,6 @@ class Compar:
         os.makedirs(self.original_files_dir, exist_ok=True)
         os.makedirs(self.combinations_dir, exist_ok=True)
         os.makedirs(self.backup_files_dir, exist_ok=True)
-        os.makedirs(self.logs_dir, exist_ok=True)
 
         if os.path.isdir(input_dir):
             self.__copy_folder_content(input_dir, self.original_files_dir)
