@@ -3,7 +3,6 @@ import os
 import pytest
 from io import StringIO
 from contextlib import redirect_stdout, redirect_stderr
-
 import logger
 
 
@@ -13,7 +12,7 @@ class UnitTest:
     UNIT_TEST_NAME = 'test_output'
 
     @staticmethod
-    def trigger_test_output_test(test_file_path):
+    def trigger_test_output_test(test_file_path, message=""):
         exit_code = None
         unit_test_stdout = StringIO()
         unit_test_stderr = StringIO()
@@ -22,7 +21,7 @@ class UnitTest:
             if logger.get_log_level() != logger.DEBUG:
                 command += ['-q']
             exit_code = pytest.main(command)
-        logger.verbose(f"{UnitTest.__name__}: {unit_test_stdout.getvalue()}\n{unit_test_stderr.getvalue()}.")
+        logger.verbose(f"{UnitTest.__name__}: {message}{unit_test_stdout.getvalue()}\n{unit_test_stderr.getvalue()}.")
         return exit_code
 
     @staticmethod
@@ -31,8 +30,9 @@ class UnitTest:
 
     @staticmethod
     def check_if_test_exists(test_file_path):
-        return UnitTest.trigger_test_output_test(test_file_path)\
-               not in [ExitCode.NO_TESTS_COLLECTED, ExitCode.USAGE_ERROR]
+        message = f"Checking the existence of test: '{UnitTest.UNIT_TEST_NAME}'\n"
+        return UnitTest.trigger_test_output_test(test_file_path, message) not in \
+            [ExitCode.NO_TESTS_COLLECTED, ExitCode.USAGE_ERROR]
 
 
 class ExitCode(enum.IntEnum):
@@ -48,4 +48,3 @@ class ExitCode(enum.IntEnum):
     USAGE_ERROR = 4
     #: pytest couldn't find tests
     NO_TESTS_COLLECTED = 5
-
