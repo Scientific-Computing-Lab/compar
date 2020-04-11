@@ -108,14 +108,19 @@
         <div class="mycontainer">
             <div class="form-container">
                 <div class="title">Compar Parameters</div>
-                <form method="POST" action="/" class="form">
+                <form method="POST" action="/singlefile" class="form">
+                    {{ form.csrf_token }}
                     <div class="form-title">Slurm parameters:</div>
                     <div class="flex-row-centered">
                          <input type="text" id="slurm-params"/>
                          <button type="button" onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
                          <button type="button" onclick="removeParameter('parameters')" class="mybutton negative">-</button>
                     </div>
+                    {% for error in form.slurm_parameters.errors %}
+                        <div style="color: red;">{{ error }}</div>
+                    {% endfor %}
                     {{ form.slurm_parameters(id="parameters", readonly=true) }}
+
                     <div class="horizontal-separator"></div>
                     <div style="align-items: center" class="flex-row">
                         <div class="form-title">Save combination folders:</div>
