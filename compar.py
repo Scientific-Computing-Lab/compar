@@ -259,13 +259,11 @@ class Compar:
             logger.info('Compiling Compar combination')
             self.compile_combination_to_binary(compar_combination_folder_path, inject=False)
             job = Job(compar_combination_folder_path, Combination(Combination.FINAL_COMBINATION_ID, "mixed", []), [])
-            self.jobs.append(job)
             logger.info('Running Compar combination')
-            self.run_and_save_job_list()
+            job = self.execute_job(job, self.serial_run_time)
         except Exception as ex:
-            self.save_combination_as_failure(Combination.FINAL_COMBINATION_ID, str(ex) +
-                                             'exception in Compar. generate_optimal_code: cannot compile compar' +
-                                             'mixed combination code', compar_combination_folder_path)
+            msg = f'Exception in Compar: {ex}\ngenerate_optimal_code: cannot compile compar combination'
+            self.save_combination_as_failure(Combination.FINAL_COMBINATION_ID, msg, compar_combination_folder_path)
         # Check for best total runtime
         best_runtime_combination_id = self.db.get_total_runtime_best_combination()
         if best_runtime_combination_id != Combination.FINAL_COMBINATION_ID:
