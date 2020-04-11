@@ -10,6 +10,10 @@ _log_level = BASIC
 print_lock = RLock()
 
 
+def get_log_level():
+    return _log_level
+
+
 def initialize(log_level):
     global _log_level
     _log_level = log_level
