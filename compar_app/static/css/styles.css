@@ -220,7 +220,7 @@ select:focus{
     max-width: 100%;
     border: 1px solid gray;
     margin: 4px 0px;
-
+    width: 100%;
 }
 
 #parameters,#flags, #cfile-parameters, #include, #ignore, #makecommands:focus{

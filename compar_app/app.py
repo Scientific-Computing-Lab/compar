@@ -1,7 +1,9 @@
 import os
 from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField,BooleanField,SelectField
 from flask_bootstrap import Bootstrap
 import subprocess
+from flask import request
 from flask import Flask, render_template
 
 
@@ -14,11 +16,23 @@ Bootstrap(app)
 DATA = {}
 output_log = ""
 
+class singleFileForm(FlaskForm):
+    slurm_parameters = TextAreaField('slurm_parameters')
+    save_combinations = BooleanField('save_combinations')
+    compiler = SelectField('compiler', choices=[('icc', 'ICC'), ('gcc','GCC')])
+    compiler_version = StringField('compiler_version')
+    compiler_flags = TextAreaField('compiler_flags')
+
+
 
 @app.route("/")
-@app.route("/singlefile")
+@app.route("/singlefile", methods=['GET', 'POST'])
 def single_file():
-    return render_template('single-file-mode.html')
+    form = singleFileForm(request.form)
+
+    if request.method == "POST" and form.validate():
+        return 'Hello brother'
+    return render_template('single-file-mode.html', form=form)
 
 @app.route("/multiplefiles")
 def multiple_files():

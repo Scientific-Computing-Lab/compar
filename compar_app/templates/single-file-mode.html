@@ -108,38 +108,35 @@
         <div class="mycontainer">
             <div class="form-container">
                 <div class="title">Compar Parameters</div>
-                <div class="form">
+                <form method="POST" action="/" class="form">
                     <div class="form-title">Slurm parameters:</div>
                     <div class="flex-row-centered">
-                        <input type="text" id="slurm-params"/>
-                             <button onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
-                             <button onclick="removeParameter('parameters')" class="mybutton negative">-</button>
+                         <input type="text" id="slurm-params"/>
+                         <button type="button" onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
+                         <button type="button" onclick="removeParameter('parameters')" class="mybutton negative">-</button>
                     </div>
-                    <textarea readonly style="width: 100%" id="parameters"></textarea>
+                    {{ form.slurm_parameters(id="parameters", readonly=true) }}
                     <div class="horizontal-separator"></div>
                     <div style="align-items: center" class="flex-row">
                         <div class="form-title">Save combination folders:</div>
-                        <input  style="margin-left:30px" type="checkbox" value="yes">
+                        {{ form.save_combinations(style='margin-left: 30px')}}
                     </div>
                     <div class="horizontal-separator"></div>
                     <div style="align-items: center" class="flex-row">
-                       <div class="form-title">Compiler:</div>
-                        <select style="margin-left: 30px">
-                            <option value="GCC">GCC</option>
-                            <option value="ICC">ICC</option>
-                         </select>
+                        <div class="form-title">Compiler:</div>
+                        {{ form.compiler(style='margin-left: 30px') }}
                     </div>
                     <div class="horizontal-separator"></div>
                     <div class="form-title">Compiler version:</div>
-                    <input type="text" id="compiler-version"/>
+                    {{ form.compiler_version }}
                     <div class="horizontal-separator"></div>
                     <div class="form-title">Compiler flags:</div>
                     <div style="align-items: center" class="flex-row">
                         <input type="text" id="compiler-flags"/>
-                        <button onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
-                        <button onclick="removeParameter('flags')" class="mybutton negative">-</button>
+                        <button type="button" onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
+                        <button type="button" onclick="removeParameter('flags')" class="mybutton negative">-</button>
                     </div>
-                    <textarea readonly style="width: 100%;" id="flags"></textarea>
+                    {{ form.compiler_flags(id="flags", readonly=true) }}
                     <div class="horizontal-separator"></div>
                     <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
                     <div id="advanced">
@@ -148,8 +145,8 @@
                         <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
                     </div>
                     </div>
-                    <button class="startbtn">START</button>
-                </div>
+                    <button type="submit" value="Submit" class="startbtn">START</button>
+                </form>
             </div>
             <div class="screen-container">
                 <div style="height: 50%" class="flex-row">
