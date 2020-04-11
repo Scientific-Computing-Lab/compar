@@ -99,9 +99,10 @@ class Cetus(ParallelCompiler):
                             pass
 
     def pre_processing(self, **kwargs):
-        pass
+        super().pre_processing(**kwargs)
 
     def post_processing(self, **kwargs):
+        super().post_processing(**kwargs)
         if 'files_loop_dict' in kwargs:
             files_loop_dict = kwargs['files_loop_dict']
             for file_dict in self.get_file_list():

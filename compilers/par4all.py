@@ -126,10 +126,12 @@ class Par4all(ParallelCompiler):
             raise CompilationError(f"{e}\nFiles in directory {self.get_input_file_directory()} failed to be parallel!")
 
     def pre_processing(self, **kwargs):
+        super().pre_processing(**kwargs)
         if 'makefile_obj' in kwargs:
             self.set_make_obj(kwargs['makefile_obj'])
         pips_file_path = self.__copy_pips_stubs_to_folder()
         self.files_to_compile.append(pips_file_path)
 
     def post_processing(self, **kwargs):
+        super().post_processing(**kwargs)
         os.remove(os.path.join(self.get_input_file_directory(), self.PIPS_STUBS_NAME))

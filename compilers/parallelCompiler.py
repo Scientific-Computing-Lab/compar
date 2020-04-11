@@ -1,6 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from compilers.compiler import Compiler
 from exceptions import CompilationError
+from subprocess_handler import run_subprocess
+import subprocess
+import logger
+import json
+import os
 
 
 class ParallelCompiler(Compiler, ABC):
@@ -28,10 +33,25 @@ class ParallelCompiler(Compiler, ABC):
         if not self.get_input_file_directory():
             raise CompilationError("Missing working directory!")
 
-    @abstractmethod
-    def pre_processing(self, **kwargs):
-        pass
+    def __run_user_script(self, script_name):
+        json_script_file_path = os.path.join('assets', script_name)
+        if os.path.exists(json_script_file_path):
+            with open(json_script_file_path, 'r') as f:
+                json_content = json.load(f)
+            if self.NAME in json_content:
+                user_script_path = json_content[self.NAME]
+                if os.path.exists(user_script_path):
+                    try:
+                        std_out, std_err, ret_code = run_subprocess(user_script_path)
+                        logger.debug(std_out)
+                        logger.debug_error(std_err)
+                    except subprocess.CalledProcessError as e:
+                        logger.info_error(f'{self.NAME}: user {script_name} script return with {e.returncode}: {e}')
+                        logger.info(e.output)
+                        logger.info_error(e.stderr)
 
-    @abstractmethod
+    def pre_processing(self, **kwargs):
+        self.__run_user_script('pre_processing.json')
+
     def post_processing(self, **kwargs):
-        pass
+        self.__run_user_script('post_processing.json')

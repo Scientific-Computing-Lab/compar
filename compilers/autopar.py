@@ -48,7 +48,7 @@ class Autopar(ParallelCompiler):
         logger.info(f'{Autopar.__name__} finish to parallelizing {file_name}')
 
     def pre_processing(self, **kwargs):
-        pass
+        super().pre_processing(**kwargs)
 
     def post_processing(self, **kwargs):
-        pass
+        super().post_processing(**kwargs)
