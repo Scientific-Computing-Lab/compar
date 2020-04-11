@@ -1,7 +1,13 @@
 
 class Parameters:
 
-    def __init__(self, code_params=[], env_params=[], compilation_params=[]):
+    def __init__(self, code_params=None, env_params=None, compilation_params=None):
+        if not code_params:
+            code_params = []
+        if not env_params:
+            env_params = []
+        if not compilation_params:
+            compilation_params = []
         self.code_params = code_params
         self.env_params = env_params
         self.compilation_params = compilation_params
