@@ -69,6 +69,10 @@ class Par4all(ParallelCompiler):
     def set_make_obj(self, make_obj):
         self.make_obj = make_obj
 
+    def initiate_for_new_task(self, compilation_flags, input_file_directory, file_list):
+        super().initiate_for_new_task(compilation_flags, input_file_directory, file_list)
+        self.files_to_compile = []
+
     def __run_p4a_process(self):
         self.files_to_compile += [file_dict['file_full_path'] for file_dict in self.get_file_list()]
         command = 'PATH=/bin:$PATH p4a -vv ' + ' '.join(self.files_to_compile)
