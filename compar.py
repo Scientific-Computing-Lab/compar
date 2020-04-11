@@ -41,6 +41,10 @@ class Compar:
     NUM_OF_THREADS = 4
 
     @staticmethod
+    def set_num_of_threads(num_of_threads):
+        Compar.NUM_OF_THREADS = num_of_threads
+
+    @staticmethod
     def replace_labels(file_path, num_of_loops):
         with open(file_path, 'r+') as f:
             content = f.read()

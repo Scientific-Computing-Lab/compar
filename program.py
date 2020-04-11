@@ -8,6 +8,7 @@ import logger
 
 
 def main():
+    num_of_jobs_at_once = 4
     logger.info('Starting Compar execution')
     parser = argparse.ArgumentParser(description='Compar')
     parser.add_argument('-wd', '--working_directory', help='Working directory path', required=True)
@@ -44,6 +45,8 @@ def main():
     parser.add_argument('-vv', '--debug', help="Get debug output", action="store_const", dest="log_level",
                         const=logger.DEBUG, default=logger.BASIC)
     parser.add_argument('-test_file', '--test_file_path', help="Unit test file path", default="")
+    parser.add_argument('-jobs_quantity', '--jobs_quantity_at_once', help='The number of jobs to be executed at once',
+                        default=num_of_jobs_at_once)
     args = parser.parse_args()
 
     # TODO: should be depend on users choice
@@ -60,6 +63,7 @@ def main():
 
     logger.initialize(args.log_level)
 
+    Compar.set_num_of_threads(args.jobs_quantity)
     compar_obj = Compar(
         working_directory=args.working_directory,
         input_dir=args.input_dir,
