@@ -15,5 +15,4 @@ def run_subprocess(command, cwd=os.curdir):
     del pipes
     if return_code != 0:
         raise subprocess.CalledProcessError(cmd=command, output=std_out, stderr=std_err, returncode=return_code)
-    std_out, std_err = str(std_out, encoding='utf-8'), str(std_err, encoding='utf-8')
     return std_out, std_err, return_code
