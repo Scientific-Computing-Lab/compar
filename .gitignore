@@ -10,7 +10,6 @@
 !/compilers/binaryCompiler.py
 !/compilers/parallelCompiler.py
 !/compilers/makefile.py
-!/data/*
 !/assets
 !/assets/*
 !.gitignore
@@ -31,9 +30,9 @@
 !/compar_app
 !/compar_app/templates
 !/compar_app/codemirror
-!/compar_app/codemirror/*
+!/compar_app/codemirror/**
 !/compar_app/static
-!/compar_app/static/*
+!/compar_app/static/**
 !/compar_app/app.py
 !/compar_app/templates/single-file-mode.html
 !/compar_app/templates/multiple-files-mode.html
