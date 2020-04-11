@@ -1,6 +1,6 @@
 class Combination:
 
-    FINAL_COMBINATION_ID = 'final'
+    COMPAR_COMBINATION_ID = 'compar_combination'
 
     def __init__(self, combination_id, compiler_name, parameters):
         self.combination_id = combination_id

@@ -258,17 +258,17 @@ class Compar:
         try:
             logger.info('Compiling Compar combination')
             self.compile_combination_to_binary(compar_combination_folder_path, inject=False)
-            job = Job(compar_combination_folder_path, Combination(Combination.FINAL_COMBINATION_ID, "mixed", []), [])
+            job = Job(compar_combination_folder_path, Combination(Combination.COMPAR_COMBINATION_ID, "mixed", []), [])
             self.jobs.append(job)
             logger.info('Running Compar combination')
             self.run_and_save_job_list()
         except Exception as ex:
-            self.save_combination_as_failure(Combination.FINAL_COMBINATION_ID, str(ex) +
+            self.save_combination_as_failure(Combination.COMPAR_COMBINATION_ID, str(ex) +
                                              'exception in Compar. generate_optimal_code: cannot compile compar' +
                                              'mixed combination code', compar_combination_folder_path)
         # Check for best total runtime
         best_runtime_combination_id = self.db.get_total_runtime_best_combination()
-        if best_runtime_combination_id != Combination.FINAL_COMBINATION_ID:
+        if best_runtime_combination_id != Combination.COMPAR_COMBINATION_ID:
             logger.info(f'Combination #{best_runtime_combination_id} is more optimal than Compar combination')
             combination_obj = self.__combination_json_to_obj(
                 self.db.get_combination_from_static_db(best_runtime_combination_id))
@@ -291,7 +291,7 @@ class Compar:
             if os.path.exists(final_folder_path):
                 shutil.rmtree(final_folder_path)
             shutil.copytree(compar_combination_folder_path, final_folder_path)
-        self.db.remove_unused_data(Combination.FINAL_COMBINATION_ID)
+        self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
 
     @staticmethod
     def get_file_content(file_path):
