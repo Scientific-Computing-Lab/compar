@@ -46,3 +46,9 @@ class Autopar(ParallelCompiler):
         logger.debug(f'{Autopar.__name__} {stdout}')
         logger.debug_error(f'{Autopar.__name__} {stderr}')
         logger.info(f'{Autopar.__name__} finish to parallelizing {file_name}')
+
+    def pre_processing(self, **kwargs):
+        pass
+
+    def post_processing(self, **kwargs):
+        pass

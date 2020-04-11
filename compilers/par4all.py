@@ -6,16 +6,26 @@ import re
 from subprocess_handler import run_subprocess
 import logger
 import traceback
+import shutil
 
 
 class Par4all(ParallelCompiler):
     NAME = 'par4all'
+    PIPS_STUBS_NAME = 'pips_stubs.c'
 
     def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
                  include_dirs_list=None, is_nas=False, make_obj=None):
         super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list)
         self.is_nas = is_nas
         self.make_obj = make_obj
+        self.files_to_compile = []
+
+    def __copy_pips_stubs_to_folder(self):
+        destination_folder_path = self.get_input_file_directory()
+        pips_stubs_path = os.path.join('assets', Par4all.PIPS_STUBS_NAME)
+        if Par4all.PIPS_STUBS_NAME not in os.listdir(destination_folder_path):
+            shutil.copy(pips_stubs_path, destination_folder_path)
+        return os.path.join(destination_folder_path, Par4all.PIPS_STUBS_NAME)
 
     @staticmethod
     def remove_code_from_file(file_path, code_to_be_removed):
@@ -60,20 +70,14 @@ class Par4all(ParallelCompiler):
         self.make_obj = make_obj
 
     def __run_p4a_process(self):
-        files_to_compile = [file_dict['file_full_path'] for file_dict in self.get_file_list()]
-        if self.is_nas:
-            pips_stub_path = os.path.join(self.get_input_file_directory(), 'common', 'pips_stubs.c')
-        else:
-            pips_stub_path = os.path.join(self.get_input_file_directory(), 'pips_stubs.c')
-        if os.path.exists(pips_stub_path):
-            files_to_compile.append(pips_stub_path)
-        command = 'PATH=/bin:$PATH p4a -vv ' + ' '.join(files_to_compile)
+        self.files_to_compile += [file_dict['file_full_path'] for file_dict in self.get_file_list()]
+        command = 'PATH=/bin:$PATH p4a -vv ' + ' '.join(self.files_to_compile)
         if self.is_nas:
             command += ' common/*.c'
         command += ' ' + ' '.join(map(str, super().get_compilation_flags()))
         if self.include_dirs_list:
             command += ' -I ' + ' -I '.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
-                                           self.include_dirs_list))
+                                                self.include_dirs_list))
         try:
             logger.info(f'{Par4all.__name__} start to parallelizing')
             stdout, stderr, ret_code = run_subprocess([command, ], self.get_input_file_directory())
@@ -87,7 +91,7 @@ class Par4all(ParallelCompiler):
             logger.log_to_file(f'{e.output}\n{e.stderr}', log_file_path)
             raise CombinationFailure(f'par4all return with {e.returncode} code: {str(e)} : {e.output} : {e.stderr}')
         except Exception as e:
-            raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() + " failed to be parallel!")
+            raise CompilationError(f"{e}\nfiles in directory {self.get_input_file_directory()} failed to be parallel!")
 
     def compile(self):
         try:
@@ -115,4 +119,13 @@ class Par4all(ParallelCompiler):
                                 f.write(input_file_text)
                                 f.truncate()
         except Exception as e:
-            raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() + " failed to be parallel!")
+            raise CompilationError(f"{e}\nFiles in directory {self.get_input_file_directory()} failed to be parallel!")
+
+    def pre_processing(self, **kwargs):
+        if 'makefile_obj' in kwargs:
+            self.set_make_obj(kwargs['makefile_obj'])
+        pips_file_path = self.__copy_pips_stubs_to_folder()
+        self.files_to_compile.append(pips_file_path)
+
+    def post_processing(self, **kwargs):
+        os.remove(os.path.join(self.get_input_file_directory(), self.PIPS_STUBS_NAME))

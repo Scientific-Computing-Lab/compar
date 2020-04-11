@@ -40,21 +40,6 @@ class Compar:
         Compar.NUM_OF_THREADS = num_of_threads
 
     @staticmethod
-    def replace_labels(file_path, num_of_loops):
-        with open(file_path, 'r+') as f:
-            content = f.read()
-            for loop_id in range(1, num_of_loops + 1):
-                old_start_label = '/* ' + Fragmentator.get_start_label()[3:] + str(loop_id) + ' */'
-                new_start_label = Fragmentator.get_start_label() + str(loop_id)
-                old_end_label = '/* ' + Fragmentator.get_end_label()[3:] + str(loop_id) + ' */'
-                new_end_label = Fragmentator.get_end_label() + str(loop_id)
-                content = content.replace(old_start_label, new_start_label)
-                content = content.replace(old_end_label, new_end_label)
-            f.seek(0)
-            f.write(content)
-            f.truncate()
-
-    @staticmethod
     def inject_c_code_to_loop(c_file_path, loop_id, c_code_to_inject):
         e.assert_file_exist(c_file_path)
         with open(c_file_path, 'r') as input_file:
@@ -67,13 +52,6 @@ class Compar:
                 output_file.write(c_code)
         except OSError as err:
             raise e.FileError(str(err))
-
-    @staticmethod
-    def __copy_pips_stubs_to_folder(destination_folder_path):
-        pips_stubs_name = 'pips_stubs.c'
-        if pips_stubs_name not in os.listdir(destination_folder_path):
-            pips_stubs_path = os.path.join('assets', pips_stubs_name)
-            shutil.copy(pips_stubs_path, destination_folder_path)
 
     @staticmethod
     def format_c_files(list_of_file_paths):
@@ -127,7 +105,6 @@ class Compar:
         self.binary_compiler_version = binary_compiler_version
         self.ignored_rel_paths = ignored_rel_paths
         self.include_dirs_list = include_dirs_list
-        self.is_nas = is_nas
         self.time_limit = time_limit
         self.slurm_partition = slurm_partition
         self.parallel_jobs_pool_executor = JobExecutor(Compar.NUM_OF_THREADS)
@@ -386,24 +363,17 @@ class Compar:
         parallel_compiler.initiate_for_new_task(combination_obj.get_parameters().get_compilation_params(),
                                                 combination_folder_path,
                                                 self.make_absolute_file_list(combination_folder_path))
-        if compiler_name == Par4all.NAME:
-            if self.is_nas:
-                parallel_compiler.set_make_obj(Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
-                                                        self.makefile_output_exe_file_name, self.makefile_commands))
-                self.__copy_pips_stubs_to_folder(os.path.join(combination_folder_path, 'common'))
-            else:
-                self.__copy_pips_stubs_to_folder(combination_folder_path)
+        pre_processing_args = dict()
+        if self.is_make_file:
+            makefile_obj = Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
+                                    self.makefile_output_exe_file_name, self.makefile_commands)
+            pre_processing_args['makefile_obj'] = makefile_obj
+        parallel_compiler.pre_processing(**pre_processing_args)
         parallel_compiler.compile()
-        if compiler_name == Par4all.NAME:
-            if self.is_nas:
-                os.remove(os.path.join(combination_folder_path, 'common', 'pips_stubs.c'))
-            else:
-                os.remove(os.path.join(combination_folder_path, 'pips_stubs.c'))
+        post_processing_args = {'files_loop_dict': self.files_loop_dict}
+        parallel_compiler.post_processing(**post_processing_args)
         env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
         for file_dict in self.make_absolute_file_list(combination_folder_path):
-            if compiler_name == Cetus.NAME:
-                self.replace_labels(file_dict['file_full_path'],
-                                    self.files_loop_dict[file_dict['file_id_by_rel_path']][0])
             for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):
                 loop_start_label = Fragmentator.get_start_label() + str(loop_id)
                 self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)

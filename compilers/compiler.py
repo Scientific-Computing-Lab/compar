@@ -17,7 +17,7 @@ class Compiler(ABC):
         """implement your own compiler"""
         pass
 
-    def initiate_for_new_task(self, compilation_flags, input_file_directory):
+    def initiate_for_new_task(self, compilation_flags, input_file_directory, **kwargs):
         self.set_compilation_flags(compilation_flags)
         self.set_input_file_directory(input_file_directory)
 

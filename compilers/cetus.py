@@ -4,12 +4,28 @@ import subprocess
 import shutil
 import os
 import exceptions as e
+from fragmentator import Fragmentator
 from subprocess_handler import run_subprocess
 import logger
 
 
 class Cetus(ParallelCompiler):
     NAME = 'cetus'
+
+    @staticmethod
+    def replace_labels(file_path, num_of_loops):
+        with open(file_path, 'r+') as f:
+            content = f.read()
+            for loop_id in range(1, num_of_loops + 1):
+                old_start_label = '/* ' + Fragmentator.get_start_label()[3:] + str(loop_id) + ' */'
+                new_start_label = Fragmentator.get_start_label() + str(loop_id)
+                old_end_label = '/* ' + Fragmentator.get_end_label()[3:] + str(loop_id) + ' */'
+                new_end_label = Fragmentator.get_end_label() + str(loop_id)
+                content = content.replace(old_start_label, new_start_label)
+                content = content.replace(old_end_label, new_end_label)
+            f.seek(0)
+            f.write(content)
+            f.truncate()
 
     def __init__(self, version, input_file_directory=None, compilation_flags=None, file_list=None,
                  include_dirs_list=None):
@@ -82,3 +98,11 @@ class Cetus(ParallelCompiler):
                         except shutil.SameFileError:
                             pass
 
+    def pre_processing(self, **kwargs):
+        pass
+
+    def post_processing(self, **kwargs):
+        if 'files_loop_dict' in kwargs:
+            files_loop_dict = kwargs['files_loop_dict']
+            for file_dict in self.get_file_list():
+                self.replace_labels(file_dict['file_full_path'], files_loop_dict[file_dict['file_id_by_rel_path']][0])

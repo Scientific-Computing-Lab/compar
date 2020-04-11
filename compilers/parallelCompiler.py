@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from compilers.compiler import Compiler
 from exceptions import CompilationError
 
@@ -28,3 +28,10 @@ class ParallelCompiler(Compiler, ABC):
         if not self.get_input_file_directory():
             raise CompilationError("Missing working directory!")
 
+    @abstractmethod
+    def pre_processing(self, **kwargs):
+        pass
+
+    @abstractmethod
+    def post_processing(self, **kwargs):
+        pass
