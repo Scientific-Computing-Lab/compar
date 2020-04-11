@@ -4,6 +4,8 @@ import pytest
 from io import StringIO
 from contextlib import redirect_stdout, redirect_stderr
 
+import logger
+
 
 class UnitTest:
     UNIT_TEST_FILE_NAME = 'test_output.py'
@@ -11,18 +13,26 @@ class UnitTest:
     UNIT_TEST_NAME = 'test_output'
 
     @staticmethod
+    def trigger_test_output_test(test_file_path):
+        exit_code = None
+        unit_test_stdout = StringIO()
+        unit_test_stderr = StringIO()
+        with redirect_stdout(unit_test_stdout), redirect_stderr(unit_test_stderr):
+            command = [f"{test_file_path}::{UnitTest.UNIT_TEST_NAME}"]
+            if logger.get_log_level() != logger.DEBUG:
+                command += ['-q']
+            exit_code = pytest.main(command)
+        logger.verbose(f"{UnitTest.__name__}: {unit_test_stdout.read()}\n{unit_test_stderr.read()}.")
+        return exit_code
+
+    @staticmethod
     def run_unit_test(test_file_path):
-        exit_code = ""
-        with redirect_stdout(StringIO()), redirect_stderr(StringIO()):
-            exit_code = pytest.main(["-q", f"{test_file_path}::{UnitTest.UNIT_TEST_NAME}"])
-        return exit_code == ExitCode.OK
+        return UnitTest.trigger_test_output_test(test_file_path) == ExitCode.OK
 
     @staticmethod
     def check_if_test_exists(test_file_path):
-        exit_code = ""
-        with redirect_stdout(StringIO()), redirect_stderr(StringIO()):
-            exit_code = pytest.main(["-q", f"{test_file_path}::{UnitTest.UNIT_TEST_NAME}"])
-        return exit_code not in [ExitCode.NO_TESTS_COLLECTED, ExitCode.USAGE_ERROR]
+        return UnitTest.trigger_test_output_test(test_file_path)\
+               not in [ExitCode.NO_TESTS_COLLECTED, ExitCode.USAGE_ERROR]
 
 
 class ExitCode(enum.IntEnum):
@@ -38,3 +48,4 @@ class ExitCode(enum.IntEnum):
     USAGE_ERROR = 4
     #: pytest couldn't find tests
     NO_TESTS_COLLECTED = 5
+
