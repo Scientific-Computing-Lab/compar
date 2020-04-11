@@ -29,15 +29,14 @@
 !program.py
 !parse_nas_runtime.py
 !/compar_app
-/compar_app/*
 !/compar_app/templates
 !/compar_app/codemirror
 !/compar_app/codemirror/*
 !/compar_app/static
 !/compar_app/static/*
 !/compar_app/app.py
-!compar_app/templates/single-file-mode.html
+!/compar_app/templates/single-file-mode.html
 !/compar_app/templates/multiple-files-mode.html
 !/compar_app/templates/makefile-mode.html
 !subprocess_handler.py
-!compar_app/test.py
+
