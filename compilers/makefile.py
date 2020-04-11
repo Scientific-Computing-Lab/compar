@@ -22,8 +22,13 @@ class Makefile:
             self.run_makefile()
             self.move_exe_to_base_dir()
         except subprocess.CalledProcessError as ex:
+            std_out, std_err = ex.output, ex.stderr
+            if isinstance(std_out, bytes):
+                std_out = str(ex.output, encoding='utf-8')
+            if isinstance(std_err, bytes):
+                std_err = str(ex.stderr, encoding='utf-8')
             raise CombinationFailure(
-                f'Makefile return with {ex.returncode} code: {str(ex)} : {ex.output} : {ex.stderr}')
+                f'Makefile return with {ex.returncode} code: {str(ex)} : {std_out} : {std_err}')
         except Exception as e:
             raise CompilationError("Makefile failed \n" + str(e))
 

@@ -21,9 +21,14 @@ class Autopar(ParallelCompiler):
                 self.run_autopar(file["file_name"], file["file_full_path"], self.get_compilation_flags())
             return True
         except subprocess.CalledProcessError as e:
+            std_out, std_err = e.output, e.stderr
+            if isinstance(std_out, bytes):
+                std_out = str(e.output, encoding='utf-8')
+            if isinstance(std_err, bytes):
+                std_err = str(e.stderr, encoding='utf-8')
             log_file_path = f'{os.path.splitext(file["file_full_path"])[0]}_autopar_output.log'
-            logger.log_to_file(f'{e.output}\n{e.stderr}', log_file_path)
-            raise CombinationFailure(f'autopar return with {e.returncode} code: {str(e)} : {e.output} : {e.stderr}')
+            logger.log_to_file(f'{std_out}\n{std_err}', log_file_path)
+            raise CombinationFailure(f'autopar return with {e.returncode} code: {str(e)} : {std_out} : {std_err}')
         except Exception as e:
             raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() +
                                    " failed to be parallel!")

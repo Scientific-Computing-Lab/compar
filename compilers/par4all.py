@@ -91,9 +91,14 @@ class Par4all(ParallelCompiler):
             logger.debug_error(f'{Par4all.__name__} {stderr}')
             logger.info(f'{Par4all.__name__} finish to parallelizing')
         except subprocess.CalledProcessError as e:
+            std_out, std_err = e.output, e.stderr
+            if isinstance(std_out, bytes):
+                std_out = str(e.output, encoding='utf-8')
+            if isinstance(std_err, bytes):
+                std_err = str(e.stderr, encoding='utf-8')
             log_file_path = os.path.join(self.get_input_file_directory(), 'par4all_output.log')
-            logger.log_to_file(f'{e.output}\n{e.stderr}', log_file_path)
-            raise CombinationFailure(f'par4all return with {e.returncode} code: {str(e)} : {e.output} : {e.stderr}')
+            logger.log_to_file(f'{std_out}\n{std_err}', log_file_path)
+            raise CombinationFailure(f'par4all return with {e.returncode} code: {str(e)} : {std_out} : {std_err}')
         except Exception as e:
             raise CompilationError(f"{e}\nfiles in directory {self.get_input_file_directory()} failed to be parallel!")
 

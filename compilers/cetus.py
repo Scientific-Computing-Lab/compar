@@ -56,9 +56,14 @@ class Cetus(ParallelCompiler):
                 Cetus.inject_line_in_code(file["file_full_path"], '#include <omp.h>')
             return True
         except subprocess.CalledProcessError as ex:
+            std_out, std_err = ex.output, ex.stderr
+            if isinstance(std_out, bytes):
+                std_out = str(ex.output, encoding='utf-8')
+            if isinstance(std_err, bytes):
+                std_err = str(ex.stderr, encoding='utf-8')
             log_file_path = f'{os.path.splitext(file["file_full_path"])[0]}_cetus_output.log'
-            logger.log_to_file(f'{ex.output}\n{ex.stderr}', log_file_path)
-            raise CombinationFailure(f'cetus return with {ex.returncode} code: {str(ex)} : {ex.output} : {ex.stderr}')
+            logger.log_to_file(f'{std_out}\n{std_err}', log_file_path)
+            raise CombinationFailure(f'cetus return with {ex.returncode} code: {str(ex)} : {std_out} : {std_err}')
         except Exception as ex:
             raise CompilationError(str(ex) + " files in directory " + self.get_input_file_directory() +
                                    " failed to be parallel!")

@@ -40,8 +40,13 @@ class BinaryCompiler(Compiler):
             self.run_compiler()
             return True
         except subprocess.CalledProcessError as ex:
+            std_out, std_err = ex.output, ex.stderr
+            if isinstance(std_out, bytes):
+                std_out = str(ex.output, encoding='utf-8')
+            if isinstance(std_err, bytes):
+                std_err = str(ex.stderr, encoding='utf-8')
             raise CombinationFailure(self._compiler_name +
-                                     f' return with {ex.returncode} code: {str(ex)} : {ex.output} : {ex.stderr}')
+                                     f' return with {ex.returncode} code: {str(ex)} : {std_out} : {std_err}')
         except Exception as e:
             raise CompilationError(str(e) + " " + self.get_main_c_file() + " failed to be compiled!")
 
