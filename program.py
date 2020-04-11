@@ -63,7 +63,7 @@ def main():
 
     logger.initialize(args.log_level)
 
-    Compar.set_num_of_threads(args.jobs_quantity)
+    Compar.set_num_of_threads(args.jobs_quantity_at_once)
     compar_obj = Compar(
         working_directory=args.working_directory,
         input_dir=args.input_dir,
