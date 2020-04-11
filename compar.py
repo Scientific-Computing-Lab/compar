@@ -208,7 +208,7 @@ class Compar:
             optimal_loops_data.append(current_file)
 
         # remove timers code
-        self.remove_timer_code(compar_combination_folder_path)
+        Timer.remove_timer_code(self.make_absolute_file_list(compar_combination_folder_path))
         # inject new code
         Timer.inject_timer_to_compar_mixed_file(os.path.join(compar_combination_folder_path,
                                                              self.main_file_rel_path), compar_combination_folder_path)
@@ -568,58 +568,6 @@ class Compar:
         if not os.path.isdir(combination_folder_path):
             raise e.FolderError(f'Cannot create {combination_folder_path} folder')
         return combination_folder_path
-
-    @staticmethod
-    def remove_declaration_code(content):
-        run_time_vars_regex = rf'double[ ]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
-        file_pointer_vars_regex = rf'FILE[ ]*\*[ ]*{Timer.COMPAR_VAR_PREFIX}[^;]+;'
-        struct_regex_version_1 = r'typedef struct ____compar____[^\}]*\}[^;]*;'
-        struct_regex_version_2 = r'struct ____compar____[^\}]+int[^\}]+\}[^;]*;'
-        struct_regex_version_3 = r'typedef struct ____compar____[^\;]*____compar____struct;'
-        compar_dummy_var_regex = fr'{Timer.COMPAR_DUMMY_VAR}[^;]+;'
-        content = re.sub(rf'{Timer.DECL_GLOBAL_TIMER_VAR_CODE}', '', content)
-        content = re.sub(struct_regex_version_1, '', content, flags=re.DOTALL)
-        content = re.sub(struct_regex_version_2, '', content, flags=re.DOTALL)
-        content = re.sub(struct_regex_version_3, '', content, flags=re.DOTALL)
-        content = re.sub(run_time_vars_regex, '', content, flags=re.DOTALL)
-        content = re.sub(file_pointer_vars_regex, '', content, flags=re.DOTALL)
-        content = re.sub(compar_dummy_var_regex, '', content, flags=re.DOTALL)
-        return content
-
-    @staticmethod
-    def remove_run_time_calculation_code_code(content):
-        content = re.sub(rf'{Timer.GLOBAL_TIMER_VAR_NAME}[^;]+omp_get_wtime[^;]+;', '', content)
-        content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, flags=re.DOTALL)
-        content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}struct[ ]+extern[^;]+;', '', content, flags=re.DOTALL)
-        content = re.sub(Timer.COMPAR_VAR_PREFIX + r'struct[^\}]+arr[^\}]+\}[ ]*;', '', content, flags=re.DOTALL)
-        return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}arr[^;]+;', '', content, flags=re.DOTALL)
-
-    @staticmethod
-    def remove_writing_to_file_code(content):
-        fopen_regex = rf'{Timer.COMPAR_VAR_PREFIX}[^;]+fopen[^;]+{re.escape(Timer.get_file_name_prefix_token())}?[^;]+;'
-        fprintf_regex = rf'fprintf[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
-        fclose_regex = rf'fclose[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
-        main_file_at_exit_regex = r'void[ ]+____compar____atExit[^\}]+\}'
-        main_file_at_exit_call_regex = r'atexit[^\;]+;'
-        content = re.sub(main_file_at_exit_regex, '', content, flags=re.DOTALL)
-        content = re.sub(main_file_at_exit_call_regex, '', content, flags=re.DOTALL)
-        content = re.sub(fopen_regex, '', content, flags=re.DOTALL)
-        content = re.sub(fprintf_regex, '', content, flags=re.DOTALL)
-        content = re.sub(fclose_regex, '', content, flags=re.DOTALL)
-        return content
-
-    def remove_timer_code(self, container_folder_path):
-        for c_file_dict in self.make_absolute_file_list(container_folder_path):
-            try:
-                with open(c_file_dict['file_full_path'], 'r') as f:
-                    content = f.read()
-                content = self.remove_declaration_code(content)
-                content = self.remove_run_time_calculation_code_code(content)
-                content = self.remove_writing_to_file_code(content)
-                with open(c_file_dict['file_full_path'], 'w') as f:
-                    f.write(content)
-            except Exception as ex:
-                raise e.FileError(f'exception in Compar.remove_timer_code: {c_file_dict["file_full_path"]}: {str(ex)}')
 
     def generate_summary_file(self, optimal_data, dir_path):
         file_path = os.path.join(dir_path, self.SUMMARY_FILE_NAME)
