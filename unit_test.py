@@ -22,7 +22,7 @@ class UnitTest:
             if logger.get_log_level() != logger.DEBUG:
                 command += ['-q']
             exit_code = pytest.main(command)
-        logger.verbose(f"{UnitTest.__name__}: {unit_test_stdout.read()}\n{unit_test_stderr.read()}.")
+        logger.verbose(f"{UnitTest.__name__}: {unit_test_stdout.getvalue()}\n{unit_test_stderr.getvalue()}.")
         return exit_code
 
     @staticmethod
