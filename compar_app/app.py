@@ -1,6 +1,6 @@
 import os
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField,BooleanField,SelectField
+from wtforms import StringField, TextAreaField,BooleanField,SelectField, FileField
 from wtforms.validators import InputRequired
 from flask_bootstrap import Bootstrap
 import subprocess
@@ -24,7 +24,13 @@ class singleFileForm(FlaskForm):
     compiler_version = StringField('compiler_version')
     compiler_flags = TextAreaField('compiler_flags')
 
-
+class multipleFilesForm(FlaskForm):
+    input_directory = StringField('input_directory')
+    output_directory = StringField('output_directory')
+    slurm_parameters = TextAreaField('slurm_parameters', validators=[InputRequired()])
+    save_combinations = BooleanField('save_combinations')
+    compiler = SelectField('compiler', choices=[('icc', 'ICC'), ('gcc', 'GCC')])
+    compiler_flags = TextAreaField('compiler_flags')
 
 @app.route("/")
 @app.route("/singlefile", methods=['GET', 'POST'])
@@ -32,7 +38,7 @@ def single_file():
     form = singleFileForm(request.form)
 
     if request.method == "POST" and form.validate_on_submit():
-        print("blabla",form.slurm_parameters.data, form.save_combinations.data, form.compiler.data, form.compiler_version.data, form.compiler_flags.data)
+        # print("blabla",form.slurm_parameters.data, form.save_combinations.data, form.compiler.data, form.compiler_version.data, form.compiler_flags.data)
         return render_template('single-file-mode.html', form=form)
     print(form.slurm_parameters.errors)
     return render_template('single-file-mode.html', form=form)

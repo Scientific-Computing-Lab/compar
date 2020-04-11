@@ -272,3 +272,9 @@ select:focus{
     transition: 2s;
 }
 
+.resizable {
+    border: 2px solid gray;
+    resize: both;
+    z-index: 1000;
+    min-width: 200px;
+}
