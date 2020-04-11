@@ -64,7 +64,7 @@ def main():
     compar_obj = Compar(
         working_directory=args.working_directory,
         input_dir=args.input_dir,
-        binary_compiler_type=args.binary_compiler_type,
+        binary_compiler_type=args.binary_compiler_type.lower(),
         binary_compiler_version=args.binary_compiler_version,
         binary_compiler_flags=args.binary_compiler_flags,
         save_combinations_folders=args.save_combinations_folders,

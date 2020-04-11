@@ -7,6 +7,7 @@ import logger
 
 
 class Autopar(ParallelCompiler):
+    NAME = 'autopar'
 
     def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
                  include_dirs_list=None):

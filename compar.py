@@ -29,11 +29,6 @@ from unit_test import UnitTest
 
 
 class Compar:
-    GCC = 'gcc'
-    ICC = 'icc'
-    PAR4ALL = 'par4all'
-    CETUS = 'cetus'
-    AUTOPAR = 'autopar'
     BACKUP_FOLDER_NAME = "backup"
     ORIGINAL_FILES_FOLDER_NAME = "original_files"
     COMBINATIONS_FOLDER_NAME = "combinations"
@@ -362,11 +357,11 @@ class Compar:
 
     def __get_parallel_compiler_by_name(self, compiler_name):
         compilers_map = {
-            'autopar': self.autopar_compiler,
-            'cetus': self.cetus_compiler,
-            'par4all': self.par4all_compiler,
+            Autopar.NAME: self.autopar_compiler,
+            Cetus.NAME: self.cetus_compiler,
+            Par4all.NAME: self.par4all_compiler,
         }
-        return compilers_map[compiler_name]
+        return compilers_map[compiler_name.lower()]
 
     def __replace_result_file_name_prefix(self, container_folder_path):
         for c_file_dict in self.make_absolute_file_list(container_folder_path):
@@ -380,10 +375,10 @@ class Compar:
 
     def __initialize_binary_compiler(self):
         binary_compilers_map = {
-            Compar.ICC: Icc(version=self.binary_compiler_version),
-            Compar.GCC: Gcc(version=self.binary_compiler_version)
+            Icc.NAME: Icc(version=self.binary_compiler_version),
+            Gcc.NAME: Gcc(version=self.binary_compiler_version)
         }
-        self.binary_compiler = binary_compilers_map[self.binary_compiler_type]
+        self.binary_compiler = binary_compilers_map[self.binary_compiler_type.lower()]
 
     def parallel_compilation_of_one_combination(self, combination_obj, combination_folder_path):
         compiler_name = combination_obj.get_compiler()
@@ -391,7 +386,7 @@ class Compar:
         parallel_compiler.initiate_for_new_task(combination_obj.get_parameters().get_compilation_params(),
                                                 combination_folder_path,
                                                 self.make_absolute_file_list(combination_folder_path))
-        if compiler_name == Compar.PAR4ALL:
+        if compiler_name == Par4all.NAME:
             if self.is_nas:
                 parallel_compiler.set_make_obj(Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
                                                         self.makefile_output_exe_file_name, self.makefile_commands))
@@ -399,14 +394,14 @@ class Compar:
             else:
                 self.__copy_pips_stubs_to_folder(combination_folder_path)
         parallel_compiler.compile()
-        if compiler_name == Compar.PAR4ALL:
+        if compiler_name == Par4all.NAME:
             if self.is_nas:
                 os.remove(os.path.join(combination_folder_path, 'common', 'pips_stubs.c'))
             else:
                 os.remove(os.path.join(combination_folder_path, 'pips_stubs.c'))
         env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
         for file_dict in self.make_absolute_file_list(combination_folder_path):
-            if compiler_name == Compar.CETUS:
+            if compiler_name == Cetus.NAME:
                 self.replace_labels(file_dict['file_full_path'],
                                     self.files_loop_dict[file_dict['file_id_by_rel_path']][0])
             for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):

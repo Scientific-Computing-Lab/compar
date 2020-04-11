@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class Compiler(ABC):
+    NAME = ''
     
     def __init__(self, version, compilation_flags, input_file_directory):
         if compilation_flags in ["", None]:
@@ -9,6 +10,7 @@ class Compiler(ABC):
         self._version = version
         self._input_file_directory = input_file_directory
         self._compilation_flags = compilation_flags
+        self.name = ''
 
     @abstractmethod
     def compile(self):

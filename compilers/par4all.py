@@ -9,6 +9,7 @@ import traceback
 
 
 class Par4all(ParallelCompiler):
+    NAME = 'par4all'
 
     def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
                  include_dirs_list=None, is_nas=False, make_obj=None):

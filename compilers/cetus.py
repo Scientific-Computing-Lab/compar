@@ -9,6 +9,7 @@ import logger
 
 
 class Cetus(ParallelCompiler):
+    NAME = 'cetus'
 
     def __init__(self, version, input_file_directory=None, compilation_flags=None, file_list=None,
                  include_dirs_list=None):

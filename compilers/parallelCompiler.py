@@ -4,6 +4,7 @@ from exceptions import CompilationError
 
 
 class ParallelCompiler(Compiler, ABC):
+    NAME = ''
 
     def __init__(self, version, input_file_directory=None, compilation_flags=None, file_list=None,
                  include_dirs_list=None):

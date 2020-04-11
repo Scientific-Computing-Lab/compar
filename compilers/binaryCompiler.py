@@ -7,6 +7,7 @@ import logger
 
 
 class BinaryCompiler(Compiler):
+    NAME = ''
 
     def __init__(self, compiler_name, version, compilation_flags=None, input_file_directory=None, main_c_file=None):
         super().__init__(version, compilation_flags, input_file_directory)
