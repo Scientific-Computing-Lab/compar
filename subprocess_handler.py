@@ -8,7 +8,7 @@ def run_subprocess(command, cwd=os.curdir):
         command = " ".join(command)
     logger.verbose(f'Running {command} command')
     pipes = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, shell=True,
-                             env=os.environ)
+                             env=os.environ, universal_newlines=True)
     std_out, std_err = pipes.communicate()
     return_code = pipes.returncode
     pipes.kill()
