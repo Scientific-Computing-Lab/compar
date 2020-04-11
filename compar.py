@@ -98,9 +98,6 @@ class Compar:
                  makefile_exe_folder_rel_path="",
                  makefile_output_exe_file_name="",
                  ignored_rel_paths=None,
-                 par4all_flags=None,
-                 autopar_flags=None,
-                 cetus_flags=None,
                  include_dirs_list=None,
                  main_file_parameters=None,
                  slurm_parameters=None,
@@ -117,12 +114,6 @@ class Compar:
             makefile_commands = []
         if not binary_compiler_flags:
             binary_compiler_flags = []
-        if not par4all_flags:
-            par4all_flags = []
-        if not autopar_flags:
-            autopar_flags = []
-        if not cetus_flags:
-            cetus_flags = []
         if not main_file_parameters:
             main_file_parameters = []
         if not slurm_parameters:
@@ -163,14 +154,11 @@ class Compar:
         # Compilers variables
         self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
         self.binary_compiler_type = binary_compiler_type
-        self.par4all_compiler = Par4all("", par4all_flags, include_dirs_list=self.include_dirs_list, is_nas=is_nas)
-        self.autopar_compiler = Autopar("", autopar_flags, include_dirs_list=self.include_dirs_list)
-        self.cetus_compiler = Cetus("", cetus_flags, include_dirs_list=self.include_dirs_list)
+        self.par4all_compiler = Par4all("", include_dirs_list=self.include_dirs_list, is_nas=is_nas)
+        self.autopar_compiler = Autopar("", include_dirs_list=self.include_dirs_list)
+        self.cetus_compiler = Cetus("", include_dirs_list=self.include_dirs_list)
 
         # Compiler flags
-        self.user_par4all_flags = par4all_flags
-        self.user_autopar_flags = autopar_flags
-        self.user_cetus_flags = cetus_flags
         self.user_binary_compiler_flags = binary_compiler_flags
 
         # Makefile
@@ -400,7 +388,6 @@ class Compar:
     def parallel_compilation_of_one_combination(self, combination_obj, combination_folder_path):
         compiler_name = combination_obj.get_compiler()
         parallel_compiler = self.__get_parallel_compiler_by_name(compiler_name)
-        # TODO: combine the user flags with combination flags (we want to let the user to insert his flags??)
         parallel_compiler.initiate_for_new_task(combination_obj.get_parameters().get_compilation_params(),
                                                 combination_folder_path,
                                                 self.make_absolute_file_list(combination_folder_path))

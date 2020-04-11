@@ -27,9 +27,6 @@ def main():
                         default="")
     parser.add_argument('-ignore', '--ignored_rel_paths', nargs="*",
                         help='List of relative folder paths to be ignored while parallelizing', default=None)
-    parser.add_argument('-p4a_f', '--par4all_flags', nargs="*", help='Par4all flags', default=None)
-    parser.add_argument('-autopar_f', '--autopar_flags', nargs="*", help='Autopar flags', default=None)
-    parser.add_argument('-cetus_f', '--cetus_flags', nargs="*", help='Cetus flags', default=None)
     parser.add_argument('-include', '--include_dirs_list', nargs="*",
                         help='Include dir names for compilation - relative paths', default=None)
     parser.add_argument('-main_file_p', '--main_file_parameters', nargs="*", help='Main c file parameters',
@@ -76,9 +73,6 @@ def main():
         makefile_exe_folder_rel_path=args.makefile_exe_folder_rel_path,
         makefile_output_exe_file_name=args.makefile_output_exe_file_name,
         ignored_rel_paths=args.ignored_rel_paths,
-        par4all_flags=args.par4all_flags,
-        autopar_flags=args.autopar_flags,
-        cetus_flags=args.cetus_flags,
         include_dirs_list=args.include_dirs_list,
         main_file_parameters=args.main_file_parameters,
         slurm_parameters=args.slurm_parameters,
