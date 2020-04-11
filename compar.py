@@ -1,7 +1,7 @@
 import os
 import re
 from time import sleep
-
+from execute_job import ExecuteJob
 from combination import Combination
 from compilers.autopar import Autopar
 from compilers.cetus import Cetus
@@ -9,7 +9,7 @@ from compilers.par4all import Par4all
 from compilers.gcc import Gcc
 from compilers.icc import Icc
 from exceptions import UserInputError
-from executor import Executor
+from job_executor import JobExecutor
 from file_formator import format_c_code
 from job import Job
 from fragmentator import Fragmentator
@@ -130,10 +130,8 @@ class Compar:
 
         self.binary_compiler = None
         self.__timer = None
-        self.__max_combinations_at_once = 20
         self.serial_run_time = {}
         self.files_loop_dict = {}
-        self.jobs = []
         self.main_file_rel_path = main_file_rel_path
         self.save_combinations_folders = save_combinations_folders
         self.binary_compiler_version = binary_compiler_version
@@ -142,6 +140,7 @@ class Compar:
         self.is_nas = is_nas
         self.time_limit = time_limit
         self.slurm_partition = slurm_partition
+        self.parallel_jobs_pool_executor = JobExecutor(Compar.NUM_OF_THREADS)
 
         # Unit test
         self.test_file_path = test_file_path
@@ -445,20 +444,22 @@ class Compar:
     def calculate_speedups(self):
         self.db.update_all_speedups()
 
-    def run_and_save_job_list(self):
-        job_list = []
+    def execute_job(self, job, serial_run_time=None):
+        execute_job_obj = ExecuteJob(job, self.files_loop_dict, self.db, self.parallel_jobs_pool_executor.get_db_lock(),
+                                     serial_run_time, self.relative_c_file_list, self.slurm_partition,
+                                     self.test_file_path, self.time_limit)
+        execute_job_obj.run(self.slurm_parameters)
+        return job
+
+    def run_and_save_job(self, job_obj):
         try:
-            job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.db, self.relative_c_file_list,
-                                             self.slurm_partition, self.test_file_path, self.NUM_OF_THREADS,
-                                             self.slurm_parameters, self.serial_run_time, time_limit=self.time_limit)
+            job_obj = self.execute_job(job_obj, self.serial_run_time)
         except Exception as ex:
             logger.info_error(f'Exception at {Compar.__name__}: {ex}')
             logger.debug_error(f'{traceback.format_exc()}')
         finally:
-            for job in job_list:
-                if not self.save_combinations_folders:
-                    self.__delete_combination_folder(job.get_directory_path())
-            self.jobs.clear()
+            if not self.save_combinations_folders:
+                self.__delete_combination_folder(job_obj.get_directory_path())
 
     def save_combination_as_failure(self, combination_id, error_msg, combination_folder_path):
         combination_dict = {
@@ -472,9 +473,8 @@ class Compar:
 
     def run_parallel_combinations(self):
         logger.info('Start to work on parallel combinations')
+        self.parallel_jobs_pool_executor.create_jobs_pool()
         while self.db.has_next_combination():
-            if len(self.jobs) >= self.__max_combinations_at_once:
-                self.run_and_save_job_list()
             combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
             logger.info(f'Working on combination #{combination_obj.combination_id}')
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
@@ -487,9 +487,8 @@ class Compar:
                 self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
                 continue
             job = Job(combination_folder_path, combination_obj, self.main_file_parameters)
-            self.jobs.append(job)
-        if self.jobs:
-            self.run_and_save_job_list()
+            self.parallel_jobs_pool_executor.run_job_in_thread(self.run_and_save_job, job)
+        self.parallel_jobs_pool_executor.wait_and_finish_pool()
         logger.info('Finish to work on all the parallel combinations')
 
     def __create_directories_structure(self, input_dir):
@@ -576,10 +575,7 @@ class Compar:
         job = Job(directory=serial_dir_path,
                   exec_file_args=self.main_file_parameters,
                   combination=combination)
-
-        job = Executor.execute_jobs([job, ], self.files_loop_dict, self.db, self.relative_c_file_list,
-                                    self.slurm_partition, self.test_file_path, self.NUM_OF_THREADS,
-                                    self.slurm_parameters, time_limit=self.time_limit)[0]
+        job = self.execute_job(job)
         job_results = job.get_job_results()['run_time_results']
         for file_dict in job_results:
             if 'dead_code_file' not in file_dict.keys():
