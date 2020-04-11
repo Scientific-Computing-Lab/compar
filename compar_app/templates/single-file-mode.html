@@ -10,8 +10,8 @@
     <script src="{{ url_for('static', filename='js/simplescrollbars.js')}}"></script>
     <link href="{{ url_for('static', filename='css/codemirror.css')}}" rel="stylesheet"/>
     <link href="{{ url_for('static', filename='css/dracula.css')}}" rel="stylesheet" />
-    <link href="{{ url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
     <script src="{{ url_for('static', filename='js/jquery-3.4.1.min.js')}}"></script>
     <script>
 
@@ -32,7 +32,7 @@
             var singleModNav = document.getElementById('singlemod');
             singleModNav.style.color = "white";
             singleModNav.style.fontWeight = "bold";
-            singleModNav.style.fontSize = "16px";
+            singleModNav.style.fontSize = "18px";
             singleModNav.style.textDecoration = "underline"
         }
 
@@ -110,7 +110,7 @@
                 <div class="title">Compar Parameters</div>
                 <div class="form">
                     <div class="form-title">Slurm parameters:</div>
-                    <div style="align-items: center" class="flex-row">
+                    <div class="flex-row-centered">
                         <input type="text" id="slurm-params"/>
                              <button onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
                              <button onclick="removeParameter('parameters')" class="mybutton negative">-</button>

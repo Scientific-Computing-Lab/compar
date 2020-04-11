@@ -21,7 +21,7 @@
 .mycontainer {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: space-evenly;
     width: 100%;
     height: 100%;
     background: black;
@@ -29,10 +29,22 @@
     padding: 20px 0px;
 }
 
+button {
+    width: 90px;
+    box-shadow: 0px 0px 5px black;
+    color: black;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+button:focus {
+   outline: none;
+}
+
 .form-container {
     height: 100%;
+    min-width: 310px;
     border: 2px solid gray;
-    min-width: 280px;
     width: 20%;
     background: #282a36;
     overflow: scroll;
@@ -105,11 +117,13 @@
 }
 
 .startbtn {
+    color: white;
     width: 150px;
     border: 1px solid white;
     font-weight: bold;
     background: black;
-    margin: 30px 0px 0px 0px;
+    margin: 30px 0px;
+    box-shadow: 0px 0px 5px white;
 }
 
 .startbtn:active{
@@ -133,6 +147,7 @@
 }
 
 .ref {
+    text-decoration: none;
     color: white;
 }
 
@@ -155,13 +170,18 @@
 .form-title {
     font-weight: bold;
     font-size: 16px;
+    letter-spacing: 0.5px;
+}
+
+a {
+    font-size: 16px;
 }
 
 a:hover {
     color: white;
     font-weight: bold;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 18px;
     transition: 1s;
 }
 
@@ -177,11 +197,10 @@ select:focus{
 }
 
 .mybutton {
+    color: white;
     border-radius: 30%;
-    width: 26px;
-    max-height: 26px;
-    max-width: 26px;
-    border: 1px solid white;
+    width: 29px;
+    max-width: 29px;
     font-weight: bold;
     margin-left: 20px;
 }
@@ -193,16 +212,8 @@ select:focus{
     margin: 8px 0px;
 }
 
-#parameters {
-    color:white;
-    background: none;
-    border: none;
-    max-width: 100%;
-    border: 1px solid gray;
-    margin: 4px 0px;
-}
 
-#flags {
+#parameters, #flags, #cfile-parameters, #include, #ignore, #makecommands {
     color:white;
     background: none;
     border: none;
@@ -212,7 +223,7 @@ select:focus{
 
 }
 
-#parameters,#flags:focus{
+#parameters,#flags, #cfile-parameters, #include, #ignore, #makecommands:focus{
     outline: none;
 }
 
@@ -233,6 +244,7 @@ select:focus{
 }
 
 .advanced {
+    font-size: 14px;
     font-weight: bold;
     color: #989898;
     text-decoration: underline;
