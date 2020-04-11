@@ -28,6 +28,8 @@ class Timer(object):
     WRITE_TO_FILE_CODE_4 = 'fprintf(fp{}, ' + '"' + '%.10lf' + r'\\n' + '"' + ', {});\n'
     COMPAR_DUMMY_VAR = f'int {COMPAR_VAR_PREFIX}dummy_var'
     TOTAL_RUNTIME_FILENAME = 'total_runtime.txt'
+    NAME_OF_GLOBAL_ARRAY = '____compar____arr'
+    DECL_GLOBAL_ARRAY = "____compar____struct {}[{}] = {{0}};\n"
 
     @staticmethod
     def get_file_name_prefix_token():

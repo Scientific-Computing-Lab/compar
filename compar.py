@@ -549,11 +549,11 @@ class Compar:
             self.__timer = Timer(c_file_dict['file_full_path'])
             self.__timer.inject_timers(index, main_file_path)
             num_of_loops = self.__timer.get_number_of_loops()
-            name_of_global_array = f'____compar____arr{str(index)}'
+            name_of_global_array = f'{Timer.NAME_OF_GLOBAL_ARRAY}{str(index)}'
             if num_of_loops != 0:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, name_of_global_array)
-                declaration_code_to_inject_to_main_file += f"____compar____struct " \
-                    f"{name_of_global_array}[{num_of_loops}] = {'{0}'};\n"
+                declaration_code_to_inject_to_main_file += Timer.DECL_GLOBAL_ARRAY.format(
+                    name_of_global_array, num_of_loops)
             else:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, 'no_global_var')
         self.__timer.inject_declarations_to_main_file(main_file_path, declaration_code_to_inject_to_main_file)
