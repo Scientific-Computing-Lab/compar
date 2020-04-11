@@ -3,6 +3,7 @@ import subprocess
 import shutil
 from exceptions import MakefileError, CombinationFailure, CompilationError
 from subprocess_handler import run_subprocess
+import logger
 
 
 class Makefile:
@@ -21,17 +22,23 @@ class Makefile:
             self.run_makefile()
             self.move_exe_to_base_dir()
         except subprocess.CalledProcessError as ex:
+            std_out, std_err = ex.output, ex.stderr
+            if isinstance(std_out, bytes):
+                std_out = str(ex.output, encoding='utf-8')
+            if isinstance(std_err, bytes):
+                std_err = str(ex.stderr, encoding='utf-8')
             raise CombinationFailure(
-                f'Makefile return with {ex.returncode} code: {str(ex)} : {ex.output} : {ex.stderr}')
+                f'Makefile return with {ex.returncode} code: {str(ex)} : {std_out} : {std_err}')
         except Exception as e:
             raise CompilationError("Makefile failed \n" + str(e))
 
     def run_makefile(self):
-        print("Running makefile")
-        command = 'module load intel && ' + ' && '.join(self.commands)
+        logger.info(f'{Makefile.__name__} start to running makefile')
+        command = ' && '.join(self.commands)
         stdout, stderr, ret_code = run_subprocess(command, self.working_directory)
-        print('Makefile output: ' + str(stdout))
-        print("Done makefile work")
+        logger.debug(f'{Makefile.__name__} {stdout}')
+        logger.debug_error(f'{Makefile.__name__} {stderr}')
+        logger.info(f'{Makefile.__name__} finish to running makefile')
 
     def get_exe_full_path(self):
         working_dir_name = os.path.basename(os.path.dirname(self.working_directory + os.path.sep))

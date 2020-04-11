@@ -4,3 +4,4 @@ flask-wtf
 python-dotenv
 flask-bootstrap
 pymongo
+pytest

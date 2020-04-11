@@ -1,7 +1,7 @@
 import os
 import re
 from time import sleep
-
+from execute_job import ExecuteJob
 from combination import Combination
 from compilers.autopar import Autopar
 from compilers.cetus import Cetus
@@ -9,7 +9,7 @@ from compilers.par4all import Par4all
 from compilers.gcc import Gcc
 from compilers.icc import Icc
 from exceptions import UserInputError
-from executor import Executor
+from job_executor import JobExecutor
 from file_formator import format_c_code
 from job import Job
 from fragmentator import Fragmentator
@@ -24,35 +24,20 @@ import exceptions as e
 from database import Database
 from compilers.makefile import Makefile
 import traceback
+import logger
+from unit_test import UnitTest
 
 
 class Compar:
-    GCC = 'gcc'
-    ICC = 'icc'
-    PAR4ALL = 'par4all'
-    CETUS = 'cetus'
-    AUTOPAR = 'autopar'
     BACKUP_FOLDER_NAME = "backup"
     ORIGINAL_FILES_FOLDER_NAME = "original_files"
     COMBINATIONS_FOLDER_NAME = "combinations"
-    LOGS_FOLDER_NAME = 'logs'
     SUMMARY_FILE_NAME = 'summary.csv'
     NUM_OF_THREADS = 4
 
     @staticmethod
-    def replace_labels(file_path, num_of_loops):
-        with open(file_path, 'r+') as f:
-            content = f.read()
-            for loop_id in range(1, num_of_loops + 1):
-                old_start_label = '/* ' + Fragmentator.get_start_label()[3:] + str(loop_id) + ' */'
-                new_start_label = Fragmentator.get_start_label() + str(loop_id)
-                old_end_label = '/* ' + Fragmentator.get_end_label()[3:] + str(loop_id) + ' */'
-                new_end_label = Fragmentator.get_end_label() + str(loop_id)
-                content = content.replace(old_start_label, new_start_label)
-                content = content.replace(old_end_label, new_end_label)
-            f.seek(0)
-            f.write(content)
-            f.truncate()
+    def set_num_of_threads(num_of_threads):
+        Compar.NUM_OF_THREADS = num_of_threads
 
     @staticmethod
     def inject_c_code_to_loop(c_file_path, loop_id, c_code_to_inject):
@@ -67,13 +52,6 @@ class Compar:
                 output_file.write(c_code)
         except OSError as err:
             raise e.FileError(str(err))
-
-    @staticmethod
-    def __copy_pips_stubs_to_folder(destination_folder_path):
-        pips_stubs_name = 'pips_stubs.c'
-        if pips_stubs_name not in os.listdir(destination_folder_path):
-            pips_stubs_path = os.path.join('assets', pips_stubs_name)
-            shutil.copy(pips_stubs_path, destination_folder_path)
 
     @staticmethod
     def format_c_files(list_of_file_paths):
@@ -93,15 +71,13 @@ class Compar:
                  makefile_exe_folder_rel_path="",
                  makefile_output_exe_file_name="",
                  ignored_rel_paths=None,
-                 par4all_flags=None,
-                 autopar_flags=None,
-                 cetus_flags=None,
                  include_dirs_list=None,
                  main_file_parameters=None,
                  slurm_parameters=None,
                  is_nas=False,
                  time_limit=None,
-                 slurm_partition='grid'):
+                 slurm_partition='grid',
+                 test_file_path=''):
 
         if not is_make_file:
             e.assert_only_files(input_dir)
@@ -111,82 +87,71 @@ class Compar:
             makefile_commands = []
         if not binary_compiler_flags:
             binary_compiler_flags = []
-        if not par4all_flags:
-            par4all_flags = []
-        if not autopar_flags:
-            autopar_flags = []
-        if not cetus_flags:
-            cetus_flags = []
         if not main_file_parameters:
             main_file_parameters = []
         if not slurm_parameters:
-            slurm_parameters = []
+            slurm_parameters = ['--exclusive', ]
         if not ignored_rel_paths:
             ignored_rel_paths = []
+        if not test_file_path:
+            test_file_path = UnitTest.UNIT_TEST_DEFAULT_PATH
 
+        self.binary_compiler = None
+        self.__timer = None
         self.serial_run_time = {}
+        self.files_loop_dict = {}
         self.main_file_rel_path = main_file_rel_path
         self.save_combinations_folders = save_combinations_folders
-        self.binary_compiler = None
         self.binary_compiler_version = binary_compiler_version
-        self.jobs = []
-        self.__timer = None
-        self.__max_combinations_at_once = 20
         self.ignored_rel_paths = ignored_rel_paths
         self.include_dirs_list = include_dirs_list
-        self.is_nas = is_nas
         self.time_limit = time_limit
         self.slurm_partition = slurm_partition
+        self.parallel_jobs_pool_executor = JobExecutor(Compar.NUM_OF_THREADS)
 
-        # Build compar environment-----------------------------------
+        # Unit test
+        self.test_file_path = test_file_path
+        e.assert_file_exist(self.test_file_path)
+        e.assert_test_file_name(os.path.basename(self.test_file_path))
+        e.assert_test_file_function_name(self.test_file_path)
+
+        # Initiate Compar environment
         e.assert_forbidden_characters(working_directory)
         self.working_directory = working_directory
         self.backup_files_dir = os.path.join(working_directory, Compar.BACKUP_FOLDER_NAME)
         self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
         self.combinations_dir = os.path.join(working_directory, Compar.COMBINATIONS_FOLDER_NAME)
-        self.logs_dir = os.path.join(working_directory, Compar.LOGS_FOLDER_NAME)
         self.__create_directories_structure(input_dir)
-        # -----------------------------------------------------------
 
-        # Creating compiler variables----------------------------------
-        # TODO -fix version
-        version = ""  # don't know if getting this from the user
+        # Compilers variables
         self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
         self.binary_compiler_type = binary_compiler_type
-        self.par4all_compiler = Par4all(version, par4all_flags, include_dirs_list=self.include_dirs_list, is_nas=is_nas)
-        self.autopar_compiler = Autopar(version, autopar_flags, include_dirs_list=self.include_dirs_list)
-        self.cetus_compiler = Cetus(version, cetus_flags, include_dirs_list=self.include_dirs_list)
-        # -----------------------------------------------------------
+        self.par4all_compiler = Par4all("", include_dirs_list=self.include_dirs_list, is_nas=is_nas)
+        self.autopar_compiler = Autopar("", include_dirs_list=self.include_dirs_list)
+        self.cetus_compiler = Cetus("", include_dirs_list=self.include_dirs_list)
 
-        # Saves compiler flags---------------------------------------
-        self.user_par4all_flags = par4all_flags
-        self.user_autopar_flags = autopar_flags
-        self.user_cetus_flags = cetus_flags
+        # Compiler flags
         self.user_binary_compiler_flags = binary_compiler_flags
-        # -----------------------------------------------------------
 
-        # Makefile---------------------------------------------------
+        # Makefile
         self.is_make_file = is_make_file
         self.makefile_commands = makefile_commands
         self.makefile_exe_folder_rel_path = makefile_exe_folder_rel_path
         self.makefile_output_exe_file_name = makefile_output_exe_file_name
-        # -----------------------------------------------------------
 
-        # Main file--------------------------------------------------
+        # Main file
         self.main_file_parameters = main_file_parameters
-        # ----------------------------------------------------------
 
-        # SLURM------------------------------------------------------
+        # SLURM
         self.slurm_parameters = slurm_parameters
-        # ----------------------------------------------------------
-        self.files_loop_dict = {}
 
-        # INITIALIZATIONS
+        # Initialization
         if not is_make_file:
             self.__initialize_binary_compiler()
         self.db = Database(self.__extract_working_directory_name())
 
     def generate_optimal_code(self):
+        logger.info('Start to combine the Compar combination')
         compar_combination_folder_name = 'compar_combination'
         final_result_folder_name = 'final_results'
         optimal_loops_data = []
@@ -251,17 +216,18 @@ class Compar:
         self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
         self.generate_summary_file(optimal_loops_data, compar_combination_folder_path)
         try:
+            logger.info('Compiling Compar combination')
             self.compile_combination_to_binary(compar_combination_folder_path, inject=False)
-            job = Job(compar_combination_folder_path, Combination(Combination.FINAL_COMBINATION_ID, "mixed", []), [])
-            self.jobs.append(job)
-            self.run_and_save_job_list()
+            job = Job(compar_combination_folder_path, Combination(Combination.COMPAR_COMBINATION_ID, "mixed", []), [])
+            logger.info('Running Compar combination')
+            job = self.execute_job(job, self.serial_run_time)
         except Exception as ex:
-            self.save_combination_as_failure(Combination.FINAL_COMBINATION_ID, str(ex) +
-                                             'exception in Compar. generate_optimal_code: cannot compile compar' +
-                                             'mixed combination code', compar_combination_folder_path)
+            msg = f'Exception in Compar: {ex}\ngenerate_optimal_code: cannot compile compar combination'
+            self.save_combination_as_failure(Combination.COMPAR_COMBINATION_ID, msg, compar_combination_folder_path)
         # Check for best total runtime
         best_runtime_combination_id = self.db.get_total_runtime_best_combination()
-        if best_runtime_combination_id != Combination.FINAL_COMBINATION_ID:
+        if best_runtime_combination_id != Combination.COMPAR_COMBINATION_ID:
+            logger.info(f'Combination #{best_runtime_combination_id} is more optimal than Compar combination')
             combination_obj = self.__combination_json_to_obj(
                 self.db.get_combination_from_static_db(best_runtime_combination_id))
             final_results_folder_path = self.create_combination_folder(
@@ -278,9 +244,12 @@ class Compar:
                 raise Exception(f"Total runtime calculation - The optimal file could not be compiled, combination"
                                 f" {best_runtime_combination_id}.\n{ex}")
         else:
+            logger.info(f'Compar combination is the optimal combination')
             final_folder_path = os.path.join(self.working_directory, final_result_folder_name)
-            os.rename(compar_combination_folder_path, final_folder_path)
-        self.db.remove_unused_data(Combination.FINAL_COMBINATION_ID)
+            if os.path.exists(final_folder_path):
+                shutil.rmtree(final_folder_path)
+            shutil.copytree(compar_combination_folder_path, final_folder_path)
+        self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
 
     @staticmethod
     def get_file_content(file_path):
@@ -288,7 +257,7 @@ class Compar:
             with open(file_path, 'r') as input_file:
                 return input_file.read()
         except FileNotFoundError:
-            raise FileError('File {0} not exist'.format(file_path))
+            raise FileError(f'File {file_path} not exist')
 
     @staticmethod
     def add_to_loop_details_about_comp_and_combination(file_path, start_label, combination_id, comp_name):
@@ -336,7 +305,7 @@ class Compar:
         elif option == "env":
             params = parameters.get_env_params()
         else:
-            raise UserInputError('The input {0} is not supported'.format(option))
+            raise UserInputError(f'The input {option} is not supported')
 
         c_code = ""
         for param in params:
@@ -365,11 +334,11 @@ class Compar:
 
     def __get_parallel_compiler_by_name(self, compiler_name):
         compilers_map = {
-            'autopar': self.autopar_compiler,
-            'cetus': self.cetus_compiler,
-            'par4all': self.par4all_compiler,
+            Autopar.NAME: self.autopar_compiler,
+            Cetus.NAME: self.cetus_compiler,
+            Par4all.NAME: self.par4all_compiler,
         }
-        return compilers_map[compiler_name]
+        return compilers_map[compiler_name.lower()]
 
     def __replace_result_file_name_prefix(self, container_folder_path):
         for c_file_dict in self.make_absolute_file_list(container_folder_path):
@@ -383,36 +352,28 @@ class Compar:
 
     def __initialize_binary_compiler(self):
         binary_compilers_map = {
-            Compar.ICC: Icc(version=self.binary_compiler_version),
-            Compar.GCC: Gcc(version=self.binary_compiler_version)
+            Icc.NAME: Icc(version=self.binary_compiler_version),
+            Gcc.NAME: Gcc(version=self.binary_compiler_version)
         }
-        self.binary_compiler = binary_compilers_map[self.binary_compiler_type]
+        self.binary_compiler = binary_compilers_map[self.binary_compiler_type.lower()]
 
     def parallel_compilation_of_one_combination(self, combination_obj, combination_folder_path):
         compiler_name = combination_obj.get_compiler()
         parallel_compiler = self.__get_parallel_compiler_by_name(compiler_name)
-        # TODO: combine the user flags with combination flags (we want to let the user to insert his flags??)
         parallel_compiler.initiate_for_new_task(combination_obj.get_parameters().get_compilation_params(),
                                                 combination_folder_path,
                                                 self.make_absolute_file_list(combination_folder_path))
-        if compiler_name == Compar.PAR4ALL:
-            if self.is_nas:
-                parallel_compiler.set_make_obj(Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
-                                                        self.makefile_output_exe_file_name, self.makefile_commands))
-                self.__copy_pips_stubs_to_folder(os.path.join(combination_folder_path, 'common'))
-            else:
-                self.__copy_pips_stubs_to_folder(combination_folder_path)
+        pre_processing_args = dict()
+        if self.is_make_file:
+            makefile_obj = Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
+                                    self.makefile_output_exe_file_name, self.makefile_commands)
+            pre_processing_args['makefile_obj'] = makefile_obj
+        parallel_compiler.pre_processing(**pre_processing_args)
         parallel_compiler.compile()
-        if compiler_name == Compar.PAR4ALL:
-            if self.is_nas:
-                os.remove(os.path.join(combination_folder_path, 'common', 'pips_stubs.c'))
-            else:
-                os.remove(os.path.join(combination_folder_path, 'pips_stubs.c'))
+        post_processing_args = {'files_loop_dict': self.files_loop_dict}
+        parallel_compiler.post_processing(**post_processing_args)
         env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
         for file_dict in self.make_absolute_file_list(combination_folder_path):
-            if compiler_name == Compar.CETUS:
-                self.replace_labels(file_dict['file_full_path'],
-                                    self.files_loop_dict[file_dict['file_id_by_rel_path']][0])
             for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):
                 loop_start_label = Fragmentator.get_start_label() + str(loop_id)
                 self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
@@ -437,19 +398,22 @@ class Compar:
     def calculate_speedups(self):
         self.db.update_all_speedups()
 
-    def run_and_save_job_list(self):
-        job_list = []
+    def execute_job(self, job, serial_run_time=None):
+        execute_job_obj = ExecuteJob(job, self.files_loop_dict, self.db, self.parallel_jobs_pool_executor.get_db_lock(),
+                                     serial_run_time, self.relative_c_file_list, self.slurm_partition,
+                                     self.test_file_path, self.time_limit)
+        execute_job_obj.run(self.slurm_parameters)
+        return job
+
+    def run_and_save_job(self, job_obj):
         try:
-            job_list = Executor.execute_jobs(self.jobs, self.files_loop_dict, self.db, self.relative_c_file_list,
-                                             self.slurm_partition, self.NUM_OF_THREADS,
-                                             self.slurm_parameters, self.serial_run_time, time_limit=self.time_limit)
+            job_obj = self.execute_job(job_obj, self.serial_run_time)
         except Exception as ex:
-            traceback.print_exc()
+            logger.info_error(f'Exception at {Compar.__name__}: {ex}')
+            logger.debug_error(f'{traceback.format_exc()}')
         finally:
-            for job in job_list:
-                if not self.save_combinations_folders:
-                    self.__delete_combination_folder(job.get_directory_path())
-            self.jobs.clear()
+            if not self.save_combinations_folders:
+                self.__delete_combination_folder(job_obj.get_directory_path())
 
     def save_combination_as_failure(self, combination_id, error_msg, combination_folder_path):
         combination_dict = {
@@ -462,28 +426,30 @@ class Compar:
             self.__delete_combination_folder(combination_folder_path)
 
     def run_parallel_combinations(self):
+        logger.info('Start to work on parallel combinations')
+        self.parallel_jobs_pool_executor.create_jobs_pool()
         while self.db.has_next_combination():
-            if len(self.jobs) >= self.__max_combinations_at_once:
-                self.run_and_save_job_list()
             combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
+            logger.info(f'Working on combination #{combination_obj.combination_id}')
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
             try:
                 self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
                 self.compile_combination_to_binary(combination_folder_path)
             except Exception as ex:
-                traceback.print_exc()
+                logger.info_error(f'Exception at {Compar.__name__}: {ex}')
+                logger.debug_error(f'{traceback.format_exc()}')
                 self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
                 continue
             job = Job(combination_folder_path, combination_obj, self.main_file_parameters)
-            self.jobs.append(job)
-        if self.jobs:
-            self.run_and_save_job_list()
+            self.parallel_jobs_pool_executor.run_job_in_thread(self.run_and_save_job, job)
+        self.parallel_jobs_pool_executor.wait_and_finish_pool()
+        logger.info('Finish to work on all the parallel combinations')
 
     def __create_directories_structure(self, input_dir):
+        logger.info('Creating Compar directories structure')
         os.makedirs(self.original_files_dir, exist_ok=True)
         os.makedirs(self.combinations_dir, exist_ok=True)
         os.makedirs(self.backup_files_dir, exist_ok=True)
-        os.makedirs(self.logs_dir, exist_ok=True)
 
         if os.path.isdir(input_dir):
             self.__copy_folder_content(input_dir, self.original_files_dir)
@@ -537,13 +503,13 @@ class Compar:
         self.binary_compiler.compile()
 
     def run_serial(self):
+        logger.info('Start to work on serial combination')
         serial_dir_path = os.path.join(self.combinations_dir, 'serial')
         shutil.rmtree(serial_dir_path, ignore_errors=True)
         os.mkdir(serial_dir_path)
         self.__copy_sources_to_combination_folder(serial_dir_path)
         Timer.inject_atexit_code_to_main_file(os.path.join(serial_dir_path, self.main_file_rel_path),
-                                                      self.files_loop_dict, serial_dir_path)
-        # self.__replace_result_file_name_prefix(serial_dir_path)
+                                              self.files_loop_dict, serial_dir_path)
 
         if self.is_make_file:
             compiler_type = "Makefile"
@@ -563,10 +529,7 @@ class Compar:
         job = Job(directory=serial_dir_path,
                   exec_file_args=self.main_file_parameters,
                   combination=combination)
-
-        job = Executor.execute_jobs([job, ], self.files_loop_dict, self.db, self.relative_c_file_list,
-                                    self.slurm_partition, self.NUM_OF_THREADS, self.slurm_parameters,
-                                    time_limit=self.time_limit)[0]
+        job = self.execute_job(job)
         job_results = job.get_job_results()['run_time_results']
         for file_dict in job_results:
             if 'dead_code_file' not in file_dict.keys():
@@ -576,8 +539,10 @@ class Compar:
                         self.serial_run_time[key] = loop_dict['run_time']
         if not self.save_combinations_folders:
             self.__delete_combination_folder(serial_dir_path)
+        logger.info('Finish to work on serial combination')
 
     def fragment_and_add_timers(self):
+        logger.info('Start to enumerating loops and injecting run time timers')
         main_file_path = os.path.join(self.original_files_dir, self.main_file_rel_path)
         declaration_code_to_inject_to_main_file = ""
         for index, c_file_dict in enumerate(self.make_absolute_file_list(self.original_files_dir)):
@@ -592,6 +557,7 @@ class Compar:
             else:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, 'no_global_var')
         self.__timer.inject_declarations_to_main_file(main_file_path, declaration_code_to_inject_to_main_file)
+        logger.info('Finish to enumerating loops and injecting run time timers')
 
     def create_combination_folder(self, combination_folder_name, base_dir=None):
         if not base_dir:
@@ -653,8 +619,7 @@ class Compar:
                 with open(c_file_dict['file_full_path'], 'w') as f:
                     f.write(content)
             except Exception as ex:
-                raise e.FileError('exception in Compar.remove_timer_code: {}'.format(
-                    c_file_dict['file_full_path']) + str(ex))
+                raise e.FileError(f'exception in Compar.remove_timer_code: {c_file_dict["file_full_path"]}: {str(ex)}')
 
     def generate_summary_file(self, optimal_data, dir_path):
         file_path = os.path.join(dir_path, self.SUMMARY_FILE_NAME)

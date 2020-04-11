@@ -3,6 +3,8 @@ import itertools
 from bson import json_util
 from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile, NoOptimalCombinationError
 from job import Job
+import logger
+import traceback
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
@@ -17,6 +19,7 @@ class Database:
     SERIAL_COMPILER_NAME = 'serial'
 
     def __init__(self, collection_name):
+        logger.info(f'Initializing {collection_name} databases')
         try:
             self.current_combination = None
             self.current_combination_id = 1
@@ -33,7 +36,7 @@ class Database:
             self.initialize_static_db()
 
             if self.collection_name in self.dynamic_db.list_collection_names():
-                # raise DatabaseError("results DB already has {0} name collection!".format(self.collection_name))
+                # raise DatabaseError(f"results DB already has {self.collection_name} name collection!")
                 self.dynamic_db.drop_collection(self.collection_name)
 
             self.dynamic_db.create_collection(self.collection_name)
@@ -50,8 +53,8 @@ class Database:
             return True
 
         except Exception as e:
-            print("cannot initialize static DB!")
-            print(e)
+            logger.info_error(f'Exception at {Database.__name__}: cannot initialize static DB: {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
             raise DatabaseError()
 
     def get_next_combination(self):
@@ -68,8 +71,8 @@ class Database:
             self.dynamic_db[self.collection_name].insert_one(combination_result)
             return True
         except Exception as e:
-            print("Combination insertion failed")
-            print(e)
+            logger.info_error(f'{Database.__name__} cannot initialize static DB: {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
             return False
 
     def delete_combination(self, combination_id):
@@ -77,8 +80,8 @@ class Database:
             self.dynamic_db[self.collection_name].delete_one({"_id": combination_id})
             return True
         except Exception as e:
-            print("Could not delete combination")
-            print(e)
+            logger.info_error(f'Exception at {Database.__name__}: Could not delete combination: {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
             return False
 
     def update_serial_combination_speedup(self):
@@ -223,21 +226,33 @@ class Database:
         try:
             combination = self.static_db[self.collection_name].find_one({"_id": combination_id})
         except Exception as e:
-            print("Could not find combination")
-            print(e)
+            logger.info_error(f'Exception at {Database.__name__}: Could not find combination: {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
         finally:
             return combination
 
     def get_total_runtime_best_combination(self):
         best_combination = self.dynamic_db[self.collection_name].find_one(
-            {"$and": [{"error": {"$exists": False}}, {"job_total_elapsed_time": {"$ne": Job.RUNTIME_ERROR}}]},
-            sort=[("job_total_elapsed_time", 1)])
+            {"$and": [{"error": {"$exists": False}}, {"total_run_time": {"$ne": Job.RUNTIME_ERROR}}]},
+            sort=[("total_run_time", 1)])
         if not best_combination:
             raise NoOptimalCombinationError("All Compar combinations finished with error.")
         return best_combination["_id"]
 
     def remove_unused_data(self, combination_name):
         self.dynamic_db[self.collection_name].update({"_id": combination_name}, {'$unset': {'run_time_results': ""}})
+
+    def set_error_in_combination(self, combination_id, error):
+        self.dynamic_db[self.collection_name].update_one(
+            filter={
+                '_id': combination_id,
+            },
+            update={
+                '$set': {
+                    'error': error
+                }
+            }
+        )
 
 
 def generate_combinations():
@@ -336,7 +351,7 @@ def generate_env_params(param):
     lst = []
     param_name = param["param"]
     for val in param["vals"]:
-        lst.append("{0}({1});".format(param_name, val))
+        lst.append(f"{param_name}({val});")
     return lst
 
 

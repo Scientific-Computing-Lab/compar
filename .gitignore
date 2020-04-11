@@ -10,12 +10,13 @@
 !/compilers/binaryCompiler.py
 !/compilers/parallelCompiler.py
 !/compilers/makefile.py
+!/data/*
 !/assets
 !/assets/*
 !.gitignore
 !compar.py
 !database.py
-!executor.py
+!job_executor.py
 !fragmentator.py
 !timer.py
 !requirements.txt
@@ -38,4 +39,6 @@
 !/compar_app/templates/multiple-files-mode.html
 !/compar_app/templates/makefile-mode.html
 !subprocess_handler.py
+!python_compar.sh
+!logger.py
 

@@ -12,7 +12,7 @@ class Job:
 
     Data structures of job_results: {'_id' : "1234" ,
                                     'job_id':"1232132132",
-                                    'job_total_elapsed_time': 123,
+                                    'total_run_time': 123,
                                     'run_time_results': [ { 'file_id_by_rel_path' : "/test1/1234.C" ,
                                                                  'loops' : [ { 'loop_label' : "#123"
                                                                                'run_time' : "20"
@@ -31,13 +31,13 @@ class Job:
         self.exec_file_args = exec_file_args
         self.combination = combination
         self.job_id = ""
-        self.job_total_elapsed_time = 0
+        self.total_run_time = 0
         self.log_file = ""
         self.job_results = {
             'job_id': self.get_job_id(),
             '_id': str(self.get_combination().get_combination_id()),
             'run_time_results': [],
-            'job_total_elapsed_time': Job.RUNTIME_ERROR
+            'total_run_time': Job.RUNTIME_ERROR
         }
 
     def set_job_id(self, job_id):
@@ -47,12 +47,12 @@ class Job:
     def get_job_id(self):
         return self.job_id
 
-    def set_job_total_elapsed_time(self, job_total_elapsed_time):
-        self.job_total_elapsed_time = job_total_elapsed_time
-        self.job_results['job_total_elapsed_time'] = job_total_elapsed_time
+    def set_total_run_time(self, total_run_time):
+        self.total_run_time = total_run_time
+        self.job_results['total_run_time'] = total_run_time
 
-    def get_job_total_elapsed_time(self):
-        return self.job_total_elapsed_time
+    def get_total_run_time(self):
+        return self.total_run_time
 
     def set_directory_path(self, new_path):
         self.directory = new_path

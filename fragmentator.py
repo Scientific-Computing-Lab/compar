@@ -56,9 +56,9 @@ class Fragmentator:
             with open(self.__file_path, 'r') as input_file:
                 self.__file_content = input_file.read()
         except FileNotFoundError:
-            raise FileError('File {} not exist'.format(self.__file_path))
+            raise FileError(f'File {self.__file_path} not exist')
         if not self.__file_content:
-            raise FileError('The file {} is empty'.format(self.__file_path))
+            raise FileError(f'The file {self.__file_path} is empty')
 
     def __find_loops(self):
         lines = self.__file_content.split('\n')
