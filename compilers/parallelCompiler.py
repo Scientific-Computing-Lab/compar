@@ -42,7 +42,7 @@ class ParallelCompiler(Compiler, ABC):
                 user_script_path = json_content[self.NAME]
                 if os.path.exists(user_script_path):
                     try:
-                        script_command = f'user_script_path {self.get_input_file_directory()}'
+                        script_command = f'{user_script_path} {self.get_input_file_directory()}'
                         std_out, std_err, ret_code = run_subprocess(script_command)
                         logger.debug(std_out)
                         logger.debug_error(std_err)
