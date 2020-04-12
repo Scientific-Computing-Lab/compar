@@ -365,10 +365,6 @@ class Compar:
                                                 combination_folder_path,
                                                 self.make_absolute_file_list(combination_folder_path))
         pre_processing_args = dict()
-        if self.is_make_file:
-            makefile_obj = Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
-                                    self.makefile_output_exe_file_name, self.makefile_commands)
-            pre_processing_args['makefile_obj'] = makefile_obj
         parallel_compiler.pre_processing(**pre_processing_args)
         parallel_compiler.compile()
         post_processing_args = {'files_loop_dict': self.files_loop_dict}

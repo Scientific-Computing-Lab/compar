@@ -14,10 +14,9 @@ class Par4all(ParallelCompiler):
     PIPS_STUBS_NAME = 'pips_stubs.c'
 
     def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
-                 include_dirs_list=None, extra_files=None, make_obj=None):
+                 include_dirs_list=None, extra_files=None):
         super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list)
         self.extra_files = [] if not extra_files else extra_files
-        self.make_obj = make_obj
         self.files_to_compile = []
 
     def __copy_pips_stubs_to_folder(self):
@@ -66,9 +65,6 @@ class Par4all(ParallelCompiler):
             logger.info_error(f'Exception at {Par4all.__name__}: {e}')
             logger.debug_error(f'{traceback.format_exc()}')
 
-    def set_make_obj(self, make_obj):
-        self.make_obj = make_obj
-
     def initiate_for_new_task(self, compilation_flags, input_file_directory, file_list):
         super().initiate_for_new_task(compilation_flags, input_file_directory, file_list)
         self.files_to_compile = []
@@ -100,13 +96,6 @@ class Par4all(ParallelCompiler):
     def compile(self):
         try:
             super().compile()
-            if self.is_nas:
-                self.make_obj.make()
-                if os.path.exists(self.make_obj.get_exe_full_path()):
-                    os.remove(self.make_obj.get_exe_full_path())
-                wtime_sgi64_path = os.path.join(self.get_input_file_directory(), 'common', 'wtime_sgi64.c')
-                if os.path.exists(wtime_sgi64_path):
-                    os.remove(wtime_sgi64_path)
             self.__run_p4a_process()
             for root, dirs, files in os.walk(self.get_input_file_directory()):
                 for file in files:
@@ -127,8 +116,6 @@ class Par4all(ParallelCompiler):
 
     def pre_processing(self, **kwargs):
         super().pre_processing(**kwargs)
-        if 'makefile_obj' in kwargs:
-            self.set_make_obj(kwargs['makefile_obj'])
         pips_file_path = self.__copy_pips_stubs_to_folder()
         self.files_to_compile.append(pips_file_path)
 
