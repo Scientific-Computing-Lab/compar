@@ -8,6 +8,7 @@
     <script src="{{ url_for('static', filename='js/codemirror.js')}}"></script>
     <script src="{{ url_for('static', filename='js/clike/clike.js')}}"></script>
     <script src="{{ url_for('static', filename='js/simplescrollbars.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/closebrackets.js')}}"></script>
     <link href="{{ url_for('static', filename='css/codemirror.css')}}" rel="stylesheet"/>
     <link href="{{ url_for('static', filename='css/dracula.css')}}" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" />
@@ -20,13 +21,15 @@
             var editor1 = CodeMirror.fromTextArea(document.getElementById('editor1'), {
                 mode: "clike",
                 theme: "dracula",
-                lineNumbers: true
+                lineNumbers: true,
+                autoCloseBrackets: true
             });
 
             var editor2 = CodeMirror.fromTextArea(document.getElementById('editor2'), {
                 mode: "clike",
                 theme: "dracula",
-                lineNumbers: true
+                lineNumbers: true,
+                autoCloseBrackets: true
             });
 
             var singleModNav = document.getElementById('singlemod');
