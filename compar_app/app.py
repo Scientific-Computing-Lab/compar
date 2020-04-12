@@ -1,4 +1,6 @@
 import os
+import sys
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField,BooleanField,SelectField
 from wtforms.validators import InputRequired
@@ -17,13 +19,13 @@ Bootstrap(app)
 DATA = {}
 output_log = ""
 
+
 class singleFileForm(FlaskForm):
     slurm_parameters = TextAreaField('slurm_parameters', validators=[InputRequired()])
     save_combinations = BooleanField('save_combinations')
     compiler = SelectField('compiler', choices=[('icc', 'ICC'), ('gcc','GCC')])
     compiler_version = StringField('compiler_version')
     compiler_flags = TextAreaField('compiler_flags')
-
 
 
 @app.route("/")
@@ -37,9 +39,11 @@ def single_file():
     print(form.slurm_parameters.errors)
     return render_template('single-file-mode.html', form=form)
 
+
 @app.route('/multiplefiles')
 def multiple_files():
     return render_template('multiple-files-mode.html')
+
 
 @app.route('/makefile')
 def makefile():
@@ -50,8 +54,10 @@ def makefile():
 def stream():
     def generate():
         global output_log
-        compar_file = "testt.py"
-        proc = subprocess.Popen([f'python3 -u {compar_file}'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        compar_file = r"../program.py"
+        interpreter = sys.executable
+        command = [interpreter, '-u', compar_file]
+        proc = subprocess.Popen(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         for line in proc.stdout:
             output_log += str(line) + "\n"
             yield line.rstrip() + b'\n'
@@ -60,4 +66,4 @@ def stream():
 
 if __name__ == "__main__":
     app.debug = True
-    app.run()
+    app.run(port=5050)
