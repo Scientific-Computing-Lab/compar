@@ -14,9 +14,9 @@ class Par4all(ParallelCompiler):
     PIPS_STUBS_NAME = 'pips_stubs.c'
 
     def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
-                 include_dirs_list=None, is_nas=False, make_obj=None):
+                 include_dirs_list=None, extra_files=None, make_obj=None):
         super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list)
-        self.is_nas = is_nas
+        self.extra_files = [] if not extra_files else extra_files
         self.make_obj = make_obj
         self.files_to_compile = []
 
@@ -76,8 +76,8 @@ class Par4all(ParallelCompiler):
     def __run_p4a_process(self):
         self.files_to_compile += [file_dict['file_full_path'] for file_dict in self.get_file_list()]
         command = 'PATH=/bin:$PATH p4a -vv ' + ' '.join(self.files_to_compile)
-        if self.is_nas:
-            command += ' common/*.c'
+        if self.extra_files:
+            command += f' {" ".join(self.extra_files)}'
         command += ' ' + ' '.join(map(str, super().get_compilation_flags()))
         if self.include_dirs_list:
             command += ' -I ' + ' -I '.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),

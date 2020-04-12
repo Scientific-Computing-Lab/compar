@@ -16,8 +16,6 @@ from fragmentator import Fragmentator
 import shutil
 import csv
 from exceptions import FileError
-from exceptions import CompilationError
-from exceptions import ExecutionError
 from parameters import Parameters
 from timer import Timer
 import exceptions as e
@@ -74,7 +72,7 @@ class Compar:
                  include_dirs_list=None,
                  main_file_parameters=None,
                  slurm_parameters=None,
-                 is_nas=False,
+                 extra_files=None,
                  time_limit=None,
                  slurm_partition='grid',
                  test_file_path=''):
@@ -95,6 +93,8 @@ class Compar:
             ignored_rel_paths = []
         if not test_file_path:
             test_file_path = UnitTest.UNIT_TEST_DEFAULT_PATH
+        if not extra_files:
+            extra_files = []
 
         self.binary_compiler = None
         self.__timer = None
@@ -126,7 +126,7 @@ class Compar:
         # Compilers variables
         self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
         self.binary_compiler_type = binary_compiler_type
-        self.par4all_compiler = Par4all("", include_dirs_list=self.include_dirs_list, is_nas=is_nas)
+        self.par4all_compiler = Par4all("", include_dirs_list=self.include_dirs_list, extra_files=extra_files)
         self.autopar_compiler = Autopar("", include_dirs_list=self.include_dirs_list)
         self.cetus_compiler = Cetus("", include_dirs_list=self.include_dirs_list)
 

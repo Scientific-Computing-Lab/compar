@@ -31,7 +31,8 @@ def main():
     parser.add_argument('-main_file_p', '--main_file_parameters', nargs="*", help='Main c file parameters',
                         default=None)
     parser.add_argument('-slurm_p', '--slurm_parameters', nargs="*", help='Slurm parameters', default=['--exclusive', ])
-    parser.add_argument('-nas', '--is_nas', help='Is NAS Benchmark', action='store_true')
+    parser.add_argument('-extra', '--extra_files', nargs="*", default=None,
+                        help='List of relative extra files to parallelize in addition to current ones.')
     parser.add_argument('-main_file_r_p', '--main_file_rel_path', help='Main c file name relative path',
                         default="", required=True)
     parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution', default=None)
@@ -75,7 +76,7 @@ def main():
         include_dirs_list=args.include_dirs_list,
         main_file_parameters=args.main_file_parameters,
         slurm_parameters=args.slurm_parameters,
-        is_nas=args.is_nas,
+        extra_files=args.extra_files,
         main_file_rel_path=args.main_file_rel_path,
         time_limit=args.time_limit,
         slurm_partition=args.slurm_partition,
