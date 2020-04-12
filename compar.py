@@ -176,11 +176,12 @@ class Compar:
                     current_file["dead_code_file"] = True
                     break
                 except e.DeadCodeLoop:
-                    current_file["optimal_loops"].append({'_id': '0', 'loop_label': str(loop_id), 'dead_code': True})
-                    current_optimal_id = '0'
+                    current_file["optimal_loops"].append({'_id': Database.SERIAL_COMBINATION_ID,
+                                                          'loop_label': str(loop_id), 'dead_code': True})
+                    current_optimal_id = Database.SERIAL_COMBINATION_ID
 
                 # if the optimal combination is the serial => do nothing
-                if current_optimal_id != '0':
+                if current_optimal_id != Database.SERIAL_COMBINATION_ID:
                     current_optimal_combination = self.__combination_json_to_obj(
                         self.db.get_combination_from_static_db(current_optimal_id))
                     final_results_folder_path = self.create_combination_folder(
@@ -395,8 +396,6 @@ class Compar:
                                                        self.main_file_rel_path)
             self.binary_compiler.compile()
 
-    def calculate_speedups(self):
-        self.db.update_all_speedups()
 
     def execute_job(self, job, serial_run_time=None):
         execute_job_obj = ExecuteJob(job, self.files_loop_dict, self.db, self.parallel_jobs_pool_executor.get_db_lock(),
