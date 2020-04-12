@@ -9,7 +9,6 @@ import logger
 
 def main():
     num_of_jobs_at_once = 4
-    logger.info('Starting Compar execution')
     parser = argparse.ArgumentParser(description='Compar')
     parser.add_argument('-wd', '--working_directory', help='Working directory path', required=True)
     parser.add_argument('-dir', '--input_dir', help='Input directory path', required=True)
@@ -46,10 +45,12 @@ def main():
                         default=num_of_jobs_at_once)
     args = parser.parse_args()
 
-    # TODO: should be depend on users choice
     if os.path.exists(args.working_directory):
         shutil.rmtree(args.working_directory)
     os.mkdir(args.working_directory)
+
+    logger.initialize(args.log_level, args.working_directory)
+    logger.info('Starting Compar execution')
 
     assert_rel_path_starts_without_sep(args.makefile_exe_folder_rel_path)
     for path in args.makefile_exe_folder_rel_path:
@@ -57,8 +58,6 @@ def main():
 
     if args.slurm_parameters and len(args.slurm_parameters) == 1:
         args.slurm_parameters = str(args.slurm_parameters[0]).split(' ')
-
-    logger.initialize(args.log_level)
 
     Compar.set_num_of_threads(args.jobs_quantity_at_once)
     compar_obj = Compar(
