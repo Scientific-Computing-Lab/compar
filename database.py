@@ -205,7 +205,7 @@ class Database:
         for compilation_param in compilation_params:
             fields.append(f'compilation_params:{compilation_param}')
         fields.sort()
-        return hashlib.sha3_512(str(fields).encode()).hexdigest()
+        return hashlib.sha3_384(str(fields).encode()).hexdigest()
 
 
 def generate_combinations():
