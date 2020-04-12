@@ -82,7 +82,8 @@ class ExecuteJob:
             self.__analysis_output_file()
             self.update_dead_code_files()
             self.save_successful_job()
-            if not UnitTest.run_unit_test(self.test_file_path):
+            if not UnitTest.run_unit_test(self.test_file_path, self.get_job().get_directory_path(),
+                                          f"{self.get_job().get_directory_name}.log"):
                 self.db.set_error_in_combination(self.job.combination.combination_id, "Unit test failed.")
         except Exception as ex:
             if self.job.get_job_results()['run_time_results']:

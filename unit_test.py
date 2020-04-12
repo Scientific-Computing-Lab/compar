@@ -12,26 +12,30 @@ class UnitTest:
     UNIT_TEST_NAME = 'test_output'
 
     @staticmethod
-    def trigger_test_output_test(test_file_path, message=""):
+    def trigger_test_output_test(test_file_path, working_dir="", output_file_name="", message=""):
         exit_code = None
         unit_test_stdout = StringIO()
         unit_test_stderr = StringIO()
         with redirect_stdout(unit_test_stdout), redirect_stderr(unit_test_stderr):
-            command = [f"{test_file_path}::{UnitTest.UNIT_TEST_NAME}"]
+            command = []
             if logger.get_log_level() != logger.DEBUG:
                 command += ['-q']
+            command += ["--disable-warnings"]
+            command += [f"{test_file_path}::{UnitTest.UNIT_TEST_NAME}"]
+            command += ["--working_dir", working_dir]
+            command += ["--output_file_name", output_file_name]
             exit_code = pytest.main(command)
         logger.verbose(f"{UnitTest.__name__}: {message}{unit_test_stdout.getvalue()}\n{unit_test_stderr.getvalue()}.")
         return exit_code
 
     @staticmethod
-    def run_unit_test(test_file_path):
-        return UnitTest.trigger_test_output_test(test_file_path) == ExitCode.OK
+    def run_unit_test(test_file_path, working_dir="", output_file_name=""):
+        return UnitTest.trigger_test_output_test(test_file_path, working_dir, output_file_name) == ExitCode.OK
 
     @staticmethod
     def check_if_test_exists(test_file_path):
         message = f"Checking the existence of test: '{UnitTest.UNIT_TEST_NAME}'\n"
-        return UnitTest.trigger_test_output_test(test_file_path, message) not in \
+        return UnitTest.trigger_test_output_test(test_file_path, message=message) not in \
             [ExitCode.NO_TESTS_COLLECTED, ExitCode.USAGE_ERROR]
 
 
