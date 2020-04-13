@@ -73,6 +73,26 @@
             params.innerHTML = p.join(' ');
         }
     </script>
+    <script>
+         function Upload_file(fileId, textAreaId) {
+            var file = document.getElementById(fileId).files[0];
+            if(file){
+                var reader = new FileReader();
+                reader.readAsText(file, "UTF-8");
+                 console.log("upload file function");
+                 reader.onload = function (evt) {
+                    var editor = $('.CodeMirror')[0].CodeMirror;
+                    editor.setValue(evt.target.result);
+                    editor.refresh();
+                 }
+                 reader.onerror = function (evt) {
+                    var editor = $('.CodeMirror')[0].CodeMirror;
+                    editor.setValue("Error reading file!");
+                    editor.refresh();
+                 }
+             }
+        }
+    </script>
     <style>
 
         nav {
@@ -107,89 +127,153 @@
         <a href="/multiplefiles" class="seperate ref">Multiple files Mode</a>
         <a href="/makefile" class="seperate ref">Makefile Mode</a>
     </nav>
-    <div class="page-layout">
-        <div class="mycontainer">
-            <div class="form-container">
-                <div class="title">Compar Parameters</div>
-                <form method="POST" action="/singlefile" class="form">
-                    {{ form.csrf_token }}
-                    <div class="form-title">Slurm parameters:</div>
-                    <div class="flex-row-centered">
-                         <input type="text" id="slurm-params"/>
-                         <button type="button" onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
-                         <button type="button" onclick="removeParameter('parameters')" class="mybutton negative">-</button>
-                    </div>
-                    {% for error in form.slurm_parameters.errors %}
-                        <div style="color: red;">{{ error }}</div>
-                    {% endfor %}
-                    {{ form.slurm_parameters(id="parameters", readonly=true) }}
+    <form method="POST" action="/singlefile"  enctype="multipart/form-data">
+        <div class="page-layout">
+            <div class="mycontainer">
+                <div class="form-container form">
+                    <div class="title">Compar Parameters</div>
+                        {{ form.csrf_token }}
+                        <div class="form-title">Slurm parameters:</div>
+                        <div class="flex-row-centered">
+                             <input type="text" id="slurm-params"/>
+                             <button type="button" onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
+                             <button type="button" onclick="removeParameter('parameters')" class="mybutton negative">-</button>
+                        </div>
 
-                    <div class="horizontal-separator"></div>
-                    <div style="align-items: center" class="flex-row">
-                        <div class="form-title">Save combination folders:</div>
-                        {{ form.save_combinations(style='margin-left: 30px')}}
-                    </div>
-                    <div class="horizontal-separator"></div>
-                    <div style="align-items: center" class="flex-row">
-                        <div class="form-title">Compiler:</div>
-                        {{ form.compiler(style='margin-left: 30px') }}
-                    </div>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Compiler version:</div>
-                    {{ form.compiler_version }}
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Compiler flags:</div>
-                    <div style="align-items: center" class="flex-row">
-                        <input type="text" id="compiler-flags"/>
-                        <button type="button" onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
-                        <button type="button" onclick="removeParameter('flags')" class="mybutton negative">-</button>
-                    </div>
-                    {{ form.compiler_flags(id="flags", readonly=true) }}
-                    <div class="horizontal-separator"></div>
-                    <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
-                    <div id="advanced">
+                        <div style="color: red;" id="slurmAlert">{{ error }}</div>
+                        {{ form.slurm_parameters(id="parameters", readonly=true) }}
+
+                        <div class="horizontal-separator"></div>
                         <div style="align-items: center" class="flex-row">
-                        <div class="form-title">Save combination folders:</div>
-                        <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
-                    </div>
-                    </div>
-                    <button type="submit" value="Submit" class="startbtn">START</button>
-                </form>
-            </div>
-            <div class="screen-container">
-                <div style="height: 50%" class="flex-row">
-                    <div class="flex-col resizable">
-                        <div class="flex-row-spaced title">
-                            <div>Source File</div>
-                            <button>Upload</button>
+                            <div class="form-title">Save combination folders:</div>
+                            {{ form.save_combinations(style='margin-left: 30px')}}
                         </div>
-                        <div class="textarea-cover">
-                            <textarea id="editor1">{{source_file}}</textarea>
+                        <div class="horizontal-separator"></div>
+                        <div style="align-items: center" class="flex-row">
+                            <div class="form-title">Compiler:</div>
+                            {{ form.compiler(style='margin-left: 30px') }}
                         </div>
-                    </div>
-                    <div style="margin-left: 20px; direction: rtl;" class="flex-col resizable">
-                        <div style="direction: ltr" class="flex-row-spaced title">
-                            <div>Result File</div>
-                            <button>Download</button>
+                        <div class="horizontal-separator"></div>
+                        <div class="form-title">Compiler version:</div>
+                        <div style="color: red;" id="compilerVersionAlert">{{ error }}</div>
+                        {{ form.compiler_version }}
+                        <div class="horizontal-separator"></div>
+                        <div class="form-title">Compiler flags:</div>
+                        <div style="align-items: center" class="flex-row">
+                            <input type="text" id="compiler-flags"/>
+                            <button type="button" onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
+                            <button type="button" onclick="removeParameter('flags')" class="mybutton negative">-</button>
                         </div>
-                        <textarea readonly id="editor2">{{result_file}}</textarea>
-                    </div>
-                </div>
-                <div class="output-log flex-col">
-                    <div class="title">Output Log</div>
-                    <div class="out">
-                        <div id="output"></div>
-                    </div>
-                </div>
+                        {{ form.compiler_flags(id="flags", readonly=true) }}
+                        <div class="horizontal-separator"></div>
+                        <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
+                        <div id="advanced">
+                            <div style="align-items: center" class="flex-row">
+                            <div class="form-title">Save combination folders:</div>
+                            <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
+                        </div>
+                        </div>
+                        <button type="submit" value="Submit" id="startCompar" class="startbtn">START</button>
 
+                </div>
+                <div class="screen-container">
+                    <div style="height: 50%" class="flex-row">
+                        <div class="flex-col resizable">
+                            <div class="flex-row-spaced title">
+                                <div>Source File</div>
+                                    {{ form.upload_file(id="upload_source_file")}}
+                                    <button  type="button"
+                                             onclick="Upload_file('upload_source_file','source_file_area')"
+                                             name="upload_button">Upload
+                                    </button>
+                            </div>
+                            <div class="textarea-cover">
+                                {{ form.source_file_area( id="editor1", class="form-control" ,rows="10") }}
+                                <!--<textarea id="editor1">{{source_file}}</textarea>-->
+                            </div>
+                        </div>
+                        <div style="margin-left: 20px; direction: rtl;" class="flex-col resizable">
+                            <div style="direction: ltr" class="flex-row-spaced title">
+                                <div>Result File</div>
+                                <button>Download</button>
+                            </div>
+                            {{ form.result_file_area( id="editor2", class="form-control ta" ,rows="10", readonly=true ) }}
+                            <!--<textarea readonly id="editor2">{{result_file}}</textarea>-->
+                        </div>
+                    </div>
+                    <div class="output-log flex-col">
+                        <div class="title">Output Log</div>
+                        <div class="out">
+                            <div id="output"></div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
-    </div>
+    </form>
 </body>
 
 
-
 <script>
+    var comparIsRunning = false;
+
+    function handleErrors(errors){
+        hasErrors = false;
+        console.log("handling errors");
+        console.log(errors);
+        if (errors && errors.slurm_parameters){
+            document.getElementById('slurmAlert').innerHTML = errors.slurm_parameters;
+            hasErrors = true;
+        }
+        else{
+            document.getElementById('slurmAlert').innerHTML = "";
+        }
+    }
+
+    $(document).ready(function() {
+        $('form').submit(function (e) {
+            var url = "{{ url_for('something') }}"; // send the form data here.
+            if(!comparIsRunning){
+                submitForm(url);
+            }
+            e.preventDefault(); // block the traditional submission of the form.
+        });
+    });
+
+  function submitForm(url){
+    $.ajax({
+                type: "POST",
+                url: url,
+                data: $('form').serialize(), // serializes the form's elements.
+                success: function (data) {
+                    console.log("received: ")
+                    console.log(data)  // display the returned data in the console.
+                },
+                error: function(error){
+                    console.log("received errors: ")
+                    console.log(error)
+                }
+            })
+
+            .done(function(data) {
+                handleErrors(data.errors);
+                if(!data.errors){
+                    run();
+                }
+            });
+
+
+        // Inject our CSRF token into our AJAX request.
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ form.csrf_token._value() }}")
+                }
+            }
+        })
+  }
+
   async function* makeTextFileLineIterator(fileURL) {
       const utf8Decoder = new TextDecoder('utf-8');
       const response = await fetch(fileURL);
@@ -223,14 +307,36 @@
   }
 
     async function run() {
-      for await (let line of makeTextFileLineIterator("stream_progress")) {
-                var item = document.createElement('li');
-                item.textContent = line;
-                output.appendChild(item);
+      if (!comparIsRunning){
+          comparIsRunning = true;
+          var sourceFileArea = document.getElementById("source_file_area");
+          var resultFileArea = document.getElementById("result_file_area");
+          var editor = $('.CodeMirror')[1].CodeMirror;
+          editor.setValue("Creating file ...");
+          editor.refresh();
+          document.getElementById('startCompar').disabled = true;
+          for await (let line of makeTextFileLineIterator("stream_progress")) {
+                    var item = document.createElement('li');
+                    item.textContent = line;
+                    output.appendChild(item);
+          }
+
+          var editor = $('.CodeMirror')[1].CodeMirror;
+          var url = "{{ url_for('result_file') }}"
+          fetch(url)
+          .then((response) => {
+            return response.json();
+          })
+          .then((data) => {
+            editor.setValue(data.text);
+            editor.refresh();
+          });
+
+          comparIsRunning = false;
+          document.getElementById('startCompar').disabled = false;
+          // call here to show result file
       }
-    // call here to show result file
     }
 
-    run();
 </script>
 </html>
