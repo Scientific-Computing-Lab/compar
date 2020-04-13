@@ -50,7 +50,7 @@ class UnitTest:
 
     @staticmethod
     def check_if_test_exists(test_file_path):
-        logger.debug(f"{UnitTest.__name__}: Checking the existence of test: '{UnitTest.UNIT_TEST_NAME}'.")
+        logger.verbose(f"{UnitTest.__name__}: Checking the existence of test: '{UnitTest.UNIT_TEST_NAME}'.")
         return UnitTest.trigger_test_output_test(test_file_path, check_for_existence=True) not in \
             [ExitCode.NO_TESTS_COLLECTED, ExitCode.USAGE_ERROR]
 
