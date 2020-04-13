@@ -12,7 +12,7 @@ class UnitTest:
     UNIT_TEST_NAME = 'test_output'
 
     @staticmethod
-    def trigger_test_output_test(test_file_path, working_dir="", output_file_name="", message=""):
+    def trigger_test_output_test(test_file_path, working_dir="", output_file_name="", check_for_existence=False):
         exit_code = None
         stdout = ""
         stderr = ""
@@ -27,19 +27,21 @@ class UnitTest:
             stdout, stderr, exit_code = run_subprocess(command)
         except CalledProcessError as e:
             if e.returncode is None or e.returncode not in [code for code in ExitCode]:
-                logger.info_error(f"{UnitTest.__name__}: pytest operation failed. test failed.\n{e}")
+                logger.info_error(f"{UnitTest.__name__}: pytest operation failed. could not run the test.\n{e}")
                 return ExitCode.INTERNAL_ERROR
             stdout = e.stdout
             stderr = e.stderr
             exit_code = e.returncode
         except Exception as ex:
-            logger.info_error(f"{UnitTest.__name__}: exception thrown during pytest operation. test failed.\n{ex}")
+            logger.info_error(f"{UnitTest.__name__}: exception thrown during pytest operation."
+                              f" could not run the test.\n{ex}")
             return ExitCode.INTERNAL_ERROR
-        if exit_code == ExitCode.OK:
-            logger.verbose(f"{UnitTest.__name__}: test '{UnitTest.UNIT_TEST_NAME}' passed.")
-        else:
-            logger.info_error(f"{UnitTest.__name__}: test '{UnitTest.UNIT_TEST_NAME}' failed.")
-        logger.debug(f"{UnitTest.__name__}: {message}{stdout}\n{stderr}.")
+        if not check_for_existence:
+            if exit_code == ExitCode.OK:
+                logger.verbose(f"{UnitTest.__name__}: test '{UnitTest.UNIT_TEST_NAME}' passed.")
+            else:
+                logger.info_error(f"{UnitTest.__name__}: test '{UnitTest.UNIT_TEST_NAME}' failed.")
+            logger.debug(f"{UnitTest.__name__}: {stdout}\n{stderr}.")
         return exit_code
 
     @staticmethod
@@ -48,8 +50,8 @@ class UnitTest:
 
     @staticmethod
     def check_if_test_exists(test_file_path):
-        message = f"Checking the existence of test: '{UnitTest.UNIT_TEST_NAME}'\n"
-        return UnitTest.trigger_test_output_test(test_file_path, message=message) not in \
+        logger.debug(f"{UnitTest.__name__}: Checking the existence of test: '{UnitTest.UNIT_TEST_NAME}'.")
+        return UnitTest.trigger_test_output_test(test_file_path, check_for_existence=True) not in \
             [ExitCode.NO_TESTS_COLLECTED, ExitCode.USAGE_ERROR]
 
 
