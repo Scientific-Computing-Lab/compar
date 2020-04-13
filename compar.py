@@ -6,6 +6,7 @@ from combination import Combination
 from compilers.autopar import Autopar
 from compilers.cetus import Cetus
 from compilers.par4all import Par4all
+from compilers.dummy import Dummy
 from compilers.gcc import Gcc
 from compilers.icc import Icc
 from exceptions import UserInputError
@@ -129,7 +130,7 @@ class Compar:
         self.par4all_compiler = Par4all("", include_dirs_list=self.include_dirs_list, extra_files=extra_files)
         self.autopar_compiler = Autopar("", include_dirs_list=self.include_dirs_list)
         self.cetus_compiler = Cetus("", include_dirs_list=self.include_dirs_list)
-
+        self.dummy_compiler = Dummy("", include_dirs_list=self.include_dirs_list)
         # Compiler flags
         self.user_binary_compiler_flags = binary_compiler_flags
 
@@ -338,6 +339,7 @@ class Compar:
             Autopar.NAME: self.autopar_compiler,
             Cetus.NAME: self.cetus_compiler,
             Par4all.NAME: self.par4all_compiler,
+            Dummy.NAME: self.dummy_compiler
         }
         return compilers_map[compiler_name.lower()]
 

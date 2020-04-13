@@ -7,9 +7,11 @@
 !/compilers/gcc.py
 !/compilers/icc.py
 !/compilers/par4all.py
+!/compilers/dummy.py
 !/compilers/binaryCompiler.py
 !/compilers/parallelCompiler.py
 !/compilers/makefile.py
+!remove_compar_annot.py
 !/data/*
 !/assets
 !/assets/*
