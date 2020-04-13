@@ -3,9 +3,6 @@ import re
 from time import sleep
 from execute_job import ExecuteJob
 from combination import Combination
-from compilers.autopar import Autopar
-from compilers.cetus import Cetus
-from compilers.par4all import Par4all
 from compilers.gcc import Gcc
 from compilers.icc import Icc
 from exceptions import UserInputError
@@ -24,6 +21,7 @@ from compilers.makefile import Makefile
 import traceback
 import logger
 from unit_test import UnitTest
+from assets.parallelizers_mapper import parallelizers
 
 
 class Compar:
@@ -126,9 +124,9 @@ class Compar:
         # Compilers variables
         self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
         self.binary_compiler_type = binary_compiler_type
-        self.par4all_compiler = Par4all("", include_dirs_list=self.include_dirs_list, extra_files=extra_files)
-        self.autopar_compiler = Autopar("", include_dirs_list=self.include_dirs_list)
-        self.cetus_compiler = Cetus("", include_dirs_list=self.include_dirs_list)
+        self.parallelizers = dict()
+        for name, ctor in parallelizers.items():
+            self.parallelizers[name] = ctor("", include_dirs_list=self.include_dirs_list, extra_files=extra_files)
 
         # Compiler flags
         self.user_binary_compiler_flags = binary_compiler_flags
@@ -334,12 +332,7 @@ class Compar:
         return os.path.basename(working_directory_name)
 
     def __get_parallel_compiler_by_name(self, compiler_name):
-        compilers_map = {
-            Autopar.NAME: self.autopar_compiler,
-            Cetus.NAME: self.cetus_compiler,
-            Par4all.NAME: self.par4all_compiler,
-        }
-        return compilers_map[compiler_name.lower()]
+        return self.parallelizers[compiler_name.lower()]
 
     def __replace_result_file_name_prefix(self, container_folder_path):
         for c_file_dict in self.make_absolute_file_list(container_folder_path):

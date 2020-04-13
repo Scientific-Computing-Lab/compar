@@ -14,8 +14,8 @@ class Par4all(ParallelCompiler):
     PIPS_STUBS_NAME = 'pips_stubs.c'
 
     def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
-                 include_dirs_list=None, extra_files=None):
-        super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list)
+                 include_dirs_list=None, extra_files=None, **kwargs):
+        super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list, **kwargs)
         self.extra_files = [] if not extra_files else extra_files
         self.files_to_compile = []
 
