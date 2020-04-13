@@ -274,7 +274,7 @@ select:focus{
 
 .resizable {
     border: 2px solid gray;
-    resize: both;
+    resize: vertical;
     z-index: 1000;
     min-width: 200px;
 }
