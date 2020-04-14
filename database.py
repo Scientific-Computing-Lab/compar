@@ -8,7 +8,7 @@ import traceback
 import hashlib
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
-ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
+OMP_RTL_PARAMS_FILE_PATH = "assets/omp_rtl_params.json"
 STATIC_DB_NAME = "compar_combinations"
 DYNAMIC_DB_NAME = "compar_results"
 DB = "mongodb://10.10.10.120:27017"
@@ -156,8 +156,8 @@ class Database:
                 "_id": Database.SERIAL_COMBINATION_ID,
                 "compiler_name": Database.SERIAL_COMPILER_NAME,
                 "parameters": {
-                    "env_params": [],
-                    "code_params": [],
+                    "omp_rtl_params": [],
+                    "code_params": [],  # TODO: change name
                     "compilation_params": []
                 }
             }
@@ -195,11 +195,11 @@ class Database:
     @staticmethod
     def generate_combination_id(combination):
         fields = [f'compiler_name:{combination["compiler_name"]}']
-        env_params = combination['parameters']['env_params']
-        for env_param in env_params:
-            fields.append(f'env_params:{env_param}')
-        code_params = combination['parameters']['code_params']
-        for code_param in code_params:
+        omp_rtl_params = combination['parameters']['omp_rtl_params']
+        for omp_rtl_param in omp_rtl_params:
+            fields.append(f'omp_rtl_params:{omp_rtl_param}')
+        code_params = combination['parameters']['code_params']  # TODO: change name
+        for code_param in code_params:  # TODO: change name
             fields.append(f'code_params:{code_param}')
         compilation_params = combination['parameters']['compilation_params']
         for compilation_param in compilation_params:
@@ -209,13 +209,13 @@ class Database:
 
 
 def generate_combinations():
-    env_params = []
+    omp_rtl_params = []
     combinations = []
-    with open(ENVIRONMENT_PARAMS_FILE_PATH, 'r') as f:
-        env_array = json_util.loads(f.read())
-        for param in env_array:
-            env_params.append(generate_env_params(param))
-        env_params = mult_lists(env_params)
+    with open(OMP_RTL_PARAMS_FILE_PATH, 'r') as f:
+        omp_rtl_array = json_util.loads(f.read())
+        for param in omp_rtl_array:
+            omp_rtl_params.append(generate_omp_rtl_params(param))
+        omp_rtl_params = mult_lists(omp_rtl_params)
 
     with open(COMPILATION_PARAMS_FILE_PATH, 'r') as f:
         comb_array = json_util.loads(f.read())
@@ -237,11 +237,11 @@ def generate_combinations():
             all_combs = mult_lists(all_combs)
 
             for compile_comb in all_combs:
-                for env_comb in env_params:
-                    if not env_comb:
-                        curr_env_comb = []
+                for omp_rtl_comb in omp_rtl_params:
+                    if not omp_rtl_comb:
+                        curr_omp_rtl_comb = []
                     else:
-                        curr_env_comb = env_comb.split(" ")
+                        curr_omp_rtl_comb = omp_rtl_comb.split(" ")
                     if not compile_comb:
                         curr_compile_comb = []
                     else:
@@ -249,8 +249,8 @@ def generate_combinations():
                     new_comb = {
                         "compiler_name": compiler,
                         "parameters": {
-                            "env_params": curr_env_comb,
-                            "code_params": [],
+                            "omp_rtl_params": curr_omp_rtl_comb,
+                            "code_params": [],  # TODO: change name
                             "compilation_params": curr_compile_comb
                         }
                     }
@@ -298,7 +298,7 @@ def generate_valued_params_list(valued_list, mandatory=False):
     return lst
 
 
-def generate_env_params(param):
+def generate_omp_rtl_params(param):
     if not param:
         return [""]
     lst = []

@@ -299,24 +299,24 @@ class Compar:
 
     @staticmethod
     def create_c_code_to_inject(parameters, option):
-        if option == "code":
+        if option == "code":  # TODO: change name
             params = parameters.get_code_params()
-        elif option == "env":
-            params = parameters.get_env_params()
+        elif option == "omp_rtl":
+            params = parameters.get_omp_rtl_params()
         else:
             raise UserInputError(f'The input {option} is not supported')
 
         c_code = ""
         for param in params:
-            if option == "env":
+            if option == "omp_rtl":
                 c_code += param + "\n"
         return c_code
 
     @staticmethod
-    def __combination_json_to_obj(combination_json):
+    def __combination_json_to_obj(combination_json):  # TODO: move to Parameters and Combination classes
         parameters_json = combination_json['parameters']
-        parameters_obj = Parameters(code_params=parameters_json['code_params'],
-                                    env_params=parameters_json['env_params'],
+        parameters_obj = Parameters(code_params=parameters_json['code_params'],  # TODO: change name
+                                    omp_rtl_params=parameters_json['omp_rtl_params'],
                                     compilation_params=parameters_json['compilation_params'])
         combination_obj = Combination(combination_id=combination_json['_id'],
                                       compiler_name=combination_json['compiler_name'],
@@ -362,11 +362,11 @@ class Compar:
         parallel_compiler.compile()
         post_processing_args = {'files_loop_dict': self.files_loop_dict}
         parallel_compiler.post_processing(**post_processing_args)
-        env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
+        omp_rtl_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'omp_rtl')
         for file_dict in self.make_absolute_file_list(combination_folder_path):
             for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):
                 loop_start_label = Fragmentator.get_start_label() + str(loop_id)
-                self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
+                self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, omp_rtl_code)
 
     def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None, inject=True):
         if inject:
@@ -561,7 +561,7 @@ class Compar:
         file_path = os.path.join(dir_path, self.SUMMARY_FILE_NAME)
         with open(file_path, 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["File", "Loop", "Combination", "Compiler", "Compilation Params", "Env flags",
+            writer.writerow(["File", "Loop", "Combination", "Compiler", "Compilation Params", "OMP RTL flags",
                              "Runtime", "Speedup"])
             for curr_file in optimal_data:
                 if 'dead_code_file' in curr_file.keys():
@@ -578,7 +578,7 @@ class Compar:
                         writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], loop['_id'],
                                          combination_obj.get_compiler(),
                                          combination_obj.get_parameters().get_compilation_params(),
-                                         combination_obj.get_parameters().get_env_params(),
+                                         combination_obj.get_parameters().get_omp_rtl_params(),
                                          loop['run_time'], loop['speedup']])
 
     def update_summary_file(self, best_runtime_combination, dir_path):
@@ -588,7 +588,7 @@ class Compar:
             writer.writerow([""])
             writer.writerow([f"Combination {best_runtime_combination.get_combination_id()}"
                              f" gave the best total runtime"])
-            writer.writerow(["Compiler", "Compilation Params", "Env flags"])
+            writer.writerow(["Compiler", "Compilation Params", "OMP RTL flags"])
             writer.writerow([best_runtime_combination.get_compiler(),
                              best_runtime_combination.get_parameters().get_compilation_params(),
-                             best_runtime_combination.get_parameters().get_env_params()])
+                             best_runtime_combination.get_parameters().get_omp_rtl_params()])

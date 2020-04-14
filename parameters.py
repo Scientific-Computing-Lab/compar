@@ -1,48 +1,48 @@
 
 class Parameters:
 
-    def __init__(self, code_params=None, env_params=None, compilation_params=None):
+    def __init__(self, code_params=None, omp_rtl_params=None, compilation_params=None):
         if not code_params:
-            code_params = []
-        if not env_params:
-            env_params = []
+            code_params = []  # TODO: change name
+        if not omp_rtl_params:
+            omp_rtl_params = []
         if not compilation_params:
             compilation_params = []
         self.code_params = code_params
-        self.env_params = env_params
+        self.omp_rtl_params = omp_rtl_params
         self.compilation_params = compilation_params
 
-    def get_code_params(self):
+    def get_code_params(self):  # TODO: change name
         return self.code_params
 
-    def get_env_params(self):
-        return self.env_params
+    def get_omp_rtl_params(self):
+        return self.omp_rtl_params
 
     def get_compilation_params(self):
         return self.compilation_params
 
-    def set_code_params(self, code_params):
+    def set_code_params(self, code_params):  # TODO: change name
         self.code_params = code_params
 
-    def set_env_params(self, env_params):
-        self.env_params = env_params
+    def set_omp_rtl_params(self, omp_rtl_params):
+        self.omp_rtl_params = omp_rtl_params
 
     def set_compilation_params(self, compilation_params):
         self.compilation_params = compilation_params
 
-    def add_code_param(self, code_param):
+    def add_code_param(self, code_param):  # TODO: change name
         for i, param in enumerate(self.code_params):
             if param.split()[0] == code_param.split()[0]:
                 self.code_params[i] = code_param
                 return
         self.code_params.append(code_param)
 
-    def add_env_param(self, env_param):
-        for i, param in enumerate(self.env_params):
-            if param.split()[0] == env_param.split()[0]:
-                self.env_params[i] = env_param
+    def add_omp_rtl_param(self, omp_rtl_param):
+        for i, param in enumerate(self.omp_rtl_params):
+            if param.split()[0] == omp_rtl_param.split()[0]:
+                self.omp_rtl_params[i] = omp_rtl_param
                 return
-        self.env_params.append(env_param)
+        self.omp_rtl_params.append(omp_rtl_param)
 
     def add_compilation_param(self, compilation_param):
         for i, param in enumerate(self.compilation_params):

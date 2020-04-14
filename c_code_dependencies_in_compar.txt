@@ -1,4 +1,4 @@
-assets/env_params.json
+assets/omp_rtl_params.json
 	all
 assets/pips_stubs.c
 	all
