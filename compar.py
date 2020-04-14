@@ -299,8 +299,8 @@ class Compar:
 
     @staticmethod
     def create_c_code_to_inject(parameters, option):
-        if option == "code":  # TODO: change name
-            params = parameters.get_code_params()
+        if option == "omp_directives":
+            params = parameters.get_omp_directives_params()
         elif option == "omp_rtl":
             params = parameters.get_omp_rtl_params()
         else:
@@ -315,7 +315,7 @@ class Compar:
     @staticmethod
     def __combination_json_to_obj(combination_json):  # TODO: move to Parameters and Combination classes
         parameters_json = combination_json['parameters']
-        parameters_obj = Parameters(code_params=parameters_json['code_params'],  # TODO: change name
+        parameters_obj = Parameters(omp_directives_params=parameters_json['omp_directives_params'],
                                     omp_rtl_params=parameters_json['omp_rtl_params'],
                                     compilation_params=parameters_json['compilation_params'])
         combination_obj = Combination(combination_id=combination_json['_id'],

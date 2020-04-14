@@ -157,7 +157,7 @@ class Database:
                 "compiler_name": Database.SERIAL_COMPILER_NAME,
                 "parameters": {
                     "omp_rtl_params": [],
-                    "code_params": [],  # TODO: change name
+                    "omp_directives_params": [],
                     "compilation_params": []
                 }
             }
@@ -198,9 +198,9 @@ class Database:
         omp_rtl_params = combination['parameters']['omp_rtl_params']
         for omp_rtl_param in omp_rtl_params:
             fields.append(f'omp_rtl_params:{omp_rtl_param}')
-        code_params = combination['parameters']['code_params']  # TODO: change name
-        for code_param in code_params:  # TODO: change name
-            fields.append(f'code_params:{code_param}')
+        omp_directives_params = combination['parameters']['omp_directives_params']
+        for omp_directives_param in omp_directives_params:
+            fields.append(f'omp_directives_params:{omp_directives_param}')
         compilation_params = combination['parameters']['compilation_params']
         for compilation_param in compilation_params:
             fields.append(f'compilation_params:{compilation_param}')
@@ -250,7 +250,7 @@ def generate_combinations():
                         "compiler_name": compiler,
                         "parameters": {
                             "omp_rtl_params": curr_omp_rtl_comb,
-                            "code_params": [],  # TODO: change name
+                            "omp_directives_params": [],
                             "compilation_params": curr_compile_comb
                         }
                     }
