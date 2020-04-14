@@ -302,17 +302,17 @@ class Compar:
             self.save_combination_as_failure(Combination.COMPAR_COMBINATION_ID, msg, compar_combination_folder_path)
         # Check for best total runtime
         best_runtime_combination_id = self.db.get_total_runtime_best_combination()
+        best_combination_obj = None
         if best_runtime_combination_id != Combination.COMPAR_COMBINATION_ID:
             logger.info(f'Combination #{best_runtime_combination_id} is more optimal than Compar combination')
-            combination_obj = Combination.json_to_obj(
+            best_combination_obj = Combination.json_to_obj(
                 self.db.get_combination_from_static_db(best_runtime_combination_id))
             final_results_folder_path = self.create_combination_folder(
                 final_result_folder_name, self.working_directory)
             try:
                 if best_runtime_combination_id != Database.SERIAL_COMBINATION_ID:
-                    self.parallel_compilation_of_one_combination(combination_obj, final_results_folder_path)
+                    self.parallel_compilation_of_one_combination(best_combination_obj, final_results_folder_path)
                 self.compile_combination_to_binary(final_results_folder_path)
-                self.update_summary_file(combination_obj, compar_combination_folder_path)
                 summary_file_path = os.path.join(compar_combination_folder_path, self.SUMMARY_FILE_NAME)
                 summary_file_new_path = os.path.join(final_results_folder_path, self.SUMMARY_FILE_NAME)
                 shutil.move(summary_file_path, summary_file_new_path)
@@ -328,6 +328,15 @@ class Compar:
         # remove compar code from all the files in final result folder
         final_folder_path = os.path.join(self.working_directory, final_result_folder_name)
         Timer.remove_timer_code(self.make_absolute_file_list(final_folder_path))
+        final_combination_results = self.db.get_combination_results(best_runtime_combination_id)
+        if final_combination_results:
+            final_combination_results['_id'] = final_result_folder_name
+            final_combination_results['from_combination'] = best_runtime_combination_id
+            self.db.insert_new_combination_results(final_combination_results)
+            with open(os.path.join(final_folder_path, Timer.TOTAL_RUNTIME_FILENAME), 'w') as f:
+                f.write(str(final_combination_results['total_run_time']))
+            self.update_summary_file(compar_combination_folder_path, best_runtime_combination_id,
+                                     final_combination_results['total_run_time'], best_combination_obj)
         self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
 
     def __extract_working_directory_name(self):
@@ -571,14 +580,16 @@ class Compar:
                                          combination_obj.get_parameters().get_omp_rtl_params(),
                                          loop['run_time'], loop['speedup']])
 
-    def update_summary_file(self, best_runtime_combination, dir_path):
+    def update_summary_file(self, dir_path, best_runtime_combination_id, total_rum_time, best_combination=None):
         file_path = os.path.join(dir_path, self.SUMMARY_FILE_NAME)
         with open(file_path, 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([""])
-            writer.writerow([f"Combination {best_runtime_combination.get_combination_id()}"
-                             f" gave the best total runtime"])
-            writer.writerow(["Compiler", "Compilation Params", "OMP RTL flags"])
-            writer.writerow([best_runtime_combination.get_compiler(),
-                             best_runtime_combination.get_parameters().get_compilation_params(),
-                             best_runtime_combination.get_parameters().get_omp_rtl_params()])
+            writer.writerow([f"{best_runtime_combination_id}"
+                             f" combination gave the best total runtime"])
+            if best_combination:
+                writer.writerow(["Compiler", "Compilation Params", "OMP RTL flags"])
+                writer.writerow([best_combination.get_compiler(),
+                                 best_combination.get_parameters().get_compilation_params(),
+                                 best_combination.get_parameters().get_omp_rtl_params()])
+            writer.writerow(['Total run time:', str(total_rum_time)])
