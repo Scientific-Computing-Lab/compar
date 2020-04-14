@@ -180,7 +180,7 @@ class Compar:
 
                 # if the optimal combination is the serial => do nothing
                 if current_optimal_id != Database.SERIAL_COMBINATION_ID:
-                    current_optimal_combination = self.__combination_json_to_obj(
+                    current_optimal_combination = Combination.json_to_obj(
                         self.db.get_combination_from_static_db(current_optimal_id))
                     final_results_folder_path = self.create_combination_folder(
                         "current_combination", base_dir=self.working_directory)
@@ -227,7 +227,7 @@ class Compar:
         best_runtime_combination_id = self.db.get_total_runtime_best_combination()
         if best_runtime_combination_id != Combination.COMPAR_COMBINATION_ID:
             logger.info(f'Combination #{best_runtime_combination_id} is more optimal than Compar combination')
-            combination_obj = self.__combination_json_to_obj(
+            combination_obj = Combination.json_to_obj(
                 self.db.get_combination_from_static_db(best_runtime_combination_id))
             final_results_folder_path = self.create_combination_folder(
                 final_result_folder_name, self.working_directory)
@@ -311,17 +311,6 @@ class Compar:
             if option == "omp_rtl":
                 c_code += param + "\n"
         return c_code
-
-    @staticmethod
-    def __combination_json_to_obj(combination_json):  # TODO: move to Parameters and Combination classes
-        parameters_json = combination_json['parameters']
-        parameters_obj = Parameters(omp_directives_params=parameters_json['omp_directives_params'],
-                                    omp_rtl_params=parameters_json['omp_rtl_params'],
-                                    compilation_params=parameters_json['compilation_params'])
-        combination_obj = Combination(combination_id=combination_json['_id'],
-                                      compiler_name=combination_json['compiler_name'],
-                                      parameters=parameters_obj)
-        return combination_obj
 
     def __extract_working_directory_name(self):
         working_directory_name = self.working_directory
@@ -417,7 +406,7 @@ class Compar:
         logger.info('Start to work on parallel combinations')
         self.parallel_jobs_pool_executor.create_jobs_pool()
         while self.db.has_next_combination():
-            combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
+            combination_obj = Combination.json_to_obj(self.db.get_next_combination())
             logger.info(f'Working on combination #{combination_obj.combination_id}')
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
             try:
@@ -573,7 +562,7 @@ class Compar:
                         writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], 'dead code loop',
                                          "", "", "", "", ""])
                     else:
-                        combination_obj = self.__combination_json_to_obj(
+                        combination_obj = Combination.json_to_obj(
                             self.db.get_combination_from_static_db(loop['_id']))
                         writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], loop['_id'],
                                          combination_obj.get_compiler(),

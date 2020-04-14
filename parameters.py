@@ -1,6 +1,12 @@
 
 class Parameters:
 
+    @staticmethod
+    def json_to_obj(parameters_json):
+        return Parameters(omp_directives_params=parameters_json['omp_directives_params'],
+                          omp_rtl_params=parameters_json['omp_rtl_params'],
+                          compilation_params=parameters_json['compilation_params'])
+
     def __init__(self, omp_directives_params=None, omp_rtl_params=None, compilation_params=None):
         if not omp_directives_params:
             omp_directives_params = []

@@ -1,6 +1,15 @@
+from parameters import Parameters
+
+
 class Combination:
 
     COMPAR_COMBINATION_ID = 'compar_combination'
+
+    @staticmethod
+    def json_to_obj(combination_json):
+        return Combination(combination_id=combination_json['_id'],
+                           compiler_name=combination_json['compiler_name'],
+                           parameters=Parameters.json_to_obj(combination_json['parameters']))
 
     def __init__(self, combination_id, compiler_name, parameters):
         self.combination_id = combination_id
