@@ -179,7 +179,7 @@
                 </div>
                 <div class="screen-container">
                     <div style="height: 50%" class="flex-row">
-                        <div class="flex-col resizable">
+                        <div style="overflow: auto" class="flex-col resizable">
                             <div class="flex-row-spaced title">
                                 <div>Source File</div>
                                     {{ form.upload_file(id="upload_source_file")}}
@@ -192,7 +192,7 @@
                                 {{ form.source_file_area( id="editor1", class="form-control" ,rows="10") }}
                             </div>
                         </div>
-                        <div style="margin-left: 20px; direction: rtl;" class="flex-col resizable">
+                        <div style="margin-left: 20px; direction: rtl; overflow: auto;" class="flex-col resizable">
                             <div style="direction: ltr" class="flex-row-spaced title">
                                 <div>Result File</div>
                                 <button>Download</button>

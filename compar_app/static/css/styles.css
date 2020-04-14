@@ -52,6 +52,15 @@ button:focus {
     overflow: hidden;
 }
 
+div::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE and Edge */
+div {
+  -ms-overflow-style: none;
+}
+
 .screen-container {
     display: flex;
     flex-direction: column;
@@ -73,6 +82,7 @@ button:focus {
     height: 50%;
     width: 100%;
 }
+
 
 .out {
     height: 100%;
