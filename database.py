@@ -149,6 +149,16 @@ class Database:
             raise MissingDataError(f'Cannot find any loop in db, loop: {loop_label}, file: {file_id_by_rel_path}')
         return best_combination_id, best_loop
 
+    def get_combination_results(self, combination_id):
+        combination = None
+        try:
+            combination = self.dynamic_db[self.collection_name].find_one({"_id": combination_id})
+        except Exception as e:
+            logger.info_error(f'Exception at {Database.__name__}: Could not find results for combination: {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
+        finally:
+            return combination
+
     def get_combination_from_static_db(self, combination_id):
         combination = None
         if combination_id == self.SERIAL_COMBINATION_ID:
