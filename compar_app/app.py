@@ -3,7 +3,8 @@ import sys
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
-from wtforms import StringField, TextAreaField, BooleanField, SelectField, FileField
+from flask_wtf.file import FileField
+from wtforms import StringField, TextAreaField, BooleanField, SelectField
 from wtforms.validators import InputRequired
 from flask_bootstrap import Bootstrap
 import subprocess
@@ -18,7 +19,7 @@ app.config['SECRET_KEY'] = SECRET_KEY
 Bootstrap(app)
 
 DATA = {}
-SOURCE_FILE_DIRECTORY = ''
+SOURCE_FILE_DIRECTORY = 'temp'
 
 
 class SingleFileForm(FlaskForm):
@@ -27,7 +28,7 @@ class SingleFileForm(FlaskForm):
     compiler = SelectField('compiler', choices=[('icc', 'ICC'), ('gcc', 'GCC')])
     compiler_version = StringField('compiler_version')
     compiler_flags = TextAreaField('compiler_flags')
-    source_file_area = TextAreaField('source_file_area')
+    source_file_code = TextAreaField('source_file_code')
     upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'c file only!')])  # valiation dont work
     result_file_area = TextAreaField('result_file_area')
 
@@ -49,8 +50,10 @@ def makefile():
     return render_template('makefile-mode.html')
 
 
-def save_source_file(file_path, txt):
-    # This function replace the save file option because Changes that can be in the code
+def save_source_file(file_name, txt):
+    if not os.path.exists(SOURCE_FILE_DIRECTORY):
+        os.mkdir(SOURCE_FILE_DIRECTORY)
+    file_path = os.path.join(SOURCE_FILE_DIRECTORY, file_name)
     with open(file_path, "w") as f:
         f.write(txt)
 
@@ -60,25 +63,30 @@ def something():
     form = SingleFileForm(request.form)
     print(form.validate_on_submit())
     print(form.errors)
+    print(request.files)
     if form.validate_on_submit():
         DATA['slurm_parameters'] = form.slurm_parameters.data
         DATA['save_combinations'] = form.save_combinations.data
         DATA['compiler'] = form.compiler.data
         DATA['compiler_version'] = form.compiler_version.data
         DATA['compiler_flags'] = form.compiler_flags.data
-        DATA['source_file_text'] = form.source_file_area.data
-        print("blabla", DATA)
+        DATA['source_file_text'] = form.source_file_code.data
+        # print("blabla", DATA)
+        # print("test codemirror: ", form.source_file_code.data)
         # handling upload file/paste code
-        if form.source_file_area.data:
+        if form.source_file_code.data:
             file = form.upload_file.data
+            print("file test: ", file)
             if file:
                 DATA['source_file_name'] = file.filename
-                DATA['source_file_path'] = os.path.join(SOURCE_FILE_DIRECTORY, file.filename)
             else:
                 DATA['source_file_name'] = 'source_file.c'
-                DATA['source_file_path'] = os.path.join(SOURCE_FILE_DIRECTORY, 'source_file.c')
-            print(DATA['source_file_path'], form.source_file_area.data)
-            # save_source_file(file_path=DATA['source_file_path'], txt=form.source_file_area.data)
+            # print(DATA['source_file_path'], form.source_file_area.data)
+            # check for now because filefield is not part of the field
+            if not DATA['source_file_name']:
+                DATA['source_file_name'] = 'source_file.c'
+            save_source_file(file_name=DATA['source_file_name'], txt=form.source_file_code.data)
+
         return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
     return jsonify(errors=form.errors)
 
@@ -100,7 +108,8 @@ def stream():
 
 @app.route('/result_file', methods=['get'])
 def result_file():
-        result_file = "testt.py"
+        print("result_file: " + str(DATA))
+        result_file = os.path.join(SOURCE_FILE_DIRECTORY, DATA['source_file_name'])
         text = ''
         with open(result_file) as fp:
             text = fp.read()

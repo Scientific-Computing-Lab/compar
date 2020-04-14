@@ -18,14 +18,14 @@
 
         function init() {
 
-            var editor1 = CodeMirror.fromTextArea(document.getElementById('editor1'), {
+            var code_mirror_source_editor = CodeMirror.fromTextArea(document.getElementById('source_editor'), {
                 mode: "clike",
                 theme: "dracula",
                 lineNumbers: true,
                 autoCloseBrackets: true
             });
 
-            var editor2 = CodeMirror.fromTextArea(document.getElementById('editor2'), {
+            var code_mirror_result_editor = CodeMirror.fromTextArea(document.getElementById('result_editor'), {
                 mode: "clike",
                 theme: "dracula",
                 lineNumbers: true,
@@ -76,19 +76,21 @@
     <script>
          function Upload_file(fileId, textAreaId) {
             var file = document.getElementById(fileId).files[0];
+            var code_mirror_source_editor = $('.CodeMirror')[0].CodeMirror;
             if(file){
+                console.log("js file test " + file.name);
                 var reader = new FileReader();
                 reader.readAsText(file, "UTF-8");
                  console.log("upload file function");
                  reader.onload = function (evt) {
-                    var editor = $('.CodeMirror')[0].CodeMirror;
-                    editor.setValue(evt.target.result);
-                    editor.refresh();
+                    document.getElementById('source_editor').innerHTML = evt.target.result;
+                    code_mirror_source_editor.setValue(evt.target.result);
+                    code_mirror_source_editor.refresh();
                  }
                  reader.onerror = function (evt) {
-                    var editor = $('.CodeMirror')[0].CodeMirror;
-                    editor.setValue("Error reading file!");
-                    editor.refresh();
+                    document.getElementById('source_editor').innerHTML = "Error reading file!";
+                    code_mirror_source_editor.setValue("Error reading file!");
+                    code_mirror_source_editor.refresh();
                  }
              }
         }
@@ -127,7 +129,7 @@
         <a href="/multiplefiles" class="seperate ref">Multiple files Mode</a>
         <a href="/makefile" class="seperate ref">Makefile Mode</a>
     </nav>
-    <form method="POST" action="/singlefile"  enctype="multipart/form-data">
+    <form method="POST" action="/singlefile"  enctype="multipart/form-data" id="form">
         <div class="page-layout">
             <div class="mycontainer">
                 <div class="form-container form">
@@ -174,22 +176,23 @@
                             <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
                         </div>
                         </div>
-                        <button type="submit" value="Submit" id="startCompar" class="startbtn">START</button>
+                        <button type="submit" value="Submit" id="startComparButton" class="startbtn">START</button>
                     </div>
                 </div>
                 <div class="screen-container">
                     <div style="height: 50%" class="flex-row">
                         <div style="overflow: auto" class="flex-col resizable">
                             <div class="flex-row-spaced title">
+                                {{ form.upload_file(id="upload_source_file") }}
                                 <div>Source File</div>
-                                    {{ form.upload_file(id="upload_source_file")}}
+
                                     <button id="browse_button"
                                              type="button"
                                              name="upload_button">Upload
                                     </button>
                             </div>
                             <div class="textarea-cover">
-                                {{ form.source_file_area( id="editor1", class="form-control" ,rows="10") }}
+                                {{ form.source_file_code(id="source_editor") }}
                             </div>
                         </div>
                         <div style="margin-left: 20px; direction: rtl; overflow: auto;" class="flex-col resizable">
@@ -197,7 +200,7 @@
                                 <div>Result File</div>
                                 <button>Download</button>
                             </div>
-                            {{ form.result_file_area( id="editor2", class="form-control ta" ,rows="10", readonly=true ) }}
+                            {{ form.result_file_area(id="result_editor") }}
                         </div>
                     </div>
                     <div class="output-log flex-col">
@@ -206,7 +209,6 @@
                             <div id="output"></div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -215,19 +217,18 @@
 
 <script>
     upload_source_file.onchange = function(){
-        Upload_file('upload_source_file','source_file_area');
+        console.log("upload file on change triggered");
+        Upload_file('upload_source_file','source_file_code');
     }
 </script>
 <script>
     var comparIsRunning = false;
 
     function handleErrors(errors){
-        hasErrors = false;
         console.log("handling errors");
         console.log(errors);
         if (errors && errors.slurm_parameters){
             document.getElementById('slurmAlert').innerHTML = errors.slurm_parameters;
-            hasErrors = true;
         }
         else{
             document.getElementById('slurmAlert').innerHTML = "";
@@ -238,6 +239,7 @@
         $('form').submit(function (e) {
             var url = "{{ url_for('something') }}"; // send the form data here.
             if(!comparIsRunning){
+                source_editor.innerHTML = ($('.CodeMirror')[0].CodeMirror).getValue();
                 submitForm(url);
             }
             e.preventDefault(); // block the traditional submission of the form.
@@ -312,31 +314,31 @@
     async function run() {
       if (!comparIsRunning){
           comparIsRunning = true;
-          var sourceFileArea = document.getElementById("source_file_area");
-          var resultFileArea = document.getElementById("result_file_area");
-          var editor = $('.CodeMirror')[1].CodeMirror;
-          editor.setValue("Creating file ...");
-          editor.refresh();
-          document.getElementById('startCompar').disabled = true;
+          var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
+          codeMirrorResultEditor.setValue("Creating file ...");
+          codeMirrorResultEditor.refresh();
+          startComparButton.disabled = true;
+<!--          codeMirrorResultEditor.readOnly = true;-->
+
           for await (let line of makeTextFileLineIterator("stream_progress")) {
                     var item = document.createElement('li');
                     item.textContent = line;
                     output.appendChild(item);
           }
 
-          var editor = $('.CodeMirror')[1].CodeMirror;
           var url = "{{ url_for('result_file') }}"
           fetch(url)
           .then((response) => {
             return response.json();
           })
           .then((data) => {
-            editor.setValue(data.text);
-            editor.refresh();
+            var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
+            codeMirrorResultEditor.setValue(data.text);
+            codeMirrorResultEditor.refresh();
           });
 
           comparIsRunning = false;
-          document.getElementById('startCompar').disabled = false;
+          startComparButton.disabled = false;
           // call here to show result file
       }
     }
