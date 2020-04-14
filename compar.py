@@ -13,7 +13,6 @@ from fragmentator import Fragmentator
 import shutil
 import csv
 from exceptions import FileError
-from parameters import Parameters
 from timer import Timer
 import exceptions as e
 from database import Database
@@ -50,9 +49,87 @@ class Compar:
             raise e.FileError(str(err))
 
     @staticmethod
+    def __copy_folder_content(src, dst):
+        for rel_path in os.listdir(src):
+            src_full_path = os.path.join(src, rel_path)
+            if os.path.isfile(src_full_path):
+                shutil.copy(src_full_path, dst)
+            elif os.path.isdir(src_full_path):
+                dest_path_include_new_dir = os.path.join(dst, rel_path)
+                if os.path.exists(dest_path_include_new_dir):
+                    shutil.rmtree(dest_path_include_new_dir)
+                shutil.copytree(src_full_path, dest_path_include_new_dir)
+
+    @staticmethod
+    def __delete_combination_folder(combination_folder_path):
+        shutil.rmtree(combination_folder_path)
+
+    @staticmethod
     def format_c_files(list_of_file_paths):
         for file_path in list_of_file_paths:
             format_c_code([file_path, ])
+
+    @staticmethod
+    def get_file_content(file_path):
+        try:
+            with open(file_path, 'r') as input_file:
+                return input_file.read()
+        except FileNotFoundError:
+            raise FileError(f'File {file_path} not exist')
+
+    @staticmethod
+    def add_to_loop_details_about_comp_and_combination(file_path, start_label, combination_id, comp_name):
+        e.assert_file_exist(file_path)
+        e.assert_file_is_empty(file_path)
+        with open(file_path, 'r') as file:
+            file_text = file.read()
+        to_replace = ''
+        to_replace += start_label + '\n'
+        to_replace += '// COMBINATION_ID: ' + combination_id + '\n'
+        to_replace += '// COMPILER_NAME: ' + comp_name + '\n'
+        file_text = re.sub(f'{start_label}[ ]*\\n', to_replace, file_text)
+        try:
+            with open(file_path, 'w') as file:
+                file.write(file_text)
+        except OSError as err:
+            raise e.FileError(str(err))
+
+    @staticmethod
+    def replace_loops_in_files(origin_path, destination_path, start_label, end_label):
+
+        origin_file_string = Compar.get_file_content(origin_path)
+        destination_file_string = Compar.get_file_content(destination_path)
+
+        origin_cut_string = re.findall(f'{start_label}[ ]*\\n.*{end_label}[ ]*\\n', origin_file_string, flags=re.DOTALL)
+        if len(origin_cut_string) != 1:
+            raise Exception(f'cannot find loop {start_label} in {origin_path}')
+        origin_cut_string = origin_cut_string[0]
+
+        destination_cut_string = re.findall(f'{start_label}[ ]*\\n.*{end_label}[ ]*\\n', destination_file_string,
+                                            flags=re.DOTALL)
+        if len(destination_cut_string) != 1:
+            raise Exception(f'cannot find loop {start_label} in {destination_path}')
+        destination_cut_string = destination_cut_string[0]
+
+        destination_file_string = destination_file_string.replace(destination_cut_string, origin_cut_string)
+
+        with open(destination_path, "w") as input_file:
+            input_file.write(destination_file_string)
+
+    @staticmethod
+    def create_c_code_to_inject(parameters, option):
+        if option == "omp_directives":
+            params = parameters.get_omp_directives_params()
+        elif option == "omp_rtl":
+            params = parameters.get_omp_rtl_params()
+        else:
+            raise UserInputError(f'The input {option} is not supported')
+
+        c_code = ""
+        for param in params:
+            if option == "omp_rtl":
+                c_code += param + "\n"
+        return c_code
 
     def __init__(self,
                  working_directory,
@@ -219,7 +296,7 @@ class Compar:
             self.compile_combination_to_binary(compar_combination_folder_path, inject=False)
             job = Job(compar_combination_folder_path, Combination(Combination.COMPAR_COMBINATION_ID, "mixed", []), [])
             logger.info('Running Compar combination')
-            job = self.execute_job(job, self.serial_run_time)
+            self.execute_job(job, self.serial_run_time)
         except Exception as ex:
             msg = f'Exception in Compar: {ex}\ngenerate_optimal_code: cannot compile compar combination'
             self.save_combination_as_failure(Combination.COMPAR_COMBINATION_ID, msg, compar_combination_folder_path)
@@ -249,68 +326,6 @@ class Compar:
                 shutil.rmtree(final_folder_path)
             shutil.copytree(compar_combination_folder_path, final_folder_path)
         self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
-
-    @staticmethod
-    def get_file_content(file_path):
-        try:
-            with open(file_path, 'r') as input_file:
-                return input_file.read()
-        except FileNotFoundError:
-            raise FileError(f'File {file_path} not exist')
-
-    @staticmethod
-    def add_to_loop_details_about_comp_and_combination(file_path, start_label, combination_id, comp_name):
-        e.assert_file_exist(file_path)
-        e.assert_file_is_empty(file_path)
-        with open(file_path, 'r') as file:
-            file_text = file.read()
-        to_replace = ''
-        to_replace += start_label + '\n'
-        to_replace += '// COMBINATION_ID: ' + combination_id + '\n'
-        to_replace += '// COMPILER_NAME: ' + comp_name + '\n'
-        file_text = re.sub(f'{start_label}[ ]*\\n', to_replace, file_text)
-        try:
-            with open(file_path, 'w') as file:
-                file.write(file_text)
-        except OSError as err:
-            raise e.FileError(str(err))
-
-    @staticmethod
-    def replace_loops_in_files(origin_path, destination_path, start_label, end_label):
-
-        origin_file_string = Compar.get_file_content(origin_path)
-        destination_file_string = Compar.get_file_content(destination_path)
-
-        origin_cut_string = re.findall(f'{start_label}[ ]*\\n.*{end_label}[ ]*\\n', origin_file_string, flags=re.DOTALL)
-        if len(origin_cut_string) != 1:
-            raise Exception(f'cannot find loop {start_label} in {origin_path}')
-        origin_cut_string = origin_cut_string[0]
-
-        destination_cut_string = re.findall(f'{start_label}[ ]*\\n.*{end_label}[ ]*\\n', destination_file_string,
-                                            flags=re.DOTALL)
-        if len(destination_cut_string) != 1:
-            raise Exception(f'cannot find loop {start_label} in {destination_path}')
-        destination_cut_string = destination_cut_string[0]
-
-        destination_file_string = destination_file_string.replace(destination_cut_string, origin_cut_string)
-
-        with open(destination_path, "w") as input_file:
-            input_file.write(destination_file_string)
-
-    @staticmethod
-    def create_c_code_to_inject(parameters, option):
-        if option == "omp_directives":
-            params = parameters.get_omp_directives_params()
-        elif option == "omp_rtl":
-            params = parameters.get_omp_rtl_params()
-        else:
-            raise UserInputError(f'The input {option} is not supported')
-
-        c_code = ""
-        for param in params:
-            if option == "omp_rtl":
-                c_code += param + "\n"
-        return c_code
 
     def __extract_working_directory_name(self):
         working_directory_name = self.working_directory
@@ -374,7 +389,6 @@ class Compar:
                                                        self.main_file_rel_path)
             self.binary_compiler.compile()
 
-
     def execute_job(self, job, serial_run_time=None):
         execute_job_obj = ExecuteJob(job, self.files_loop_dict, self.db, self.parallel_jobs_pool_executor.get_db_lock(),
                                      serial_run_time, self.relative_c_file_list, self.slurm_partition,
@@ -434,24 +448,8 @@ class Compar:
         else:
             raise UserInputError('The input path must be directory')
 
-    @staticmethod
-    def __copy_folder_content(src, dst):
-        for rel_path in os.listdir(src):
-            src_full_path = os.path.join(src, rel_path)
-            if os.path.isfile(src_full_path):
-                shutil.copy(src_full_path, dst)
-            elif os.path.isdir(src_full_path):
-                dest_path_include_new_dir = os.path.join(dst, rel_path)
-                if os.path.exists(dest_path_include_new_dir):
-                    shutil.rmtree(dest_path_include_new_dir)
-                shutil.copytree(src_full_path, dest_path_include_new_dir)
-
     def __copy_sources_to_combination_folder(self, combination_folder_path):
         self.__copy_folder_content(self.original_files_dir, combination_folder_path)
-
-    @staticmethod
-    def __delete_combination_folder(combination_folder_path):
-        shutil.rmtree(combination_folder_path)
 
     def make_relative_c_file_list(self, base_dir):
         e.assert_forbidden_characters(base_dir)
