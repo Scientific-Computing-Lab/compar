@@ -325,6 +325,9 @@ class Compar:
             if os.path.exists(final_folder_path):
                 shutil.rmtree(final_folder_path)
             shutil.copytree(compar_combination_folder_path, final_folder_path)
+        # remove compar code from all the files in final result folder
+        final_folder_path = os.path.join(self.working_directory, final_result_folder_name)
+        Timer.remove_timer_code(self.make_absolute_file_list(final_folder_path))
         self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
 
     def __extract_working_directory_name(self):
