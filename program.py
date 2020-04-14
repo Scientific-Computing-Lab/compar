@@ -48,7 +48,7 @@ def main():
 
     if os.path.exists(args.working_directory):
         shutil.rmtree(args.working_directory)
-    os.mkdir(args.working_directory)
+    os.makedirs(args.working_directory, exist_ok=True)
 
     logger.initialize(args.log_level, args.working_directory)
     logger.info('Starting Compar execution')
