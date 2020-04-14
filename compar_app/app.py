@@ -1,7 +1,6 @@
 import os
 import sys
 
-from flask_cors import CORS
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
 from wtforms import StringField, TextAreaField, BooleanField, SelectField, FileField
@@ -13,7 +12,6 @@ from flask import Flask, render_template
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config.from_object(__name__)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
