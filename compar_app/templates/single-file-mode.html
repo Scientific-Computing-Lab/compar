@@ -182,14 +182,13 @@
                             <div class="flex-row-spaced title">
                                 <div>Source File</div>
                                     {{ form.upload_file(id="upload_source_file")}}
-                                    <button  type="button"
-                                             onclick="Upload_file('upload_source_file','source_file_area')"
+                                    <button id="browse_button"
+                                             type="button"
                                              name="upload_button">Upload
                                     </button>
                             </div>
                             <div class="textarea-cover">
                                 {{ form.source_file_area( id="editor1", class="form-control" ,rows="10") }}
-                                <!--<textarea id="editor1">{{source_file}}</textarea>-->
                             </div>
                         </div>
                         <div style="margin-left: 20px; direction: rtl;" class="flex-col resizable">
@@ -198,7 +197,6 @@
                                 <button>Download</button>
                             </div>
                             {{ form.result_file_area( id="editor2", class="form-control ta" ,rows="10", readonly=true ) }}
-                            <!--<textarea readonly id="editor2">{{result_file}}</textarea>-->
                         </div>
                     </div>
                     <div class="output-log flex-col">
@@ -214,7 +212,11 @@
     </form>
 </body>
 
-
+<script>
+    upload_source_file.onchange = function(){
+        Upload_file('upload_source_file','source_file_area');
+    }
+</script>
 <script>
     var comparIsRunning = false;
 
