@@ -414,7 +414,7 @@ class Compar:
             '_id': combination_id,
             'error': error_msg
         }
-        self.db.insert_new_combination(combination_dict)
+        self.db.insert_new_combination_results(combination_dict)
         sleep(1)
         if not self.save_combinations_folders:
             self.__delete_combination_folder(combination_folder_path)

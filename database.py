@@ -91,7 +91,7 @@ class Database:
             self.close_cursor()
         return has_next
 
-    def insert_new_combination(self, combination_result):
+    def insert_new_combination_results(self, combination_result):
         try:
             self.dynamic_db[self.collection_name].insert_one(combination_result)
             return True
