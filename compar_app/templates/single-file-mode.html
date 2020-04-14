@@ -247,10 +247,13 @@
     });
 
   function submitForm(url){
+    var formData = new FormData($('#form')[0]);
     $.ajax({
                 type: "POST",
                 url: url,
-                data: $('form').serialize(), // serializes the form's elements.
+                contentType: false,
+                processData: false,
+                data: formData, // serializes the form's elements.
                 success: function (data) {
                     console.log("received: ")
                     console.log(data)  // display the returned data in the console.

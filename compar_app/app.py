@@ -20,6 +20,7 @@ Bootstrap(app)
 
 DATA = {}
 SOURCE_FILE_DIRECTORY = 'temp'
+SOURCE_FILE_NAME = 'temp_source_file.c'
 
 
 class SingleFileForm(FlaskForm):
@@ -63,7 +64,6 @@ def something():
     form = SingleFileForm(request.form)
     print(form.validate_on_submit())
     print(form.errors)
-    print(request.files)
     if form.validate_on_submit():
         DATA['slurm_parameters'] = form.slurm_parameters.data
         DATA['save_combinations'] = form.save_combinations.data
@@ -75,18 +75,15 @@ def something():
         # print("test codemirror: ", form.source_file_code.data)
         # handling upload file/paste code
         if form.source_file_code.data:
-            file = form.upload_file.data
-            print("file test: ", file)
-            if file:
-                DATA['source_file_name'] = file.filename
-            else:
-                DATA['source_file_name'] = 'source_file.c'
-            # print(DATA['source_file_path'], form.source_file_area.data)
-            # check for now because filefield is not part of the field
-            if not DATA['source_file_name']:
-                DATA['source_file_name'] = 'source_file.c'
+            try:
+                if request.files and request.files['upload_file'].filename != "":
+                    print("file test: ", request.files['upload_file'].filename)
+                    DATA['source_file_name'] = request.files['upload_file'].filename
+                else:
+                    DATA['source_file_name'] = SOURCE_FILE_NAME
+            except Exception as e:
+                DATA['source_file_name'] = SOURCE_FILE_NAME
             save_source_file(file_name=DATA['source_file_name'], txt=form.source_file_code.data)
-
         return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
     return jsonify(errors=form.errors)
 
