@@ -42,12 +42,14 @@ button:focus {
 }
 
 .form-container {
+    display: flex;
+    flex-direction: column;
     height: 100%;
     min-width: 310px;
     border: 2px solid gray;
     width: 20%;
     background: #282a36;
-    overflow: auto;
+    overflow: hidden;
 }
 
 .screen-container {
@@ -80,11 +82,15 @@ button:focus {
     overflow: auto;
 }
 
+.form-area {
+    padding: 12px;
+    overflow: auto;
+}
+
 .flex-col {
     display: flex;
     flex-direction: column;
     width: 100%;
-    overflow: auto;
 }
 
 .flex-row-spaced {
