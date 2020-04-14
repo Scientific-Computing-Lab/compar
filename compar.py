@@ -288,8 +288,6 @@ class Compar:
         # inject new code
         Timer.inject_timer_to_compar_mixed_file(os.path.join(compar_combination_folder_path,
                                                              self.main_file_rel_path), compar_combination_folder_path)
-        # format all optimal files
-        self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
         self.generate_summary_file(optimal_loops_data, compar_combination_folder_path)
         try:
             logger.info('Compiling Compar combination')
@@ -335,8 +333,10 @@ class Compar:
             self.db.insert_new_combination_results(final_combination_results)
             with open(os.path.join(final_folder_path, Timer.TOTAL_RUNTIME_FILENAME), 'w') as f:
                 f.write(str(final_combination_results['total_run_time']))
-            self.update_summary_file(compar_combination_folder_path, best_runtime_combination_id,
+            self.update_summary_file(final_folder_path, best_runtime_combination_id,
                                      final_combination_results['total_run_time'], best_combination_obj)
+        # format all optimal files
+        self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
         self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
 
     def __extract_working_directory_name(self):
@@ -587,9 +587,11 @@ class Compar:
             writer.writerow([""])
             writer.writerow([f"{best_runtime_combination_id}"
                              f" combination gave the best total runtime"])
+            writer.writerow([""])
             if best_combination:
                 writer.writerow(["Compiler", "Compilation Params", "OMP RTL flags"])
                 writer.writerow([best_combination.get_compiler(),
                                  best_combination.get_parameters().get_compilation_params(),
                                  best_combination.get_parameters().get_omp_rtl_params()])
+            writer.writerow([""])
             writer.writerow(['Total run time:', str(total_rum_time)])
