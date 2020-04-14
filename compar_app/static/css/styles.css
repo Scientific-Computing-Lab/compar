@@ -47,7 +47,7 @@ button:focus {
     border: 2px solid gray;
     width: 20%;
     background: #282a36;
-    overflow: scroll;
+    overflow: auto;
 }
 
 .screen-container {
@@ -77,14 +77,14 @@ button:focus {
     width: 100%;
     padding: 8px;
     color: white;
-    overflow: scroll;
+    overflow: auto;
 }
 
 .flex-col {
     display: flex;
     flex-direction: column;
     width: 100%;
-    overflow: scroll;
+    overflow: auto;
 }
 
 .flex-row-spaced {
