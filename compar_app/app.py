@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 
@@ -8,8 +9,12 @@ from wtforms import StringField, TextAreaField, BooleanField, SelectField
 from wtforms.validators import InputRequired
 from flask_bootstrap import Bootstrap
 import subprocess
-from flask import request, jsonify
+from flask import request, jsonify, send_file, Response, session
 from flask import Flask, render_template
+from datetime import datetime
+import hashlib
+import tempfile
+import getpass
 
 
 app = Flask(__name__)
@@ -18,11 +23,7 @@ SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 Bootstrap(app)
 
-DATA = {}
-SOURCE_FILE_DIRECTORY = 'temp'
-SOURCE_FILE_NAME = 'temp_source_file.c'
-SOURCE_FILE_PATH = os.path.join(SOURCE_FILE_DIRECTORY, SOURCE_FILE_NAME)
-SOURCE_FILE_PATH_REL_TO_TEMPLATE = os.path.join("..", SOURCE_FILE_DIRECTORY, SOURCE_FILE_NAME)
+SOURCE_FILE_DIRECTORY = tempfile.gettempdir()
 
 
 class SingleFileForm(FlaskForm):
@@ -40,7 +41,7 @@ class SingleFileForm(FlaskForm):
 @app.route("/singlefile", methods=['GET', 'POST'])
 def single_file():
     form = SingleFileForm(request.form)
-    return render_template('single-file-mode.html', form=form, source_file_path=SOURCE_FILE_PATH_REL_TO_TEMPLATE)
+    return render_template('single-file-mode.html', form=form)
 
 
 @app.route('/multiplefiles')
@@ -53,23 +54,17 @@ def makefile():
     return render_template('makefile-mode.html')
 
 
-def save_source_file(file_name, txt):
-    if not os.path.exists(SOURCE_FILE_DIRECTORY):
-        os.mkdir(SOURCE_FILE_DIRECTORY)
-    file_path = os.path.join(SOURCE_FILE_DIRECTORY, file_name)
+def save_source_file(file_path, txt):
     with open(file_path, "w") as f:
         f.write(txt)
 
 
 @app.route('/something/', methods=['post'])
 def something():
-    global DATA
     form = SingleFileForm(request.form)
     print(form.validate_on_submit())
     print(form.errors)
     if form.validate_on_submit():
-        DATA = dict(form.data)
-
         # handling upload file/paste code
         if form.source_file_code.data:
             try:
@@ -81,8 +76,10 @@ def something():
             except Exception as e:
                 pass
             finally:
-                DATA['source_file_name'] = SOURCE_FILE_NAME
-            save_source_file(file_name=DATA['source_file_name'], txt=form.source_file_code.data)
+                guid = getpass.getuser() + str(datetime.now())
+                file_hash = hashlib.sha3_256(guid.encode()).hexdigest()
+                session['source_file_path'] = os.path.join(SOURCE_FILE_DIRECTORY, file_hash)
+                save_source_file(file_path=session['source_file_path'], txt=form.source_file_code.data)
         return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
     return jsonify(errors=form.errors)
 
@@ -104,11 +101,22 @@ def stream():
 
 @app.route('/result_file', methods=['get'])
 def result_file():
-    result_file_path = os.path.join(SOURCE_FILE_DIRECTORY, DATA['source_file_name'])
-    result_file_file_code = ''
+    result_file_path = session['source_file_path']
+    result_file_code = ''
+    print(session)
     with open(result_file_path) as fp:
-        result_file_file_code = fp.read()
-    return jsonify({"text": result_file_file_code})
+        result_file_code = fp.read()
+    return jsonify({"text": result_file_code})
+
+
+@app.route('/downloadResultFile', methods=['get'])
+def download_result_file():
+    with open(session['source_file_path'], 'r') as fp:
+        result_code = fp.read()
+    return Response(
+        result_code,
+        mimetype="text/plain",
+        headers={"Content-disposition": "attachment; filename=Compar_results.c"})
 
 
 if __name__ == "__main__":
