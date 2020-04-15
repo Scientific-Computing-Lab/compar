@@ -29,7 +29,8 @@
                 mode: "clike",
                 theme: "dracula",
                 lineNumbers: true,
-                autoCloseBrackets: true
+                autoCloseBrackets: true,
+                readOnly: true
             });
 
             var singleModNav = document.getElementById('singlemod');
@@ -198,7 +199,7 @@
                         <div style="margin-left: 20px; direction: rtl; overflow: auto;" class="flex-col resizable">
                             <div style="direction: ltr" class="flex-row-spaced title">
                                 <div>Result File</div>
-                                <button>Download</button>
+                                <button onclick="downloadFile()" type="button">Download</button>
                             </div>
                             {{ form.result_file_area(id="result_editor") }}
                         </div>
@@ -216,13 +217,18 @@
 </body>
 
 <script>
+    var comparIsRunning = false;
+
     upload_source_file.onchange = function(){
         console.log("upload file on change triggered");
         Upload_file('upload_source_file','source_file_code');
     }
-</script>
-<script>
-    var comparIsRunning = false;
+    function downloadFile(){
+        var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
+        if (codeMirrorResultEditor.getValue() && !comparIsRunning){
+            // download will be here
+    	}
+     }
 
     function handleErrors(errors){
         console.log("handling errors");

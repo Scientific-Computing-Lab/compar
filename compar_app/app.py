@@ -21,6 +21,8 @@ Bootstrap(app)
 DATA = {}
 SOURCE_FILE_DIRECTORY = 'temp'
 SOURCE_FILE_NAME = 'temp_source_file.c'
+SOURCE_FILE_PATH = os.path.join(SOURCE_FILE_DIRECTORY, SOURCE_FILE_NAME)
+SOURCE_FILE_PATH_REL_TO_TEMPLATE = os.path.join("..", SOURCE_FILE_DIRECTORY, SOURCE_FILE_NAME)
 
 
 class SingleFileForm(FlaskForm):
@@ -38,7 +40,7 @@ class SingleFileForm(FlaskForm):
 @app.route("/singlefile", methods=['GET', 'POST'])
 def single_file():
     form = SingleFileForm(request.form)
-    return render_template('single-file-mode.html', form=form)
+    return render_template('single-file-mode.html', form=form, source_file_path=SOURCE_FILE_PATH_REL_TO_TEMPLATE)
 
 
 @app.route('/multiplefiles')
@@ -61,27 +63,24 @@ def save_source_file(file_name, txt):
 
 @app.route('/something/', methods=['post'])
 def something():
+    global DATA
     form = SingleFileForm(request.form)
     print(form.validate_on_submit())
     print(form.errors)
     if form.validate_on_submit():
-        DATA['slurm_parameters'] = form.slurm_parameters.data
-        DATA['save_combinations'] = form.save_combinations.data
-        DATA['compiler'] = form.compiler.data
-        DATA['compiler_version'] = form.compiler_version.data
-        DATA['compiler_flags'] = form.compiler_flags.data
-        DATA['source_file_text'] = form.source_file_code.data
-        # print("blabla", DATA)
-        # print("test codemirror: ", form.source_file_code.data)
+        DATA = dict(form.data)
+
         # handling upload file/paste code
         if form.source_file_code.data:
             try:
                 if request.files and request.files['upload_file'].filename != "":
+                    # special handling for uploaded files will be here
                     print("file test: ", request.files['upload_file'].filename)
-                    DATA['source_file_name'] = request.files['upload_file'].filename
                 else:
-                    DATA['source_file_name'] = SOURCE_FILE_NAME
+                    pass
             except Exception as e:
+                pass
+            finally:
                 DATA['source_file_name'] = SOURCE_FILE_NAME
             save_source_file(file_name=DATA['source_file_name'], txt=form.source_file_code.data)
         return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
@@ -105,12 +104,11 @@ def stream():
 
 @app.route('/result_file', methods=['get'])
 def result_file():
-        print("result_file: " + str(DATA))
-        result_file = os.path.join(SOURCE_FILE_DIRECTORY, DATA['source_file_name'])
-        text = ''
-        with open(result_file) as fp:
-            text = fp.read()
-        return jsonify({"text":text})
+    result_file_path = os.path.join(SOURCE_FILE_DIRECTORY, DATA['source_file_name'])
+    result_file_file_code = ''
+    with open(result_file_path) as fp:
+        result_file_file_code = fp.read()
+    return jsonify({"text": result_file_file_code})
 
 
 if __name__ == "__main__":
