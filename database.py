@@ -6,6 +6,8 @@ from job import Job
 import logger
 import traceback
 import hashlib
+import getpass
+
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 OMP_RTL_PARAMS_FILE_PATH = "assets/omp_rtl_params.json"
@@ -20,6 +22,7 @@ class Database:
     SERIAL_COMPILER_NAME = 'serial'
 
     def __init__(self, collection_name):
+        collection_name = f"{getpass.getuser()}_{collection_name}"
         logger.info(f'Initializing {collection_name} databases')
         try:
             self.dynamic_combinations_cursor = None
