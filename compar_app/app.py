@@ -32,7 +32,7 @@ class SingleFileForm(FlaskForm):
     compiler = SelectField('compiler', choices=[('icc', 'ICC'), ('gcc', 'GCC')])
     compiler_version = StringField('compiler_version')
     compiler_flags = TextAreaField('compiler_flags')
-    source_file_code = TextAreaField('source_file_code')
+    source_file_code = TextAreaField('source_file_code', validators=[InputRequired()])
     upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'c file only!')])  # valiation dont work
     result_file_area = TextAreaField('result_file_area')
 
@@ -59,13 +59,12 @@ def save_source_file(file_path, txt):
         f.write(txt)
 
 
-@app.route('/something/', methods=['post'])
-def something():
+@app.route('/single_file_submit/', methods=['post'])
+def single_file_submit():
     form = SingleFileForm(request.form)
     print(form.validate_on_submit())
     print(form.errors)
     if form.validate_on_submit():
-        # handling upload file/paste code
         if form.source_file_code.data:
             try:
                 if request.files and request.files['upload_file'].filename != "":
@@ -80,6 +79,9 @@ def something():
                 file_hash = hashlib.sha3_256(guid.encode()).hexdigest()
                 session['source_file_path'] = os.path.join(SOURCE_FILE_DIRECTORY, file_hash)
                 save_source_file(file_path=session['source_file_path'], txt=form.source_file_code.data)
+        else:
+            # TODO: add check in this case (if validation not worked)
+            pass
         return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
     return jsonify(errors=form.errors)
 

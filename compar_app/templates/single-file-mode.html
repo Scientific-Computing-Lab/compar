@@ -130,7 +130,7 @@
         <a href="/multiplefiles" class="seperate ref">Multiple files Mode</a>
         <a href="/makefile" class="seperate ref">Makefile Mode</a>
     </nav>
-    <form method="POST" action="/singlefile"  enctype="multipart/form-data" id="form">
+    <form method="POST" action="/singlefile"  enctype="multipart/form-data" id="form" novalidate>
         <div class="page-layout">
             <div class="mycontainer">
                 <div class="form-container form">
@@ -186,7 +186,6 @@
                             <div class="flex-row-spaced title">
                                 {{ form.upload_file(id="upload_source_file", style="display:none") }}
                                 <div>Source File</div>
-
                                     <button id="browse_button" type="button" name="upload_button"
                                             onclick="upload_source_file.click()">
                                         Upload
@@ -249,7 +248,7 @@
 
     $(document).ready(function() {
         $('form').submit(function (e) {
-            var url = "{{ url_for('something') }}"; // send the form data here.
+            var url = "{{ url_for('single_file_submit') }}"; // send the form data here.
             if(!comparIsRunning){
                 source_editor.innerHTML = ($('.CodeMirror')[0].CodeMirror).getValue();
                 submitForm(url);
@@ -259,6 +258,7 @@
     });
 
   function submitForm(url){
+    console.log($('form').serialize());
     var formData = new FormData($('#form')[0]);
     $.ajax({
                 type: "POST",
@@ -275,14 +275,13 @@
                     console.log(error)
                 }
             })
-
             .done(function(data) {
+                $('#form')[0].reset();
                 handleErrors(data.errors);
                 if(!data.errors){
                     run();
                 }
             });
-
 
         // Inject our CSRF token into our AJAX request.
         $.ajaxSetup({
@@ -331,10 +330,11 @@
           output.innerHTML = "";
           comparIsRunning = true;
           var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
+          var codeMirrorSourceEditor = $('.CodeMirror')[0].CodeMirror;
+          codeMirrorSourceEditor.setOption("readOnly", true)
           codeMirrorResultEditor.setValue("Creating file ...");
           codeMirrorResultEditor.refresh();
           startComparButton.disabled = true;
-<!--          codeMirrorResultEditor.readOnly = true;-->
 
           for await (let line of makeTextFileLineIterator("stream_progress")) {
                     var item = document.createElement('li');
@@ -354,6 +354,7 @@
           });
 
           comparIsRunning = false;
+          codeMirrorSourceEditor.setOption("readOnly", false)
           startComparButton.disabled = false;
           // call here to show result file
       }
