@@ -1,3 +1,4 @@
+import enum
 import os
 import re
 from time import sleep
@@ -23,12 +24,20 @@ from unit_test import UnitTest
 from assets.parallelizers_mapper import parallelizers
 
 
+class ComparMode(enum.IntEnum):
+    NEW = 0
+    CONTINUE = 1
+    OVERRIDE = 2
+
+
 class Compar:
     BACKUP_FOLDER_NAME = "backup"
     ORIGINAL_FILES_FOLDER_NAME = "original_files"
     COMBINATIONS_FOLDER_NAME = "combinations"
     SUMMARY_FILE_NAME = 'summary.csv'
     NUM_OF_THREADS = 4
+    MODES = dict((mode.name.lower(), mode) for mode in ComparMode)
+    DEFAULT_MODE = ComparMode.OVERRIDE.name.lower()
 
     @staticmethod
     def set_num_of_threads(num_of_threads):
@@ -150,7 +159,8 @@ class Compar:
                  extra_files=None,
                  time_limit=None,
                  slurm_partition='grid',
-                 test_file_path=''):
+                 test_file_path='',
+                 mode=DEFAULT_MODE):
 
         if not is_make_file:
             e.assert_only_files(input_dir)
@@ -183,6 +193,7 @@ class Compar:
         self.time_limit = time_limit
         self.slurm_partition = slurm_partition
         self.parallel_jobs_pool_executor = JobExecutor(Compar.NUM_OF_THREADS)
+        self.mode = mode
 
         # Unit test
         self.test_file_path = test_file_path
@@ -196,7 +207,8 @@ class Compar:
         self.backup_files_dir = os.path.join(working_directory, Compar.BACKUP_FOLDER_NAME)
         self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
         self.combinations_dir = os.path.join(working_directory, Compar.COMBINATIONS_FOLDER_NAME)
-        self.__create_directories_structure(input_dir)
+        if self.mode != ComparMode.CONTINUE:
+            self.__create_directories_structure(input_dir)
 
         # Compilers variables
         self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
