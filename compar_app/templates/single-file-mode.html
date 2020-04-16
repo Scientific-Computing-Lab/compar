@@ -184,12 +184,12 @@
                     <div style="height: 50%" class="flex-row">
                         <div style="overflow: auto" class="flex-col resizable">
                             <div class="flex-row-spaced title">
-                                {{ form.upload_file(id="upload_source_file") }}
+                                {{ form.upload_file(id="upload_source_file", style="display:none") }}
                                 <div>Source File</div>
 
-                                    <button id="browse_button"
-                                             type="button"
-                                             name="upload_button">Upload
+                                    <button id="browse_button" type="button" name="upload_button"
+                                            onclick="upload_source_file.click()">
+                                        Upload
                                     </button>
                             </div>
                             <div class="textarea-cover">
@@ -328,6 +328,7 @@
 
     async function run() {
       if (!comparIsRunning){
+          output.innerHTML = "";
           comparIsRunning = true;
           var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
           codeMirrorResultEditor.setValue("Creating file ...");
