@@ -71,7 +71,8 @@ class Compar:
 
     @staticmethod
     def __delete_combination_folder(combination_folder_path):
-        shutil.rmtree(combination_folder_path)
+        if os.path.exists(combination_folder_path):
+            shutil.rmtree(combination_folder_path)
 
     @staticmethod
     def format_c_files(list_of_file_paths):
@@ -506,33 +507,36 @@ class Compar:
 
     def run_serial(self):
         logger.info('Start to work on serial combination')
-        serial_dir_path = os.path.join(self.combinations_dir, 'serial')
-        shutil.rmtree(serial_dir_path, ignore_errors=True)
-        os.mkdir(serial_dir_path)
-        self.__copy_sources_to_combination_folder(serial_dir_path)
-        Timer.inject_atexit_code_to_main_file(os.path.join(serial_dir_path, self.main_file_rel_path),
-                                              self.files_loop_dict, serial_dir_path)
-
-        if self.is_make_file:
-            compiler_type = "Makefile"
-            makefile = Makefile(serial_dir_path, self.makefile_exe_folder_rel_path, self.makefile_output_exe_file_name,
-                                self.makefile_commands)
-            makefile.make()
+        serial_dir_path = os.path.join(self.combinations_dir, Database.SERIAL_COMBINATION_ID)
+        if self.mode == ComparMode.CONTINUE:
+            job_results = self.db.get_combination_results(Database.SERIAL_COMBINATION_ID)
         else:
-            compiler_type = self.binary_compiler_type
-            try:
-                self.__run_binary_compiler(serial_dir_path)
-            except e.CombinationFailure as ex:
-                raise e.CompilationError(str(ex))
+            shutil.rmtree(serial_dir_path, ignore_errors=True)
+            os.mkdir(serial_dir_path)
+            self.__copy_sources_to_combination_folder(serial_dir_path)
+            Timer.inject_atexit_code_to_main_file(os.path.join(serial_dir_path, self.main_file_rel_path),
+                                                  self.files_loop_dict, serial_dir_path)
 
-        combination = Combination(combination_id=Database.SERIAL_COMBINATION_ID,
-                                  compiler_name=compiler_type,
-                                  parameters=None)
-        job = Job(directory=serial_dir_path,
-                  exec_file_args=self.main_file_parameters,
-                  combination=combination)
-        job = self.execute_job(job)
-        job_results = job.get_job_results()['run_time_results']
+            if self.is_make_file:
+                compiler_type = "Makefile"
+                makefile = Makefile(serial_dir_path, self.makefile_exe_folder_rel_path, self.makefile_output_exe_file_name,
+                                    self.makefile_commands)
+                makefile.make()
+            else:
+                compiler_type = self.binary_compiler_type
+                try:
+                    self.__run_binary_compiler(serial_dir_path)
+                except e.CombinationFailure as ex:
+                    raise e.CompilationError(str(ex))
+
+            combination = Combination(combination_id=Database.SERIAL_COMBINATION_ID,
+                                      compiler_name=compiler_type,
+                                      parameters=None)
+            job = Job(directory=serial_dir_path,
+                      exec_file_args=self.main_file_parameters,
+                      combination=combination)
+            job = self.execute_job(job)
+            job_results = job.get_job_results()['run_time_results']
         for file_dict in job_results:
             if 'dead_code_file' not in file_dict.keys():
                 for loop_dict in file_dict['loops']:
