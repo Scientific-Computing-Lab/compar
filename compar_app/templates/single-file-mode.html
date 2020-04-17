@@ -149,10 +149,9 @@
                             <div class="form-title">Binary compiler flags:</div>
                             <div style="align-items: center" class="flex-row">
                                 <input type="text" id="compiler-flags"/>
-                                <button type="button" onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
-                                <button type="button" onclick="removeParameter('flags')" class="mybutton negative">-</button>
+                                <button type="button" onclick="addItem('binaryCompilerFlags','compiler-flags', 'compiler-flags-list')" class="mybutton positive">+</button>
                             </div>
-                            {{ form.compiler_flags(id="flags", readonly=true) }}
+                            <div id="compiler-flags-list"></div>
                             <div class="horizontal-separator"></div>
                             <div class="form-title">Binary compiler version:</div>
                                 <div style="color: red;" id="compilerVersionAlert">{{ error }}</div>
@@ -170,17 +169,15 @@
                             <div class="form-title">Slurm parameters:</div>
                             <div class="flex-row-centered">
                              <input type="text" id="slurm-params"/>
-                             <button type="button" onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
-                             <button type="button" onclick="removeParameter('parameters')" class="mybutton negative">-</button>
+                             <button type="button" onclick="addItem('slurmParametersList','slurm-params', 'slurm-parameters-list')" class="mybutton positive">+</button>
                             </div>
-                            <div style="color: red;" id="slurmAlert">{{ error }}</div>
-                            {{ form.slurm_parameters(id="parameters", readonly=true) }}
+                            <div id="slurm-parameters-list"></div>
                             <div class="horizontal-separator"></div>
                             <div class="form-title">Maximum job count:</div>
                                 <div style="color: red;" id="jobCount">{{ error }}</div>
                             {{ form.jobs_count }}
                             <div class="horizontal-separator"></div>
-                            <div class="form-title">Runtime limit:</div>
+                            <div class="form-title">Execution time limit:</div>
                             <div style="display: flex; flex-direction: row; align-items: center" id="time-span">
                                 <div class="flex-col">
                                     <div>D</div>
@@ -206,10 +203,9 @@
                             <div class="form-title">Main file parameters:</div>
                             <div class="flex-row-centered">
                              <input type="text" id="main-file-params"/>
-                             <button type="button" onclick="addParameter('main-file-params','main-params')" class="mybutton positive">+</button>
-                             <button type="button" onclick="removeParameter('main-params')" class="mybutton negative">-</button>
+                             <button type="button" onclick="addItem('mainFileParamList','main-file-params','main-params-list')" class="mybutton positive">+</button>
                             </div>
-                            {{ form.main_file_parameters(id="main-params", readonly=true) }}
+                            <div id="main-params-list"></div>
                             <div class="horizontal-separator"></div>
                             <div style="align-items: center" class="flex-row">
                             <div class="form-title">Log level:</div>
@@ -218,7 +214,6 @@
                             <div class="horizontal-separator"></div>
                              <div class="form-title">Validation file path:</div>
                             {{ form.test_path }}
-                            <div class="horizontal-separator"></div>
                         </div>
                         <button type="submit" value="Submit" id="startComparButton" class="startbtn">START</button>
                     </div>
@@ -404,6 +399,66 @@
           // call here to show result file
       }
     }
+
+</script>
+<script>
+    var binaryCompilerFlags = new Set();
+    var slurmParametersList = new Set();
+    var mainFileParamList = new Set();
+
+    var setDictionary = {
+        'binaryCompilerFlags': binaryCompilerFlags,
+        'slurmParametersList': slurmParametersList,
+        'mainFileParamList': mainFileParamList
+    }
+
+    function addItem(setName, inputName, divName){
+        var input = document.getElementById(inputName);
+        value = input.value;
+        if(value !== "")
+        {
+            setDictionary[setName].add(value);
+            appendChilds(setName, divName);
+        }
+    }
+
+    function removeItem(setName,value,divName) {
+        setDictionary[setName].delete(value);
+        appendChilds(setName, divName);
+    }
+
+    function createChild(setName, value, divName) {
+        var containerDiv = document.createElement("div");
+        containerDiv.classList.add("flex-row");
+
+        var innerDiv = document.createElement("div");
+        innerDiv.innerHTML = value;
+        innerDiv.style.width = '210px';
+        innerDiv.style.overflow = 'scroll';
+        innerDiv.style.margin = '2px 0px';
+
+        var innerButton = document.createElement("button");
+        innerButton.innerHTML = "-";
+        innerButton.classList.add("mybutton");
+        innerButton.classList.add("negative");
+        innerButton.onclick = function(){ removeItem(setName,value,divName) };
+        innerButton.setAttribute('type', 'button');
+
+        containerDiv.appendChild(innerDiv);
+        containerDiv.appendChild(innerButton);
+
+        return containerDiv;
+    }
+
+    function appendChilds(setName, divName){
+        var dynamicList = document.getElementById(divName);
+        dynamicList.innerHTML = '';
+        for(let item of setDictionary[setName]){
+           var child = createChild(setName, item, divName);
+            dynamicList.appendChild(child);
+        }
+    }
+
 
 </script>
 </html>

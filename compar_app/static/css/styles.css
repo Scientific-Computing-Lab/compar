@@ -212,10 +212,14 @@ select:focus{
 }
 
 .mybutton {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     color: white;
     border-radius: 30%;
-    width: 29px;
-    max-width: 29px;
+    width: 24px;
+    height: 24px;
     font-weight: bold;
     margin-left: 20px;
 }
