@@ -38,6 +38,8 @@
             singleModNav.style.fontWeight = "bold";
             singleModNav.style.fontSize = "18px";
             singleModNav.style.textDecoration = "underline"
+
+
         }
 
     </script>
@@ -137,45 +139,86 @@
                     <div class="title">Compar Parameters</div>
                     <div class="form-area">
                         {{ form.csrf_token }}
-                        <div class="form-title">Slurm parameters:</div>
-                        <div class="flex-row-centered">
-                             <input type="text" id="slurm-params"/>
-                             <button type="button" onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
-                             <button type="button" onclick="removeParameter('parameters')" class="mybutton negative">-</button>
-                        </div>
-
-                        <div style="color: red;" id="slurmAlert">{{ error }}</div>
-                        {{ form.slurm_parameters(id="parameters", readonly=true) }}
-
-                        <div class="horizontal-separator"></div>
                         <div style="align-items: center" class="flex-row">
-                            <div class="form-title">Save combination folders:</div>
-                            {{ form.save_combinations(style='margin-left: 30px')}}
-                        </div>
-                        <div class="horizontal-separator"></div>
-                        <div style="align-items: center" class="flex-row">
-                            <div class="form-title">Compiler:</div>
+                            <div class="form-title">Binary Compiler:</div>
                             {{ form.compiler(style='margin-left: 30px') }}
                         </div>
                         <div class="horizontal-separator"></div>
-                        <div class="form-title">Compiler version:</div>
-                        <div style="color: red;" id="compilerVersionAlert">{{ error }}</div>
-                        {{ form.compiler_version }}
-                        <div class="horizontal-separator"></div>
-                        <div class="form-title">Compiler flags:</div>
-                        <div style="align-items: center" class="flex-row">
-                            <input type="text" id="compiler-flags"/>
-                            <button type="button" onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
-                            <button type="button" onclick="removeParameter('flags')" class="mybutton negative">-</button>
-                        </div>
-                        {{ form.compiler_flags(id="flags", readonly=true) }}
-                        <div class="horizontal-separator"></div>
                         <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
                         <div id="advanced">
+                            <div class="form-title">Binary compiler flags:</div>
                             <div style="align-items: center" class="flex-row">
-                            <div class="form-title">Save combination folders:</div>
-                            <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
-                        </div>
+                                <input type="text" id="compiler-flags"/>
+                                <button type="button" onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
+                                <button type="button" onclick="removeParameter('flags')" class="mybutton negative">-</button>
+                            </div>
+                            {{ form.compiler_flags(id="flags", readonly=true) }}
+                            <div class="horizontal-separator"></div>
+                            <div class="form-title">Binary compiler version:</div>
+                                <div style="color: red;" id="compilerVersionAlert">{{ error }}</div>
+                            {{ form.compiler_version }}
+                            <div class="horizontal-separator"></div>
+                            <div class="form-title">Slurm partition:</div>
+                                <div style="color: red;" id="slurmPartitionAlert">{{ error }}</div>
+                            {{ form.slurm_partition(id="slurm_part") }}
+                            <div class="horizontal-separator"></div>
+                            <div style="align-items: center" class="flex-row">
+                                <div class="form-title">Save combination folders:</div>
+                                {{ form.save_combinations(style='margin-left: 30px')}}
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="form-title">Slurm parameters:</div>
+                            <div class="flex-row-centered">
+                             <input type="text" id="slurm-params"/>
+                             <button type="button" onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
+                             <button type="button" onclick="removeParameter('parameters')" class="mybutton negative">-</button>
+                            </div>
+                            <div style="color: red;" id="slurmAlert">{{ error }}</div>
+                            {{ form.slurm_parameters(id="parameters", readonly=true) }}
+                            <div class="horizontal-separator"></div>
+                            <div class="form-title">Maximum job count:</div>
+                                <div style="color: red;" id="jobCount">{{ error }}</div>
+                            {{ form.jobs_count }}
+                            <div class="horizontal-separator"></div>
+                            <div class="form-title">Runtime limit:</div>
+                            <div style="display: flex; flex-direction: row; align-items: center" id="time-span">
+                                <div class="flex-col">
+                                    <div>D</div>
+                                    <input style="width:50px" type="number" min="0" step="1" value="0" />
+                                </div>
+
+                                <div class="flex-col">
+                                    <div>H</div>
+                                    <input style="width:50px" type="number" min="0" step="1" value="0" />
+                                </div>
+
+                                <div class="flex-col">
+                                    <div>M</div>
+                                    <input style="width:50px" type="number" min="0" step="1" value="0" />
+                                </div>
+
+                                <div class="flex-col">
+                                    <div>S</div>
+                                    <input style="width:50px" type="number" min="0" step="1" value="0" />
+                                </div>
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="form-title">Main file parameters:</div>
+                            <div class="flex-row-centered">
+                             <input type="text" id="main-file-params"/>
+                             <button type="button" onclick="addParameter('main-file-params','main-params')" class="mybutton positive">+</button>
+                             <button type="button" onclick="removeParameter('main-params')" class="mybutton negative">-</button>
+                            </div>
+                            {{ form.main_file_parameters(id="main-params", readonly=true) }}
+                            <div class="horizontal-separator"></div>
+                            <div style="align-items: center" class="flex-row">
+                            <div class="form-title">Log level:</div>
+                            {{ form.log_level(style='margin-left: 30px') }}
+                            </div>
+                            <div class="horizontal-separator"></div>
+                             <div class="form-title">Validation file path:</div>
+                            {{ form.test_path }}
+                            <div class="horizontal-separator"></div>
                         </div>
                         <button type="submit" value="Submit" id="startComparButton" class="startbtn">START</button>
                     </div>
@@ -276,7 +319,9 @@
                 }
             })
             .done(function(data) {
-                $('#form')[0].reset();
+                var source_editor = document.getElementById('source_editor');
+                source_editor.innerHTML = '';
+                // $('#form')['upload_source_file'].reset();
                 handleErrors(data.errors);
                 if(!data.errors){
                     run();

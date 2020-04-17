@@ -5,9 +5,11 @@ import sys
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
 from flask_wtf.file import FileField
-from wtforms import StringField, TextAreaField, BooleanField, SelectField
+from wtforms import StringField, TextAreaField, BooleanField, SelectField, IntegerField
 from wtforms.validators import InputRequired
 from flask_bootstrap import Bootstrap
+from wtforms.fields import html5 as h5fields
+from wtforms.widgets import html5 as h5widgets
 import subprocess
 from flask import request, jsonify, send_file, Response, session
 from flask import Flask, render_template
@@ -28,14 +30,18 @@ SOURCE_FILE_DIRECTORY = tempfile.gettempdir()
 
 class SingleFileForm(FlaskForm):
     slurm_parameters = TextAreaField('slurm_parameters', validators=[InputRequired()])
+    main_file_parameters = TextAreaField('main_file_parameters')
     save_combinations = BooleanField('save_combinations')
-    compiler = SelectField('compiler', choices=[('icc', 'ICC'), ('gcc', 'GCC')])
+    compiler = SelectField('compiler', choices=[('gcc', 'GCC'), ('icc', 'ICC')])
     compiler_version = StringField('compiler_version')
+    slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
+    jobs_count = h5fields.IntegerField('jobs_count', validators=[InputRequired()], default=4)
     compiler_flags = TextAreaField('compiler_flags')
     source_file_code = TextAreaField('source_file_code', validators=[InputRequired()])
     upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'c file only!')])  # valiation dont work
     result_file_area = TextAreaField('result_file_area')
-
+    log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
+    test_path = StringField('test_file_path')
 
 @app.route("/")
 @app.route("/singlefile", methods=['GET', 'POST'])
@@ -61,6 +67,7 @@ def save_source_file(file_path, txt):
 
 @app.route('/single_file_submit/', methods=['post'])
 def single_file_submit():
+    print("MY FORM",request.form)
     form = SingleFileForm(request.form)
     print(form.validate_on_submit())
     print(form.errors)

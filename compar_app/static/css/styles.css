@@ -264,10 +264,13 @@ select:focus{
     color: #989898;
     text-decoration: underline;
     cursor: pointer;
+    margin: 16px 0px;
 }
 
 #advanced {
     display: none;
+    flex-direction: column;
+    width: 100%;
 }
 
 .advanced:active {
