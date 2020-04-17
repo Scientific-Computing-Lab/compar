@@ -5,8 +5,8 @@ import sys
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
 from flask_wtf.file import FileField
-from wtforms import StringField, TextAreaField, BooleanField, SelectField, IntegerField
-from wtforms.validators import InputRequired
+from wtforms import StringField, TextAreaField, BooleanField, SelectField
+from wtforms.validators import InputRequired, ValidationError
 from flask_bootstrap import Bootstrap
 from wtforms.fields import html5 as h5fields
 from wtforms.widgets import html5 as h5widgets
@@ -28,22 +28,31 @@ Bootstrap(app)
 # SOURCE_FILE_DIRECTORY = tempfile.gettempdir()
 SOURCE_FILE_DIRECTORY = 'temp'
 
+def path_validation(form,path):
+    is_path = True
+    #TODO os.path.exists(path.data)
+    if not is_path:
+        raise ValidationError('Path is invalid')
+
 
 class SingleFileForm(FlaskForm):
-    slurm_parameters = TextAreaField('slurm_parameters', validators=[InputRequired()])
-    main_file_parameters = TextAreaField('main_file_parameters')
-    save_combinations = BooleanField('save_combinations')
-    compiler = SelectField('compiler', choices=[('gcc', 'GCC'), ('icc', 'ICC')])
+    compiler_flags = StringField('compiler_flags', validators=[InputRequired()])
     compiler_version = StringField('compiler_version')
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
+    save_combinations = BooleanField('save_combinations')
+    slurm_parameters = StringField('slurm_parameters', validators=[InputRequired()])
     jobs_count = h5fields.IntegerField('jobs_count', validators=[InputRequired()], default=4)
-    compiler_flags = TextAreaField('compiler_flags')
-    source_file_code = TextAreaField('source_file_code', validators=[InputRequired()])
+    days_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=100, step=1), default=0)
+    hours_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=23, step=1), default=0)
+    minutes_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
+    seconds_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
+    main_file_parameters = TextAreaField('main_file_parameters')
+    compiler = SelectField('compiler', choices=[('gcc', 'GCC'), ('icc', 'ICC')])
+    source_file_code = TextAreaField('source_file_code')
     upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'c file only!')])  # valiation dont work
     result_file_area = TextAreaField('result_file_area')
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
-    test_path = StringField('test_file_path')
-
+    test_path = StringField('test_file_path', validators=[path_validation])
 
 @app.route("/")
 @app.route("/singlefile", methods=['GET', 'POST'])
@@ -70,6 +79,7 @@ def save_source_file(file_path, txt):
 @app.route('/single_file_submit/', methods=['post'])
 def single_file_submit():
     form = SingleFileForm(request.form)
+    print(request.form)
     print(form.validate_on_submit())
     print(form.errors)
     if form.validate_on_submit():

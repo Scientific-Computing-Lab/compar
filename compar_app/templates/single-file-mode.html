@@ -132,13 +132,14 @@
         <a href="/multiplefiles" class="seperate ref">Multiple files Mode</a>
         <a href="/makefile" class="seperate ref">Makefile Mode</a>
     </nav>
-    <form method="POST" action="/singlefile"  enctype="multipart/form-data" id="form" novalidate>
+    <form >
         <div class="page-layout">
             <div class="mycontainer">
                 <div class="form-container form">
                     <div class="title">Compar Parameters</div>
                     <div class="form-area">
                         {{ form.csrf_token }}
+
                         <div style="align-items: center" class="flex-row">
                             <div class="form-title">Binary Compiler:</div>
                             {{ form.compiler(style='margin-left: 30px') }}
@@ -181,22 +182,22 @@
                             <div style="display: flex; flex-direction: row; align-items: center" id="time-span">
                                 <div class="flex-col">
                                     <div>D</div>
-                                    <input style="width:50px" type="number" min="0" step="1" value="0" />
+                                    {{ form.days_field(style='width: 50px') }}
                                 </div>
 
                                 <div class="flex-col">
                                     <div>H</div>
-                                    <input style="width:50px" type="number" min="0" step="1" value="0" />
+                                    {{ form.hours_field(style='width: 50px') }}
                                 </div>
 
                                 <div class="flex-col">
                                     <div>M</div>
-                                    <input style="width:50px" type="number" min="0" step="1" value="0" />
+                                    {{ form.minutes_field(style='width: 50px') }}
                                 </div>
 
                                 <div class="flex-col">
                                     <div>S</div>
-                                    <input style="width:50px" type="number" min="0" step="1" value="0" />
+                                    {{ form.seconds_field(style='width: 50px') }}
                                 </div>
                             </div>
                             <div class="horizontal-separator"></div>
@@ -214,6 +215,7 @@
                             <div class="horizontal-separator"></div>
                              <div class="form-title">Validation file path:</div>
                             {{ form.test_path }}
+                            <div style="color: red" id="validationPathAlert"></div>
                         </div>
                         <button type="submit" value="Submit" id="startComparButton" class="startbtn">START</button>
                     </div>
@@ -279,12 +281,21 @@
     function handleErrors(errors){
         console.log("handling errors");
         console.log(errors);
-        if (errors && errors.slurm_parameters){
-            document.getElementById('slurmAlert').innerHTML = errors.slurm_parameters;
+        if(errors){
+            if (errors.test_path){
+                document.getElementById('validationPathAlert').innerHTML = errors.test_path;
+            }
+            else{
+                document.getElementById('validationPathAlert').innerHTML = "";
+            }
+
         }
-        else{
-            document.getElementById('slurmAlert').innerHTML = "";
-        }
+        // if (errors && errors.slurm_parameters){
+        //     document.getElementById('slurmAlert').innerHTML = errors.slurm_parameters;
+        // }
+        // else{
+        //     document.getElementById('slurmAlert').innerHTML = "";
+        // }
     }
 
     $(document).ready(function() {
@@ -299,8 +310,8 @@
     });
 
   function submitForm(url){
-    console.log($('form').serialize());
-    var formData = new FormData($('#form')[0]);
+    console.log($('myform').serialize());
+    var formData = new FormData($('#myform')[0]);
     $.ajax({
                 type: "POST",
                 url: url,
@@ -458,7 +469,6 @@
             dynamicList.appendChild(child);
         }
     }
-
 
 </script>
 </html>
