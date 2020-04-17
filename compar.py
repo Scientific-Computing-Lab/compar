@@ -206,6 +206,8 @@ class Compar:
         self.working_directory = working_directory
         self.backup_files_dir = os.path.join(working_directory, Compar.BACKUP_FOLDER_NAME)
         self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
+        if self.mode == ComparMode.CONTINUE:
+            e.assert_folder_exist(self.original_files_dir)
         self.combinations_dir = os.path.join(working_directory, Compar.COMBINATIONS_FOLDER_NAME)
         if self.mode != ComparMode.CONTINUE:
             self.__create_directories_structure(input_dir)

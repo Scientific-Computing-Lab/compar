@@ -105,3 +105,8 @@ def assert_original_files_folder_exists(working_directory):
     if not os.path.exists(original_files_path):
         raise UserInputError(f'Original files folder from the last Compar operation must be exist in'
                              f' {working_directory}')
+
+
+def assert_folder_exist(folder_path):
+    if not os.path.exists(folder_path):
+        raise FolderError(f'Folder {folder_path} not exist')
