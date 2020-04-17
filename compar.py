@@ -236,7 +236,7 @@ class Compar:
         # Initialization
         if not is_make_file:
             self.__initialize_binary_compiler()
-        self.db = Database(self.__extract_working_directory_name())
+        self.db = Database(self.__extract_working_directory_name(), mode=self.mode)
 
     def generate_optimal_code(self):
         logger.info('Start to combine the Compar combination')

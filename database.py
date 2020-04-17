@@ -7,6 +7,7 @@ import logger
 import traceback
 import hashlib
 import getpass
+from compar import ComparMode
 
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
@@ -21,9 +22,10 @@ class Database:
     SERIAL_COMBINATION_ID = 'serial'
     SERIAL_COMPILER_NAME = 'serial'
 
-    def __init__(self, collection_name):
+    def __init__(self, collection_name, mode):
         collection_name = f"{getpass.getuser()}_{collection_name}"
         logger.info(f'Initializing {collection_name} databases')
+        self.mode = mode
         try:
             self.dynamic_combinations_cursor = None
             self.collection_name = collection_name
@@ -32,17 +34,21 @@ class Database:
             self.dynamic_db = self.connection[DYNAMIC_DB_NAME]
 
             if self.collection_name in self.static_db.list_collection_names():
-                # TODO: should be depend on users choice
                 self.static_db.drop_collection(self.collection_name)
 
             self.static_db.create_collection(self.collection_name)
             self.initialize_static_db()
 
-            if self.collection_name in self.dynamic_db.list_collection_names():
-                self.dynamic_db.drop_collection(self.collection_name)
-
-            self.dynamic_db.create_collection(self.collection_name)
-
+            if self.mode != ComparMode.CONTINUE:
+                if self.collection_name in self.dynamic_db.list_collection_names():
+                    self.dynamic_db.drop_collection(self.collection_name)
+                self.dynamic_db.create_collection(self.collection_name)
+            else:
+                ids_in_static = self.static_db[self.collection_name].find({}, {"_id": 1})
+                ids_in_dynamic = self.dynamic_db[self.collection_name].find({}, {"_id": 1})
+                old_ids = [comb_id['_id'] for comb_id in ids_in_dynamic if comb_id not in ids_in_static]
+                self.dynamic_db[self.collection_name].delete_many({'_id': {'$in': old_ids}})
+                del ids_in_static, ids_in_dynamic, old_ids
         except Exception as e:
             raise DatabaseError(str(e) + "\nFailed to initialize DB!")
 
