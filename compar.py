@@ -548,9 +548,12 @@ class Compar:
         main_file_path = os.path.join(self.original_files_dir, self.main_file_rel_path)
         declaration_code_to_inject_to_main_file = ""
         for index, c_file_dict in enumerate(self.make_absolute_file_list(self.original_files_dir)):
-            self.__timer = Timer(c_file_dict['file_full_path'])
-            self.__timer.inject_timers(index, main_file_path)
-            num_of_loops = self.__timer.get_number_of_loops()
+            if self.mode == ComparMode.CONTINUE:
+                num_of_loops = Fragmentator.count_loops_in_prepared_file(c_file_dict['file_full_path'])
+            else:
+                self.__timer = Timer(c_file_dict['file_full_path'])
+                self.__timer.inject_timers(index, main_file_path)
+                num_of_loops = self.__timer.get_number_of_loops()
             name_of_global_array = f'{Timer.NAME_OF_GLOBAL_ARRAY}{str(index)}'
             if num_of_loops != 0:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, name_of_global_array)
@@ -558,7 +561,8 @@ class Compar:
                     name_of_global_array, num_of_loops)
             else:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, 'no_global_var')
-        self.__timer.inject_declarations_to_main_file(main_file_path, declaration_code_to_inject_to_main_file)
+        if self.mode != ComparMode.CONTINUE:
+            self.__timer.inject_declarations_to_main_file(main_file_path, declaration_code_to_inject_to_main_file)
         logger.info('Finish to enumerating loops and injecting run time timers')
 
     def create_combination_folder(self, combination_folder_name, base_dir=None):
