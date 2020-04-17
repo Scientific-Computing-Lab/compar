@@ -105,3 +105,4 @@ if __name__ == "__main__":
     except Exception as e:
         logger.info_error(f'Exception at Compar Program: {e}')
         logger.debug_error(traceback.format_exc())
+        exit(1)
