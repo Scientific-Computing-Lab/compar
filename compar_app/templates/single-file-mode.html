@@ -218,6 +218,9 @@
 <script>
     var comparIsRunning = false;
 
+     source_editor.onchange = function(){
+        source_editor.value = $('.CodeMirror')[0].CodeMirror.getValue();
+    }
     upload_source_file.onchange = function(){
         console.log("upload file on change triggered");
         Upload_file('upload_source_file','source_file_code');
@@ -276,7 +279,6 @@
                 }
             })
             .done(function(data) {
-                $('#form')[0].reset();
                 handleErrors(data.errors);
                 if(!data.errors){
                     run();
