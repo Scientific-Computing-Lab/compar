@@ -27,7 +27,6 @@ class Database:
         logger.info(f'Initializing {collection_name} databases')
         self.mode = mode
         try:
-            self.dynamic_combinations_cursor = None
             self.collection_name = collection_name
             self.connection = pymongo.MongoClient(DB)
             self.static_db = self.connection[STATIC_DB_NAME]
@@ -73,35 +72,21 @@ class Database:
         finally:
             del combinations
 
-    def initiate_cursor(self):
-        self.close_cursor()
-        self.dynamic_combinations_cursor = self.static_db[self.collection_name].find()
-
-    def close_cursor(self):
-        if self.dynamic_combinations_cursor:
-            self.dynamic_combinations_cursor.close()
-        self.dynamic_combinations_cursor = None
-
     def close_connection(self):
         self.connection.close()
 
-    def get_next_combination(self):
+    def combination_has_results(self, combination_id):
+        return self.get_combination_results(combination_id) is not None
+
+    def combinations_iterator(self):
         try:
-            return self.dynamic_combinations_cursor.next()
-        except StopIteration as ex:
-            logger.info_error("There are no more combinations!")
-            return None
+            for combination in self.static_db[self.collection_name].find():
+                if self.combination_has_results(combination['_id']):
+                    continue
+                yield combination
         except Exception:
             logger.info_error(f"Execption at {Database.__name__}: get_next_combination")
             raise
-
-    def has_next_combination(self):
-        if not self.dynamic_combinations_cursor:
-            self.initiate_cursor()
-        has_next = self.dynamic_combinations_cursor and self.dynamic_combinations_cursor.alive
-        if not has_next:
-            self.close_cursor()
-        return has_next
 
     def insert_new_combination_results(self, combination_result):
         try:

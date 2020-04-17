@@ -446,8 +446,8 @@ class Compar:
     def run_parallel_combinations(self):
         logger.info('Start to work on parallel combinations')
         self.parallel_jobs_pool_executor.create_jobs_pool()
-        while self.db.has_next_combination():
-            combination_obj = Combination.json_to_obj(self.db.get_next_combination())
+        for combination_json in self.db.combinations_iterator():
+            combination_obj = Combination.json_to_obj(combination_json)
             logger.info(f'Working on combination #{combination_obj.combination_id}')
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
             try:
