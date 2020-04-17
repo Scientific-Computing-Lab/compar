@@ -8,6 +8,7 @@ import traceback
 import hashlib
 import getpass
 from compar import ComparMode
+from combination import Combination
 
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
@@ -48,6 +49,8 @@ class Database:
                 old_ids = [comb_id['_id'] for comb_id in ids_in_dynamic if comb_id not in ids_in_static]
                 self.dynamic_db[self.collection_name].delete_many({'_id': {'$in': old_ids}})
                 del ids_in_static, ids_in_dynamic, old_ids
+                self.dynamic_db[self.collection_name].delete_one({'_id': Combination.COMPAR_COMBINATION_ID})
+                self.dynamic_db[self.collection_name].delete_one({'_id': Combination.FINAL_RESULTS_COMBINATION_ID})
         except Exception as e:
             raise DatabaseError(str(e) + "\nFailed to initialize DB!")
 

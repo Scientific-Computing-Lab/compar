@@ -34,6 +34,8 @@ class Compar:
     BACKUP_FOLDER_NAME = "backup"
     ORIGINAL_FILES_FOLDER_NAME = "original_files"
     COMBINATIONS_FOLDER_NAME = "combinations"
+    COMPAR_COMBINATION_FOLDER_NAME = Combination.COMPAR_COMBINATION_ID
+    FINAL_RESULTS_FOLDER_NAME = Combination.FINAL_RESULTS_COMBINATION_ID
     SUMMARY_FILE_NAME = 'summary.csv'
     NUM_OF_THREADS = 4
     MODES = dict((mode.name.lower(), mode) for mode in ComparMode)
@@ -209,6 +211,9 @@ class Compar:
         self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
         if self.mode == ComparMode.CONTINUE:
             e.assert_folder_exist(self.original_files_dir)
+            self.__delete_combination_folder(os.path.join(working_directory, self.COMPAR_COMBINATION_FOLDER_NAME))
+            self.__delete_combination_folder(os.path.join(working_directory, self.FINAL_RESULTS_FOLDER_NAME))
+
         self.combinations_dir = os.path.join(working_directory, Compar.COMBINATIONS_FOLDER_NAME)
         self.__create_directories_structure(input_dir)
 
@@ -241,12 +246,10 @@ class Compar:
 
     def generate_optimal_code(self):
         logger.info('Start to combine the Compar combination')
-        compar_combination_folder_name = 'compar_combination'
-        final_result_folder_name = 'final_results'
         optimal_loops_data = []
 
         # copy final results into this folder
-        compar_combination_folder_path = self.create_combination_folder(compar_combination_folder_name,
+        compar_combination_folder_path = self.create_combination_folder(self.COMPAR_COMBINATION_FOLDER_NAME,
                                                                         base_dir=self.working_directory)
         final_files_list = self.make_absolute_file_list(compar_combination_folder_path)
 
@@ -273,9 +276,9 @@ class Compar:
                 if current_optimal_id != Database.SERIAL_COMBINATION_ID:
                     current_optimal_combination = Combination.json_to_obj(
                         self.db.get_combination_from_static_db(current_optimal_id))
-                    final_results_folder_path = self.create_combination_folder(
+                    current_combination_folder_path = self.create_combination_folder(
                         "current_combination", base_dir=self.working_directory)
-                    files_list = self.make_absolute_file_list(final_results_folder_path)
+                    files_list = self.make_absolute_file_list(current_combination_folder_path)
                     current_comp_name = current_optimal_combination.compiler_name
 
                     # get direct file path to inject params
@@ -283,7 +286,8 @@ class Compar:
                     src_file_path = src_file_path[0]['file_full_path']
 
                     # parallelize and inject
-                    self.parallel_compilation_of_one_combination(current_optimal_combination, final_results_folder_path)
+                    self.parallel_compilation_of_one_combination(current_optimal_combination,
+                                                                 current_combination_folder_path)
 
                     # replace loop in c file using final_files_list
                     target_file_path = list(filter(lambda x: x['file_id_by_rel_path'] == file_id_by_rel_path,
@@ -294,7 +298,7 @@ class Compar:
                     Compar.add_to_loop_details_about_comp_and_combination(target_file_path, start_label,
                                                                           current_optimal_id, current_comp_name)
                     sleep(1)  # prevent IO error
-                    shutil.rmtree(final_results_folder_path)
+                    shutil.rmtree(current_combination_folder_path)
             optimal_loops_data.append(current_file)
 
         # remove timers code
@@ -320,7 +324,7 @@ class Compar:
             best_combination_obj = Combination.json_to_obj(
                 self.db.get_combination_from_static_db(best_runtime_combination_id))
             final_results_folder_path = self.create_combination_folder(
-                final_result_folder_name, self.working_directory)
+                self.FINAL_RESULTS_FOLDER_NAME, self.working_directory)
             try:
                 if best_runtime_combination_id != Database.SERIAL_COMBINATION_ID:
                     self.parallel_compilation_of_one_combination(best_combination_obj, final_results_folder_path)
@@ -333,16 +337,16 @@ class Compar:
                                 f" {best_runtime_combination_id}.\n{ex}")
         else:
             logger.info(f'Compar combination is the optimal combination')
-            final_folder_path = os.path.join(self.working_directory, final_result_folder_name)
+            final_folder_path = os.path.join(self.working_directory, self.FINAL_RESULTS_FOLDER_NAME)
             if os.path.exists(final_folder_path):
                 shutil.rmtree(final_folder_path)
             shutil.copytree(compar_combination_folder_path, final_folder_path)
         # remove compar code from all the files in final result folder
-        final_folder_path = os.path.join(self.working_directory, final_result_folder_name)
+        final_folder_path = os.path.join(self.working_directory, self.FINAL_RESULTS_FOLDER_NAME)
         Timer.remove_timer_code(self.make_absolute_file_list(final_folder_path))
         final_combination_results = self.db.get_combination_results(best_runtime_combination_id)
         if final_combination_results:
-            final_combination_results['_id'] = final_result_folder_name
+            final_combination_results['_id'] = Combination.FINAL_RESULTS_COMBINATION_ID
             final_combination_results['from_combination'] = best_runtime_combination_id
             self.db.insert_new_combination_results(final_combination_results)
             with open(os.path.join(final_folder_path, Timer.TOTAL_RUNTIME_FILENAME), 'w') as f:
