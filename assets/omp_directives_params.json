@@ -1,1 +1,28 @@
-[]
+{
+   "parallel": [
+     {
+       "valued": [],
+       "toggle": []
+     }
+   ],
+  "for": [
+    {
+      "valued": [
+        {
+          "pragma": "schedule",
+          "values": [
+            {
+              "val": "static",
+              "related": [2, 8, 16]
+            },
+            {
+              "val": "dynamic",
+              "related": []
+            }
+          ]
+        }
+      ],
+      "toggle": []
+    }
+  ]
+}
