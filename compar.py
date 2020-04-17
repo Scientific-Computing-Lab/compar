@@ -352,6 +352,7 @@ class Compar:
         # format all optimal files
         self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
         self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
+        self.db.close_connection()
 
     def __extract_working_directory_name(self):
         working_directory_name = self.working_directory

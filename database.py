@@ -82,13 +82,16 @@ class Database:
             self.dynamic_combinations_cursor.close()
         self.dynamic_combinations_cursor = None
 
+    def close_connection(self):
+        self.connection.close()
+
     def get_next_combination(self):
         try:
             return self.dynamic_combinations_cursor.next()
         except StopIteration as ex:
             logger.info_error("There are no more combinations!")
             return None
-        except Exception as ex:
+        except Exception:
             logger.info_error(f"Execption at {Database.__name__}: get_next_combination")
             raise
 
