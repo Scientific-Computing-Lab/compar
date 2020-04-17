@@ -209,8 +209,7 @@ class Compar:
         if self.mode == ComparMode.CONTINUE:
             e.assert_folder_exist(self.original_files_dir)
         self.combinations_dir = os.path.join(working_directory, Compar.COMBINATIONS_FOLDER_NAME)
-        if self.mode != ComparMode.CONTINUE:
-            self.__create_directories_structure(input_dir)
+        self.__create_directories_structure(input_dir)
 
         # Compilers variables
         self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
@@ -464,13 +463,15 @@ class Compar:
 
     def __create_directories_structure(self, input_dir):
         logger.info('Creating Compar directories structure')
-        os.makedirs(self.original_files_dir, exist_ok=True)
+        if self.mode != ComparMode.CONTINUE:
+            os.makedirs(self.original_files_dir, exist_ok=True)
         os.makedirs(self.combinations_dir, exist_ok=True)
         os.makedirs(self.backup_files_dir, exist_ok=True)
 
         if os.path.isdir(input_dir):
-            self.__copy_folder_content(input_dir, self.original_files_dir)
-            self.__copy_folder_content(input_dir, self.backup_files_dir)
+            if self.mode != ComparMode.CONTINUE:
+                self.__copy_folder_content(input_dir, self.original_files_dir)
+                self.__copy_folder_content(input_dir, self.backup_files_dir)
         else:
             raise UserInputError('The input path must be directory')
 
