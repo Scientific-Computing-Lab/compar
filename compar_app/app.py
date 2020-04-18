@@ -11,7 +11,7 @@ from flask_bootstrap import Bootstrap
 from wtforms.fields import html5 as h5fields
 from wtforms.widgets import html5 as h5widgets
 import subprocess
-from flask import request, jsonify, send_file, Response, session
+from flask import request, jsonify, Response, session, stream_with_context
 from flask import Flask, render_template
 from datetime import datetime
 import hashlib
@@ -27,6 +27,8 @@ Bootstrap(app)
 
 # SOURCE_FILE_DIRECTORY = tempfile.gettempdir()
 SOURCE_FILE_DIRECTORY = 'temp'
+COMPAR_PROGRAM_FILE = 'program.py'
+GUI_DIR_NAME = 'compar_app'
 
 
 def pathValidator(form, field):
@@ -78,8 +80,7 @@ def save_source_file(file_path, txt):
 
 @app.route('/single_file_submit/', methods=['post'])
 def single_file_submit():
-    form = SingleFileForm(request.form)
-    print(request.form)
+    form = SingleFileForm()
     print(form.validate_on_submit())
     print(form.errors)
     if form.validate_on_submit():
@@ -96,19 +97,19 @@ def single_file_submit():
                 guid = getpass.getuser() + str(datetime.now())
                 file_hash = hashlib.sha3_256(guid.encode()).hexdigest()
                 # create input dir
-                input_dir_path = os.path.join(SOURCE_FILE_DIRECTORY, file_hash)  # TODO: create folder
+                input_dir_path = os.path.join(SOURCE_FILE_DIRECTORY, file_hash)
                 os.makedirs(input_dir_path, exist_ok=True)
-                session['input_dir'] = input_dir_path
+                session['input_dir'] = os.path.join(GUI_DIR_NAME, input_dir_path)
                 source_file_name = f"{file_hash}.c"
                 source_file_path = os.path.join(input_dir_path, source_file_name)
                 session['source_file_path'] = source_file_path
                 save_source_file(file_path=source_file_path, txt=form.source_file_code.data)
                 # create working dir
-                working_dir_path = os.path.join(SOURCE_FILE_DIRECTORY, f"{file_hash}_wd")  # TODO: create folder
+                working_dir_path = os.path.join(SOURCE_FILE_DIRECTORY, f"{file_hash}_wd")
                 os.makedirs(working_dir_path, exist_ok=True)
-                session['working_dir'] = working_dir_path
+                session['working_dir'] = os.path.join(GUI_DIR_NAME, working_dir_path)
                 # update main file rel path as filename
-                session['main_file_rel_path'] = source_file_name  # TODO: add here filename
+                session['main_file_rel_path'] = source_file_name
                 # other fields
                 session['compiler'] = form.compiler.data
                 session['save_combinations'] = form.save_combinations.data
@@ -132,22 +133,27 @@ def stream():
     compar_command = generate_compar_command_without_makefile()
 
     def generate():
-        compar_file = r"../program.py"
-        # compar_file = "testt.py"
+        compar_file = COMPAR_PROGRAM_FILE
         interpreter = sys.executable
         command = [interpreter, '-u', compar_file, compar_command]
         print(command)
-        proc = subprocess.Popen(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                cwd='../')
         for line in proc.stdout:
             yield line.rstrip() + b'\n'
-        # TODO - Get the source file !
-    return app.response_class(generate(), mimetype='text/plain')
+        proc.communicate()[0]
+        return_code = proc.returncode
+        session['return_code'] = return_code
+    return Response(stream_with_context(generate()))
 
 
 @app.route('/result_file', methods=['get'])
 def result_file():
     result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
-    if not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(result_file_path):
+    return_code = session.get('return_code')
+    if return_code is None:
+        return_code = 0
+    if return_code != 0 or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(result_file_path):
         return jsonify({"text": "Compar failed. Check the output log for more information."})
     if os.path.exists(result_file_path):
         result_file_code = ''
@@ -164,7 +170,8 @@ def download_result_file():
     return Response(
         result_code,
         mimetype="text/plain",
-        headers={"Content-disposition": "attachment; filename=Compar_results.c"})
+        headers={"Content-disposition": "attachment; filename=Compar_results.c"}
+    )
 
 
 def generate_compar_command_without_makefile():
