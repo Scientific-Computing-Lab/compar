@@ -38,7 +38,9 @@
             singleModNav.style.fontWeight = "bold";
             singleModNav.style.fontSize = "18px";
             singleModNav.style.textDecoration = "underline"
-
+            code_mirror_source_editor.on("change",function(cm,change){
+                source_editor.value = code_mirror_source_editor.getValue();
+            });
 
         }
 
@@ -277,9 +279,6 @@
 <script>
     var comparIsRunning = false;
 
-     source_editor.onchange = function(){
-        source_editor.value = $('.CodeMirror')[0].CodeMirror.getValue();
-    }
     upload_source_file.onchange = function(){
         console.log("upload file on change triggered");
         Upload_file('upload_source_file','source_file_code');
