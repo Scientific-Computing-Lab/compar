@@ -163,7 +163,7 @@ class Compar:
                  time_limit=None,
                  slurm_partition='grid',
                  test_file_path='',
-                 mode=DEFAULT_MODE):
+                 mode=MODES[DEFAULT_MODE]):
 
         if not is_make_file:
             e.assert_only_files(input_dir)
@@ -513,8 +513,8 @@ class Compar:
     def run_serial(self):
         logger.info('Start to work on serial combination')
         serial_dir_path = os.path.join(self.combinations_dir, Database.SERIAL_COMBINATION_ID)
-        if self.mode == ComparMode.CONTINUE:
-            job_results = self.db.get_combination_results(Database.SERIAL_COMBINATION_ID)
+        if self.mode == ComparMode.CONTINUE and self.db.combination_has_results(Database.SERIAL_COMBINATION_ID):
+            job_results = self.db.get_combination_results(Database.SERIAL_COMBINATION_ID)['run_time_results']
         else:
             shutil.rmtree(serial_dir_path, ignore_errors=True)
             os.mkdir(serial_dir_path)

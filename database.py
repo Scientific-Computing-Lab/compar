@@ -44,9 +44,10 @@ class Database:
                     self.dynamic_db.drop_collection(self.collection_name)
                 self.dynamic_db.create_collection(self.collection_name)
             else:
-                ids_in_static = self.static_db[self.collection_name].find({}, {"_id": 1})
-                ids_in_dynamic = self.dynamic_db[self.collection_name].find({}, {"_id": 1})
-                old_ids = [comb_id['_id'] for comb_id in ids_in_dynamic if comb_id not in ids_in_static]
+                ids_in_static = [comb['_id'] for comb in self.static_db[self.collection_name].find({}, {"_id": 1})]
+                ids_in_dynamic = [comb['_id'] for comb in self.dynamic_db[self.collection_name].find({}, {"_id": 1})]
+                old_ids = [comb_id for comb_id in ids_in_dynamic if comb_id not in
+                           ids_in_static + [self.SERIAL_COMBINATION_ID]]
                 self.dynamic_db[self.collection_name].delete_many({'_id': {'$in': old_ids}})
                 del ids_in_static, ids_in_dynamic, old_ids
                 self.dynamic_db[self.collection_name].delete_one({'_id': Combination.COMPAR_COMBINATION_ID})

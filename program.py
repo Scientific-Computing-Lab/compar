@@ -90,7 +90,7 @@ def main():
         time_limit=args.time_limit,
         slurm_partition=args.slurm_partition,
         test_file_path=args.test_file_path,
-        mode=Compar.MODES[args.mode]
+        mode=args.mode
     )
     compar_obj.fragment_and_add_timers()
     compar_obj.run_serial()
