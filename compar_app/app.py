@@ -32,27 +32,26 @@ GUI_DIR_NAME = 'compar_app'
 
 
 def path_validator(form, field):
-    print("DADA", field.data)
-    is_path = os.path.exists(field.data)
-    if not is_path:
+    if field.data and not os.path.exists(field.data):
         raise ValidationError('Path is invalid')
 
 
 class SingleFileForm(FlaskForm):
-    compiler_flags = StringField('compiler_flags', validators=[InputRequired()])
+    compiler_flags = StringField('compiler_flags')
     compiler_version = StringField('compiler_version')
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
-    slurm_parameters = StringField('slurm_parameters', validators=[InputRequired()])
-    jobs_count = h5fields.IntegerField('jobs_count',widget=h5widgets.NumberInput(min=0, max=100, step=1), validators=[InputRequired()], default=4)
+    slurm_parameters = StringField('slurm_parameters')
+    jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                       validators=[InputRequired()], default=4)
     days_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=100, step=1), default=0)
     hours_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=23, step=1), default=0)
     minutes_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
     seconds_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
     main_file_parameters = StringField('main_file_parameters')
     compiler = SelectField('compiler', choices=[('gcc', 'GCC'), ('icc', 'ICC')])
-    source_file_code = TextAreaField('source_file_code')
-    upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'c file only!')])  # valiation dont work
+    source_file_code = TextAreaField('source_file_code', validators=[InputRequired()])
+    upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'Only C files allowed!')])
     result_file_area = TextAreaField('result_file_area')
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
@@ -131,7 +130,7 @@ def single_file_submit():
                                                           form.minutes_field.data, form.seconds_field.data)
         else:
             # TODO: add check in this case (if validation not worked)
-            pass
+            return jsonify(errors=form.errors)
         return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
     return jsonify(errors=form.errors)
 
