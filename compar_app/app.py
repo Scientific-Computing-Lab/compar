@@ -11,7 +11,7 @@ from flask_bootstrap import Bootstrap
 from wtforms.fields import html5 as h5fields
 from wtforms.widgets import html5 as h5widgets
 import subprocess
-from flask import request, jsonify, send_file, Response, session
+from flask import request, jsonify, Response, session, stream_with_context
 from flask import Flask, render_template
 from datetime import datetime
 import hashlib
@@ -86,8 +86,7 @@ def save_source_file(file_path, txt):
 
 @app.route('/single_file_submit/', methods=['post'])
 def single_file_submit():
-    form = SingleFileForm(request.form)
-    print(request.form)
+    form = SingleFileForm()
     print(form.validate_on_submit())
     print(form.errors)
     if form.validate_on_submit():
@@ -148,13 +147,19 @@ def stream():
                                 cwd='../')
         for line in proc.stdout:
             yield line.rstrip() + b'\n'
-    return app.response_class(generate(), mimetype='text/plain')
+        proc.communicate()[0]
+        return_code = proc.returncode
+        session['return_code'] = return_code
+    return Response(stream_with_context(generate()))
 
 
 @app.route('/result_file', methods=['get'])
 def result_file():
     result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
-    if not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(result_file_path):
+    return_code = session.get('return_code')
+    if return_code is None:
+        return_code = 0
+    if return_code != 0 or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(result_file_path):
         return jsonify({"text": "Compar failed. Check the output log for more information."})
     if os.path.exists(result_file_path):
         result_file_code = ''
