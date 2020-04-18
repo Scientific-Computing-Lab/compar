@@ -133,6 +133,9 @@
         <a href="/makefile" class="seperate ref">Makefile Mode</a>
     </nav>
     <form method="POST" action="/singlefile"  enctype="multipart/form-data" id="form" novalidate>
+        {{ form.slurm_parameters(id="slurmParametersList", style="display:none") }}
+        {{ form.main_file_parameters(id="mainFileParamList", style="display:none") }}
+        {{ form.compiler_flags(id="binaryCompilerFlags", style="display:none") }}
         <div class="page-layout">
             <div class="mycontainer">
                 <div class="form-container form">
@@ -452,12 +455,14 @@
         {
             setDictionary[setName].add(value);
             appendChilds(setName, divName);
+            updateItem(setName);
         }
     }
 
     function removeItem(setName,value,divName) {
         setDictionary[setName].delete(value);
         appendChilds(setName, divName);
+        updateItem(setName);
     }
 
     function createChild(setName, value, divName) {
@@ -490,6 +495,11 @@
            var child = createChild(setName, item, divName);
             dynamicList.appendChild(child);
         }
+    }
+
+    function updateItem(setName){
+        arrayAsText = Array.from(setDictionary[setName]).join(' ');
+        document.getElementById(setName).value = arrayAsText;
     }
 
 </script>
