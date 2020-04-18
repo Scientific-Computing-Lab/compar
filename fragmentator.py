@@ -2,12 +2,14 @@ import re
 from exceptions import FileError
 from exceptions import assert_file_exist
 from exceptions import FragmentError
+from exceptions import UserInputError
 from file_formator import format_c_code
 
 
 class Fragmentator:
-    __START_LOOP_LABEL_MARKER = '// START_LOOP_MARKER'
-    __END_LOOP_LABEL_MARKER = '// END_LOOP_MARKER'
+    __LOOP_LABEL_MARKER = 'LOOP_MARKER'
+    __START_LOOP_LABEL_MARKER = f'// START_{__LOOP_LABEL_MARKER}'
+    __END_LOOP_LABEL_MARKER = f'// END_{__LOOP_LABEL_MARKER}'
 
     @staticmethod
     def set_start_label(new_start_label):
@@ -24,6 +26,17 @@ class Fragmentator:
     @staticmethod
     def get_end_label():
         return Fragmentator.__END_LOOP_LABEL_MARKER
+
+    @staticmethod
+    def count_loops_in_prepared_file(file_path):
+        with open(file_path, 'r') as fp:
+            content = fp.read()
+        all_markers = re.findall(rf'.*{Fragmentator.__LOOP_LABEL_MARKER}\d+', content)
+        loop_labels = list(set([int(re.search(r'\d+$', marker).group(0)) for marker in all_markers if marker]))
+        num_of_loops = max(loop_labels)
+        if num_of_loops != len(loop_labels):
+            raise UserInputError(f'Error in {file_path}: the file must contains #{num_of_loops} loop markers!')
+        return num_of_loops
 
     def __init__(self, file_path):
         assert_file_exist(file_path)

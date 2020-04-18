@@ -1,9 +1,9 @@
 import argparse
-from compar import Compar
+from compar import Compar, ComparMode
 import traceback
 import os
 import shutil
-from exceptions import assert_rel_path_starts_without_sep
+from exceptions import assert_rel_path_starts_without_sep, assert_original_files_folder_exists
 import logger
 
 
@@ -44,10 +44,19 @@ def main():
     parser.add_argument('-test_file', '--test_file_path', help="Unit test file path", default="")
     parser.add_argument('-jobs_quantity', '--jobs_quantity_at_once', help='The number of jobs to be executed at once',
                         default=num_of_jobs_at_once)
+    parser.add_argument('-mode', '--mode', help=f'Compar working mode {Compar.MODES.keys()}.',
+                        default=Compar.DEFAULT_MODE, choices=Compar.MODES.keys())
     args = parser.parse_args()
+    args.mode = Compar.MODES[args.mode]
+
+    if args.mode == ComparMode.CONTINUE:
+        assert_original_files_folder_exists(args.working_directory)
 
     if os.path.exists(args.working_directory):
-        shutil.rmtree(args.working_directory)
+        if args.mode == ComparMode.OVERRIDE:
+            shutil.rmtree(args.working_directory)
+        elif args.mode == ComparMode.NEW:
+            args.working_directory = f"{args.working_directory}_1"
     os.makedirs(args.working_directory, exist_ok=True)
 
     logger.initialize(args.log_level, args.working_directory)
@@ -80,9 +89,9 @@ def main():
         main_file_rel_path=args.main_file_rel_path,
         time_limit=args.time_limit,
         slurm_partition=args.slurm_partition,
-        test_file_path=args.test_file_path
+        test_file_path=args.test_file_path,
+        mode=args.mode
     )
-    # TODO: change fragment_and_add_timers main file path
     compar_obj.fragment_and_add_timers()
     compar_obj.run_serial()
     compar_obj.run_parallel_combinations()

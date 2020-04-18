@@ -7,6 +7,8 @@ import logger
 import traceback
 import hashlib
 import getpass
+import compar
+from combination import Combination
 
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
@@ -21,28 +23,35 @@ class Database:
     SERIAL_COMBINATION_ID = 'serial'
     SERIAL_COMPILER_NAME = 'serial'
 
-    def __init__(self, collection_name):
+    def __init__(self, collection_name, mode):
         collection_name = f"{getpass.getuser()}_{collection_name}"
         logger.info(f'Initializing {collection_name} databases')
+        self.mode = mode
         try:
-            self.dynamic_combinations_cursor = None
             self.collection_name = collection_name
             self.connection = pymongo.MongoClient(DB)
             self.static_db = self.connection[STATIC_DB_NAME]
             self.dynamic_db = self.connection[DYNAMIC_DB_NAME]
 
             if self.collection_name in self.static_db.list_collection_names():
-                # TODO: should be depend on users choice
                 self.static_db.drop_collection(self.collection_name)
 
             self.static_db.create_collection(self.collection_name)
             self.initialize_static_db()
 
-            if self.collection_name in self.dynamic_db.list_collection_names():
-                self.dynamic_db.drop_collection(self.collection_name)
-
-            self.dynamic_db.create_collection(self.collection_name)
-
+            if self.mode != compar.ComparMode.CONTINUE:
+                if self.collection_name in self.dynamic_db.list_collection_names():
+                    self.dynamic_db.drop_collection(self.collection_name)
+                self.dynamic_db.create_collection(self.collection_name)
+            else:
+                ids_in_static = [comb['_id'] for comb in self.static_db[self.collection_name].find({}, {"_id": 1})]
+                ids_in_dynamic = [comb['_id'] for comb in self.dynamic_db[self.collection_name].find({}, {"_id": 1})]
+                old_ids = [comb_id for comb_id in ids_in_dynamic if comb_id not in
+                           ids_in_static + [self.SERIAL_COMBINATION_ID]]
+                self.dynamic_db[self.collection_name].delete_many({'_id': {'$in': old_ids}})
+                del ids_in_static, ids_in_dynamic, old_ids
+                self.dynamic_db[self.collection_name].delete_one({'_id': Combination.COMPAR_COMBINATION_ID})
+                self.dynamic_db[self.collection_name].delete_one({'_id': Combination.FINAL_RESULTS_COMBINATION_ID})
         except Exception as e:
             raise DatabaseError(str(e) + "\nFailed to initialize DB!")
 
@@ -67,32 +76,21 @@ class Database:
         finally:
             del combinations
 
-    def initiate_cursor(self):
-        self.close_cursor()
-        self.dynamic_combinations_cursor = self.static_db[self.collection_name].find()
+    def close_connection(self):
+        self.connection.close()
 
-    def close_cursor(self):
-        if self.dynamic_combinations_cursor:
-            self.dynamic_combinations_cursor.close()
-        self.dynamic_combinations_cursor = None
+    def combination_has_results(self, combination_id):
+        return self.get_combination_results(combination_id) is not None
 
-    def get_next_combination(self):
+    def combinations_iterator(self):
         try:
-            return self.dynamic_combinations_cursor.next()
-        except StopIteration as ex:
-            logger.info_error("There are no more combinations!")
-            return None
-        except Exception as ex:
+            for combination in self.static_db[self.collection_name].find():
+                if self.combination_has_results(combination['_id']):
+                    continue
+                yield combination
+        except Exception:
             logger.info_error(f"Execption at {Database.__name__}: get_next_combination")
             raise
-
-    def has_next_combination(self):
-        if not self.dynamic_combinations_cursor:
-            self.initiate_cursor()
-        has_next = self.dynamic_combinations_cursor and self.dynamic_combinations_cursor.alive
-        if not has_next:
-            self.close_cursor()
-        return has_next
 
     def insert_new_combination_results(self, combination_result):
         try:
