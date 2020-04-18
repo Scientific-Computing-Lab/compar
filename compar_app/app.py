@@ -17,6 +17,7 @@ from datetime import datetime
 import hashlib
 import tempfile
 import getpass
+import shutil
 
 
 app = Flask(__name__)
@@ -26,7 +27,7 @@ app.config['SECRET_KEY'] = SECRET_KEY
 Bootstrap(app)
 
 # SOURCE_FILE_DIRECTORY = tempfile.gettempdir()
-SOURCE_FILE_DIRECTORY = 'temp'
+TEMP_FILES_DIRECTORY = 'temp'
 COMPAR_PROGRAM_FILE = 'program.py'
 GUI_DIR_NAME = 'compar_app'
 
@@ -102,7 +103,7 @@ def single_file_submit():
                 guid = getpass.getuser() + str(datetime.now())
                 file_hash = hashlib.sha3_256(guid.encode()).hexdigest()
                 # create input dir
-                input_dir_path = os.path.join(SOURCE_FILE_DIRECTORY, file_hash)
+                input_dir_path = os.path.join(TEMP_FILES_DIRECTORY, file_hash)
                 os.makedirs(input_dir_path, exist_ok=True)
                 session['input_dir'] = os.path.join(GUI_DIR_NAME, input_dir_path)
                 source_file_name = f"{file_hash}.c"
@@ -110,7 +111,7 @@ def single_file_submit():
                 session['source_file_path'] = source_file_path
                 save_source_file(file_path=source_file_path, txt=form.source_file_code.data)
                 # create working dir
-                working_dir_path = os.path.join(SOURCE_FILE_DIRECTORY, f"{file_hash}_wd")
+                working_dir_path = os.path.join(TEMP_FILES_DIRECTORY, f"{file_hash}_wd")
                 os.makedirs(working_dir_path, exist_ok=True)
                 session['working_dir'] = os.path.join(GUI_DIR_NAME, working_dir_path)
                 # update main file rel path as filename
@@ -141,22 +142,10 @@ def multiple_files_submit():
     print(form.validate_on_submit())
     print(form.errors)
     if form.validate_on_submit():
-        guid = getpass.getuser() + str(datetime.now())
-        file_hash = hashlib.sha3_256(guid.encode()).hexdigest()
-        # create input dir
-        input_dir_path = os.path.join(SOURCE_FILE_DIRECTORY, file_hash)
-        os.makedirs(input_dir_path, exist_ok=True)
-        session['input_dir'] = os.path.join(GUI_DIR_NAME, input_dir_path)
-        source_file_name = f"{file_hash}.c"
-        source_file_path = os.path.join(input_dir_path, source_file_name)
-        session['source_file_path'] = source_file_path
-        save_source_file(file_path=source_file_path, txt=form.source_file_code.data)
-        # create working dir
-        working_dir_path = os.path.join(SOURCE_FILE_DIRECTORY, f"{file_hash}_wd")
-        os.makedirs(working_dir_path, exist_ok=True)
-        session['working_dir'] = os.path.join(GUI_DIR_NAME, working_dir_path)
-        # update main file rel path as filename
-        session['main_file_rel_path'] = source_file_name
+        session['input_dir'] = ''  # should be validated in the form
+        session['source_file_path'] = ''  # path for final results main c file
+        session['working_dir'] = ''  # should be validated in the form
+        session['main_file_rel_path'] = ''  # should be taken from the form
         # other fields
         session['compiler'] = form.compiler.data
         session['save_combinations'] = form.save_combinations.data
@@ -170,7 +159,6 @@ def multiple_files_submit():
         session['test_path'] = form.test_path.data
         session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                   form.minutes_field.data, form.seconds_field.data)
-
         return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
     return jsonify(errors=form.errors)
 
@@ -279,6 +267,12 @@ def handle_time_limit(days, hours, minutes, seconds):
     return time_limit
 
 
+def clean_temp_files():
+    if os.path.exists(TEMP_FILES_DIRECTORY):
+        shutil.rmtree(TEMP_FILES_DIRECTORY)
+
+
 if __name__ == "__main__":
+    clean_temp_files()
     app.debug = True
     app.run(port=4444)
