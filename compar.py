@@ -354,7 +354,8 @@ class Compar:
             self.update_summary_file(final_folder_path, best_runtime_combination_id,
                                      final_combination_results['total_run_time'], best_combination_obj)
         # format all optimal files
-        self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
+        self.format_c_files([file_dict['file_full_path'] for file_dict in
+                             self.make_absolute_file_list(final_folder_path)])
         self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
         self.db.close_connection()
 
