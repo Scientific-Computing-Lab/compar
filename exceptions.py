@@ -1,6 +1,6 @@
 import os
 
-from compar import Compar
+import compar
 from unit_test import UnitTest
 
 
@@ -101,7 +101,7 @@ def assert_test_file_function_name(test_file_path):
 
 
 def assert_original_files_folder_exists(working_directory):
-    original_files_path = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
+    original_files_path = os.path.join(working_directory, compar.Compar.ORIGINAL_FILES_FOLDER_NAME)
     if not os.path.exists(original_files_path):
         raise UserInputError(f'Original files folder from the last Compar operation must be exist in'
                              f' {working_directory}')

@@ -7,7 +7,7 @@ import logger
 import traceback
 import hashlib
 import getpass
-from compar import ComparMode
+import compar
 from combination import Combination
 
 
@@ -39,7 +39,7 @@ class Database:
             self.static_db.create_collection(self.collection_name)
             self.initialize_static_db()
 
-            if self.mode != ComparMode.CONTINUE:
+            if self.mode != compar.ComparMode.CONTINUE:
                 if self.collection_name in self.dynamic_db.list_collection_names():
                     self.dynamic_db.drop_collection(self.collection_name)
                 self.dynamic_db.create_collection(self.collection_name)
