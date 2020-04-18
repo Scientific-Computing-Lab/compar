@@ -132,7 +132,7 @@
         <a href="/multiplefiles" class="seperate ref">Multiple files Mode</a>
         <a href="/makefile" class="seperate ref">Makefile Mode</a>
     </nav>
-    <form method="POST" action="/singlefile"  enctype="multipart/form-data" id="form">
+    <form method="POST" action="/singlefile"  enctype="multipart/form-data" id="form" novalidate>
         <div class="page-layout">
             <div class="mycontainer">
                 <div class="form-container form">
@@ -159,8 +159,8 @@
                             {{ form.compiler_version }}
                             <div class="horizontal-separator"></div>
                             <div class="form-title">Slurm partition:</div>
-                                <div style="color: red;" id="slurmPartitionAlert">{{ error }}</div>
                             {{ form.slurm_partition(id="slurm_part") }}
+                            <div style="color: red;" id="slurmPartitionAlert">{{ error }}</div>
                             <div class="horizontal-separator"></div>
                             <div style="align-items: center" class="flex-row">
                                 <div class="form-title">Save combination folders:</div>
@@ -174,11 +174,21 @@
                             </div>
                             <div id="slurm-parameters-list"></div>
                             <div class="horizontal-separator"></div>
-                            <div class="form-title">Maximum job count:</div>
-                                <div style="color: red;" id="jobCount">{{ error }}</div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">Maximum job count:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Maximum number of jobs running simultaneously</span>
+                                </div>
+                            </div>
+                            <div style="color: red;" id="jobCount">{{ error }}</div>
                             {{ form.jobs_count }}
                             <div class="horizontal-separator"></div>
-                            <div class="form-title">Execution time limit:</div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">Execution time limit:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Time limit for each combination</span>
+                                </div>
+                            </div>
                             <div style="display: flex; flex-direction: row; align-items: center" id="time-span">
                                 <div class="flex-col">
                                     <div>D</div>
@@ -199,6 +209,7 @@
                                     <div>S</div>
                                     {{ form.seconds_field(style='width: 50px') }}
                                 </div>
+
                             </div>
                             <div class="horizontal-separator"></div>
                             <div class="form-title">Main file parameters:</div>
@@ -213,7 +224,12 @@
                             {{ form.log_level(style='margin-left: 30px') }}
                             </div>
                             <div class="horizontal-separator"></div>
-                             <div class="form-title">Validation file path:</div>
+                            <div class="flex-row-spaced">
+                               <div class="form-title">Validation file path:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Absolute path to python file named “test_output.py” with test function “test_output”. This file will validate the output of every combination.</span>
+                                </div>
+                            </div>
                             {{ form.test_path }}
                             <div style="color: red" id="validationPathAlert"></div>
                         </div>
@@ -288,6 +304,12 @@
             else{
                 document.getElementById('validationPathAlert').innerHTML = "";
             }
+            if(errors.slurm_partition){
+                document.getElementById('slurmPartitionAlert').innerHTML = errors.slurm_partition;
+            }
+            else{
+                document.getElementById('slurmPartitionAlert').innerHTML = "";
+            }
 
         }
         // if (errors && errors.slurm_parameters){
@@ -310,8 +332,8 @@
     });
 
   function submitForm(url){
-    console.log($('myform').serialize());
-    var formData = new FormData($('#myform')[0]);
+    console.log($('form').serialize());
+    var formData = new FormData($('#form')[0]);
     $.ajax({
                 type: "POST",
                 url: url,

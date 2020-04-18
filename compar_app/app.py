@@ -28,12 +28,12 @@ Bootstrap(app)
 # SOURCE_FILE_DIRECTORY = tempfile.gettempdir()
 SOURCE_FILE_DIRECTORY = 'temp'
 
-# def path_validation(form,field):
-#     print("PADAAAA",field)
-#     is_path = os.path.exists(field.data)
-#     if not is_path:
-#         raise ValidationError('Path is invalid')
-#
+
+def pathValidator(form, field):
+    print("DADA", field.data)
+    is_path = os.path.exists(field.data)
+    if not is_path:
+        raise ValidationError('Path is invalid')
 
 class SingleFileForm(FlaskForm):
     compiler_flags = StringField('compiler_flags', validators=[InputRequired()])
@@ -41,7 +41,7 @@ class SingleFileForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     slurm_parameters = StringField('slurm_parameters', validators=[InputRequired()])
-    jobs_count = h5fields.IntegerField('jobs_count', validators=[InputRequired()], default=4)
+    jobs_count = h5fields.IntegerField('jobs_count',widget=h5widgets.NumberInput(min=0, max=100, step=1), validators=[InputRequired()], default=4)
     days_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=100, step=1), default=0)
     hours_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=23, step=1), default=0)
     minutes_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
@@ -52,16 +52,10 @@ class SingleFileForm(FlaskForm):
     upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'c file only!')])  # valiation dont work
     result_file_area = TextAreaField('result_file_area')
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
-    test_path = StringField('test_file_path')
-
-    def validate_test_path(self, test_path):
-        print("DADA", test_path.data)
-        is_path = os.path.exists(test_path.data)
-        if not is_path:
-            raise ValidationError('Path is invalid')
+    test_path = StringField('test_file_path', validators=[pathValidator])
 
 @app.route("/")
-@app.route("/singlefile"    , methods=['GET', 'POST'])
+@app.route("/singlefile", methods=['GET', 'POST'])
 def single_file():
     form = SingleFileForm(request.form)
     return render_template('single-file-mode.html', form=form)
