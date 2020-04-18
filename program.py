@@ -46,6 +46,8 @@ def main():
                         default=num_of_jobs_at_once)
     parser.add_argument('-mode', '--mode', help=f'Compar working mode {Compar.MODES.keys()}.',
                         default=Compar.DEFAULT_MODE, choices=Compar.MODES.keys())
+    parser.add_argument('-with_markers', '--code_with_markers', action='store_true',
+                        help='Mark that the code was parallelized with Compar before')
     args = parser.parse_args()
     args.mode = Compar.MODES[args.mode]
 
@@ -90,7 +92,8 @@ def main():
         time_limit=args.time_limit,
         slurm_partition=args.slurm_partition,
         test_file_path=args.test_file_path,
-        mode=args.mode
+        mode=args.mode,
+        code_with_markers=args.code_with_markers
     )
     compar_obj.fragment_and_add_timers()
     compar_obj.run_serial()

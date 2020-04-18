@@ -4,7 +4,7 @@ import exceptions as e
 import re
 
 
-class Timer(object):
+class Timer:
 
     COMPAR_VAR_PREFIX = '____compar____'
     # WARNING! '__PREFIX_OUTPUT_FILE' var cannot contains semicolon!
@@ -20,7 +20,7 @@ class Timer(object):
     DECL_GLOBAL_TIMER_VAR_CODE = 'double ' + COMPAR_VAR_PREFIX + 'timer;'
     INIT_START_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'start_time_{} = omp_get_wtime();\n'
     INIT_RUN_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'run_time_{} = omp_get_wtime() - ' +\
-                             COMPAR_VAR_PREFIX + 'start_time_{};\n'
+        COMPAR_VAR_PREFIX + 'start_time_{};\n'
 
     WRITE_TO_FILE_CODE_1 = 'FILE * fp{} = fopen(\"{}\", \"w\");\n'
     WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'%d:%.10lf'+r'\\n' + '"' + ', {}, {});\n'  # <loop number>:<run time>
@@ -40,7 +40,7 @@ class Timer(object):
         declaration_code = '\n'
         declaration_code += Timer.DECL_START_TIME_VAR_CODE.format(label)
         declaration_code += Timer.DECL_RUN_TIME_VAR_CODE.format(label)
-        #TODO: declaration_code += Timer.DECL_FILE_POINTER_VAR_CODE.format(label)
+        # TODO: declaration_code += Timer.DECL_FILE_POINTER_VAR_CODE.format(label)
         return declaration_code
 
     @staticmethod
@@ -112,13 +112,13 @@ class Timer(object):
             except Exception as ex:
                 raise e.FileError(f'exception in Compar.remove_timer_code: {c_file_dict["file_full_path"]}: {str(ex)}')
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, code_with_markers=False):
         e.assert_file_exist(file_path)
         self.__input_file_path = file_path
         self.__time_result_file = str(os.path.basename(file_path).split('.')[0]) + '_run_time_result.txt'
         self.__time_result_file = self.__time_result_file.replace(';', '')  # the file name cannot contains semicolon
         self.__number_of_loops = 0
-        self.__fragmentation = Fragmentator(file_path)
+        self.__fragmentation = Fragmentator(file_path, code_with_markers)
 
     def get_input_file_path(self):
         return self.__input_file_path

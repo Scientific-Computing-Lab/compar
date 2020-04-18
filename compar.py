@@ -107,6 +107,17 @@ class Compar:
             raise e.FileError(str(err))
 
     @staticmethod
+    def remove_optimal_combinations_details(file_paths_list):
+        regex_pattern = r'\n.+COMBINATION_ID[^\n]+\n+[^\n]+?\n*.+COMPILER_NAME[^\n]+'
+        for file_path in file_paths_list:
+            with open(file_path, 'r+') as fp:
+                file_content = fp.read()
+                re.sub(regex_pattern, '', file_content)
+                fp.seek(0)
+                fp.write(file_content)
+                fp.truncate()
+
+    @staticmethod
     def replace_loops_in_files(origin_path, destination_path, start_label, end_label):
 
         origin_file_string = Compar.get_file_content(origin_path)
@@ -163,7 +174,10 @@ class Compar:
                  time_limit=None,
                  slurm_partition='grid',
                  test_file_path='',
-                 mode=MODES[DEFAULT_MODE]):
+                 mode=MODES[DEFAULT_MODE],
+                 code_with_markers=False):
+
+        e.assert_folder_exist(input_dir)
 
         if not is_make_file:
             e.assert_only_files(input_dir)
@@ -197,6 +211,7 @@ class Compar:
         self.slurm_partition = slurm_partition
         self.parallel_jobs_pool_executor = JobExecutor(Compar.NUM_OF_THREADS)
         self.mode = mode
+        self.code_with_markers = code_with_markers
 
         # Unit test
         self.test_file_path = test_file_path
@@ -219,6 +234,9 @@ class Compar:
 
         # Compilers variables
         self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
+        if self.code_with_markers:
+            file_paths = [file['file_full_path'] for file in self.make_absolute_file_list(self.original_files_dir)]
+            self.remove_optimal_combinations_details(file_paths)
         self.binary_compiler_type = binary_compiler_type
         self.parallelizers = dict()
         for name, ctor in parallelizers.items():
@@ -525,8 +543,8 @@ class Compar:
 
             if self.is_make_file:
                 compiler_type = "Makefile"
-                makefile = Makefile(serial_dir_path, self.makefile_exe_folder_rel_path, self.makefile_output_exe_file_name,
-                                    self.makefile_commands)
+                makefile = Makefile(serial_dir_path, self.makefile_exe_folder_rel_path,
+                                    self.makefile_output_exe_file_name, self.makefile_commands)
                 makefile.make()
             else:
                 compiler_type = self.binary_compiler_type
@@ -561,7 +579,7 @@ class Compar:
             if self.mode == ComparMode.CONTINUE:
                 num_of_loops = Fragmentator.count_loops_in_prepared_file(c_file_dict['file_full_path'])
             else:
-                self.__timer = Timer(c_file_dict['file_full_path'])
+                self.__timer = Timer(c_file_dict['file_full_path'], code_with_markers=self.code_with_markers)
                 self.__timer.inject_timers(index, main_file_path)
                 num_of_loops = self.__timer.get_number_of_loops()
             name_of_global_array = f'{Timer.NAME_OF_GLOBAL_ARRAY}{str(index)}'
