@@ -31,11 +31,12 @@ COMPAR_PROGRAM_FILE = 'program.py'
 GUI_DIR_NAME = 'compar_app'
 
 
-def pathValidator(form, field):
+def path_validator(form, field):
     print("DADA", field.data)
     is_path = os.path.exists(field.data)
     if not is_path:
         raise ValidationError('Path is invalid')
+
 
 class SingleFileForm(FlaskForm):
     compiler_flags = StringField('compiler_flags', validators=[InputRequired()])
@@ -48,13 +49,18 @@ class SingleFileForm(FlaskForm):
     hours_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=23, step=1), default=0)
     minutes_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
     seconds_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
-    main_file_parameters = TextAreaField('main_file_parameters')
+    main_file_parameters = StringField('main_file_parameters')
     compiler = SelectField('compiler', choices=[('gcc', 'GCC'), ('icc', 'ICC')])
     source_file_code = TextAreaField('source_file_code')
     upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'c file only!')])  # valiation dont work
     result_file_area = TextAreaField('result_file_area')
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
-    test_path = StringField('test_file_path', validators=[pathValidator])
+    test_path = StringField('test_file_path', validators=[path_validator])
+
+
+class MultipleFilesForm(FlaskForm):
+    pass
+
 
 @app.route("/")
 @app.route("/singlefile", methods=['GET', 'POST'])
@@ -121,9 +127,51 @@ def single_file_submit():
                 session['job_count'] = form.jobs_count.data
                 session['log_level'] = form.log_level.data
                 session['test_path'] = form.test_path.data
+                session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
+                                                          form.minutes_field.data, form.seconds_field.data)
         else:
             # TODO: add check in this case (if validation not worked)
             pass
+        return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
+    return jsonify(errors=form.errors)
+
+
+@app.route('/multiple_files_submit/', methods=['post'])
+def multiple_files_submit():
+    form = MultipleFilesForm()
+    print(form.validate_on_submit())
+    print(form.errors)
+    if form.validate_on_submit():
+        guid = getpass.getuser() + str(datetime.now())
+        file_hash = hashlib.sha3_256(guid.encode()).hexdigest()
+        # create input dir
+        input_dir_path = os.path.join(SOURCE_FILE_DIRECTORY, file_hash)
+        os.makedirs(input_dir_path, exist_ok=True)
+        session['input_dir'] = os.path.join(GUI_DIR_NAME, input_dir_path)
+        source_file_name = f"{file_hash}.c"
+        source_file_path = os.path.join(input_dir_path, source_file_name)
+        session['source_file_path'] = source_file_path
+        save_source_file(file_path=source_file_path, txt=form.source_file_code.data)
+        # create working dir
+        working_dir_path = os.path.join(SOURCE_FILE_DIRECTORY, f"{file_hash}_wd")
+        os.makedirs(working_dir_path, exist_ok=True)
+        session['working_dir'] = os.path.join(GUI_DIR_NAME, working_dir_path)
+        # update main file rel path as filename
+        session['main_file_rel_path'] = source_file_name
+        # other fields
+        session['compiler'] = form.compiler.data
+        session['save_combinations'] = form.save_combinations.data
+        session['main_file_parameters'] = form.main_file_parameters.data
+        session['compiler_flags'] = form.compiler_flags.data
+        session['compiler_version'] = form.compiler_version.data
+        session['slurm_parameters'] = form.slurm_parameters.data
+        session['slurm_partition'] = form.slurm_partition.data
+        session['job_count'] = form.jobs_count.data
+        session['log_level'] = form.log_level.data
+        session['test_path'] = form.test_path.data
+        session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
+                                                  form.minutes_field.data, form.seconds_field.data)
+
         return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
     return jsonify(errors=form.errors)
 
@@ -134,6 +182,7 @@ def stream():
 
     def generate():
         compar_file = COMPAR_PROGRAM_FILE
+        compar_file = "compar_app/testt.py"
         interpreter = sys.executable
         command = [interpreter, '-u', compar_file, compar_command]
         print(command)
@@ -216,7 +265,19 @@ def generate_compar_command_without_makefile():
     # test file path
     if session['test_path']:
         command += [f"-test_file {session['test_path']}"]
+    # time limit
+    if session['time_limit']:
+        command += [f"-t {session['time_limit']}"]
     return ' '.join(command)
+
+
+def handle_time_limit(days, hours, minutes, seconds):
+    time_limit = ''
+    if days or hours or minutes or seconds:
+        time_limit = f"{str(hours)}:{str(minutes)}:{str(seconds)}"
+    if days:
+        time_limit = f"{str(days)}-" + time_limit
+    return time_limit
 
 
 if __name__ == "__main__":
