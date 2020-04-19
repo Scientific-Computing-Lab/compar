@@ -39,7 +39,7 @@ class ExecuteJob:
         self.update_speedup()
         job_result_dict = self.job.get_job_results()
         self.db_lock.acquire()
-        self.db.insert_new_combination(job_result_dict)
+        self.db.insert_new_combination_results(job_result_dict)
         self.db_lock.release()
 
     def save_combination_as_failure(self, error_msg):
@@ -48,7 +48,7 @@ class ExecuteJob:
             'error': error_msg
         }
         self.db_lock.acquire()
-        self.db.insert_new_combination(combination_dict)
+        self.db.insert_new_combination_results(combination_dict)
         self.db_lock.release()
 
     def update_speedup(self):
@@ -82,7 +82,8 @@ class ExecuteJob:
             self.__analysis_output_file()
             self.update_dead_code_files()
             self.save_successful_job()
-            if not UnitTest.run_unit_test(self.test_file_path):
+            if not UnitTest.run_unit_test(self.test_file_path, self.get_job().get_directory_path(),
+                                          f"{self.get_job().get_directory_name()}.log"):
                 self.db.set_error_in_combination(self.job.combination.combination_id, "Unit test failed.")
         except Exception as ex:
             if self.job.get_job_results()['run_time_results']:

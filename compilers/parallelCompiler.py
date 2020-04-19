@@ -12,7 +12,7 @@ class ParallelCompiler(Compiler, ABC):
     NAME = ''
 
     def __init__(self, version, input_file_directory=None, compilation_flags=None, file_list=None,
-                 include_dirs_list=None):
+                 include_dirs_list=None, **kwargs):
         super().__init__(version, input_file_directory, compilation_flags)
         self._file_list = file_list
         self.include_dirs_list = include_dirs_list
@@ -42,7 +42,8 @@ class ParallelCompiler(Compiler, ABC):
                 user_script_path = json_content[self.NAME]
                 if os.path.exists(user_script_path):
                     try:
-                        std_out, std_err, ret_code = run_subprocess(user_script_path)
+                        script_command = f'{user_script_path} {self.get_input_file_directory()}'
+                        std_out, std_err, ret_code = run_subprocess(script_command)
                         logger.debug(std_out)
                         logger.debug_error(std_err)
                     except subprocess.CalledProcessError as e:

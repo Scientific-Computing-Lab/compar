@@ -4,7 +4,7 @@ import exceptions as e
 import re
 
 
-class Timer(object):
+class Timer:
 
     COMPAR_VAR_PREFIX = '____compar____'
     # WARNING! '__PREFIX_OUTPUT_FILE' var cannot contains semicolon!
@@ -20,7 +20,7 @@ class Timer(object):
     DECL_GLOBAL_TIMER_VAR_CODE = 'double ' + COMPAR_VAR_PREFIX + 'timer;'
     INIT_START_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'start_time_{} = omp_get_wtime();\n'
     INIT_RUN_TIME_VAR_CODE = COMPAR_VAR_PREFIX + 'run_time_{} = omp_get_wtime() - ' +\
-                             COMPAR_VAR_PREFIX + 'start_time_{};\n'
+        COMPAR_VAR_PREFIX + 'start_time_{};\n'
 
     WRITE_TO_FILE_CODE_1 = 'FILE * fp{} = fopen(\"{}\", \"w\");\n'
     WRITE_TO_FILE_CODE_2 = 'fprintf(fp{}, '+'"'+'%d:%.10lf'+r'\\n' + '"' + ', {}, {});\n'  # <loop number>:<run time>
@@ -28,6 +28,8 @@ class Timer(object):
     WRITE_TO_FILE_CODE_4 = 'fprintf(fp{}, ' + '"' + '%.10lf' + r'\\n' + '"' + ', {});\n'
     COMPAR_DUMMY_VAR = f'int {COMPAR_VAR_PREFIX}dummy_var'
     TOTAL_RUNTIME_FILENAME = 'total_runtime.txt'
+    NAME_OF_GLOBAL_ARRAY = '____compar____arr'
+    DECL_GLOBAL_ARRAY = "____compar____struct {}[{}] = {{0}};\n"
 
     @staticmethod
     def get_file_name_prefix_token():
@@ -38,7 +40,7 @@ class Timer(object):
         declaration_code = '\n'
         declaration_code += Timer.DECL_START_TIME_VAR_CODE.format(label)
         declaration_code += Timer.DECL_RUN_TIME_VAR_CODE.format(label)
-        #TODO: declaration_code += Timer.DECL_FILE_POINTER_VAR_CODE.format(label)
+        # TODO: declaration_code += Timer.DECL_FILE_POINTER_VAR_CODE.format(label)
         return declaration_code
 
     @staticmethod
@@ -57,13 +59,66 @@ class Timer(object):
             f'{Timer.COMPAR_VAR_PREFIX}run_time_{label};\n'
         return suffix_loop_code
 
-    def __init__(self, file_path):
+    @staticmethod
+    def remove_declaration_code(content):
+        run_time_vars_regex = rf'double[ ]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
+        file_pointer_vars_regex = rf'FILE[ ]*\*[ ]*{Timer.COMPAR_VAR_PREFIX}[^;]+;'
+        struct_regex_version_1 = r'typedef struct ____compar____[^\}]*\}[^;]*;'
+        struct_regex_version_2 = r'struct ____compar____[^\}]+int[^\}]+\}[^;]*;'
+        struct_regex_version_3 = r'typedef struct ____compar____[^\;]*____compar____struct;'
+        compar_dummy_var_regex = fr'{Timer.COMPAR_DUMMY_VAR}[^;]+;'
+        content = re.sub(rf'{Timer.DECL_GLOBAL_TIMER_VAR_CODE}', '', content)
+        content = re.sub(struct_regex_version_1, '', content, flags=re.DOTALL)
+        content = re.sub(struct_regex_version_2, '', content, flags=re.DOTALL)
+        content = re.sub(struct_regex_version_3, '', content, flags=re.DOTALL)
+        content = re.sub(run_time_vars_regex, '', content, flags=re.DOTALL)
+        content = re.sub(file_pointer_vars_regex, '', content, flags=re.DOTALL)
+        content = re.sub(compar_dummy_var_regex, '', content, flags=re.DOTALL)
+        return content
+
+    @staticmethod
+    def remove_run_time_calculation_code_code(content):
+        content = re.sub(rf'{Timer.GLOBAL_TIMER_VAR_NAME}[^;]+omp_get_wtime[^;]+;', '', content)
+        content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, flags=re.DOTALL)
+        content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}struct[ ]+extern[^;]+;', '', content, flags=re.DOTALL)
+        content = re.sub(Timer.COMPAR_VAR_PREFIX + r'struct[^\}]+arr[^\}]+\}[ ]*;', '', content, flags=re.DOTALL)
+        return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}arr[^;]+;', '', content, flags=re.DOTALL)
+
+    @staticmethod
+    def remove_writing_to_file_code(content):
+        fopen_regex = rf'{Timer.COMPAR_VAR_PREFIX}[^;]+fopen[^;]+{re.escape(Timer.get_file_name_prefix_token())}?[^;]+;'
+        fprintf_regex = rf'fprintf[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
+        fclose_regex = rf'fclose[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
+        main_file_at_exit_regex = r'void[ ]+____compar____atExit[^\}]+\}'
+        main_file_at_exit_call_regex = r'atexit[^\;]+;'
+        content = re.sub(main_file_at_exit_regex, '', content, flags=re.DOTALL)
+        content = re.sub(main_file_at_exit_call_regex, '', content, flags=re.DOTALL)
+        content = re.sub(fopen_regex, '', content, flags=re.DOTALL)
+        content = re.sub(fprintf_regex, '', content, flags=re.DOTALL)
+        content = re.sub(fclose_regex, '', content, flags=re.DOTALL)
+        return content
+
+    @staticmethod
+    def remove_timer_code(absolute_file_paths_list):
+        for c_file_dict in absolute_file_paths_list:
+            try:
+                with open(c_file_dict['file_full_path'], 'r') as f:
+                    content = f.read()
+                content = Timer.remove_declaration_code(content)
+                content = Timer.remove_run_time_calculation_code_code(content)
+                content = Timer.remove_writing_to_file_code(content)
+                with open(c_file_dict['file_full_path'], 'w') as f:
+                    f.write(content)
+            except Exception as ex:
+                raise e.FileError(f'exception in Compar.remove_timer_code: {c_file_dict["file_full_path"]}: {str(ex)}')
+
+    def __init__(self, file_path, code_with_markers=False):
         e.assert_file_exist(file_path)
         self.__input_file_path = file_path
         self.__time_result_file = str(os.path.basename(file_path).split('.')[0]) + '_run_time_result.txt'
         self.__time_result_file = self.__time_result_file.replace(';', '')  # the file name cannot contains semicolon
         self.__number_of_loops = 0
-        self.__fragmentation = Fragmentator(file_path)
+        self.__fragmentation = Fragmentator(file_path, code_with_markers)
 
     def get_input_file_path(self):
         return self.__input_file_path

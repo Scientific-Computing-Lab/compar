@@ -1,15 +1,14 @@
 import argparse
-from compar import Compar
+from compar import Compar, ComparMode
 import traceback
 import os
 import shutil
-from exceptions import assert_rel_path_starts_without_sep
+from exceptions import assert_rel_path_starts_without_sep, assert_original_files_folder_exists
 import logger
 
 
 def main():
     num_of_jobs_at_once = 4
-    logger.info('Starting Compar execution')
     parser = argparse.ArgumentParser(description='Compar')
     parser.add_argument('-wd', '--working_directory', help='Working directory path', required=True)
     parser.add_argument('-dir', '--input_dir', help='Input directory path', required=True)
@@ -32,7 +31,8 @@ def main():
     parser.add_argument('-main_file_p', '--main_file_parameters', nargs="*", help='Main c file parameters',
                         default=None)
     parser.add_argument('-slurm_p', '--slurm_parameters', nargs="*", help='Slurm parameters', default=['--exclusive', ])
-    parser.add_argument('-nas', '--is_nas', help='Is NAS Benchmark', action='store_true')
+    parser.add_argument('-extra', '--extra_files', nargs="*", default=None,
+                        help='List of relative extra files to parallelize in addition to current ones.')
     parser.add_argument('-main_file_r_p', '--main_file_rel_path', help='Main c file name relative path',
                         default="", required=True)
     parser.add_argument('-t', '--time_limit', help='Time limit for runtime execution', default=None)
@@ -44,12 +44,25 @@ def main():
     parser.add_argument('-test_file', '--test_file_path', help="Unit test file path", default="")
     parser.add_argument('-jobs_quantity', '--jobs_quantity_at_once', help='The number of jobs to be executed at once',
                         default=num_of_jobs_at_once)
+    parser.add_argument('-mode', '--mode', help=f'Compar working mode {Compar.MODES.keys()}.',
+                        default=Compar.DEFAULT_MODE, choices=Compar.MODES.keys())
+    parser.add_argument('-with_markers', '--code_with_markers', action='store_true',
+                        help='Mark that the code was parallelized with Compar before')
     args = parser.parse_args()
+    args.mode = Compar.MODES[args.mode]
 
-    # TODO: should be depend on users choice
+    if args.mode == ComparMode.CONTINUE:
+        assert_original_files_folder_exists(args.working_directory)
+
     if os.path.exists(args.working_directory):
-        shutil.rmtree(args.working_directory)
-    os.mkdir(args.working_directory)
+        if args.mode == ComparMode.OVERRIDE:
+            shutil.rmtree(args.working_directory)
+        elif args.mode == ComparMode.NEW:
+            args.working_directory = f"{args.working_directory}_1"
+    os.makedirs(args.working_directory, exist_ok=True)
+
+    logger.initialize(args.log_level, args.working_directory)
+    logger.info('Starting Compar execution')
 
     assert_rel_path_starts_without_sep(args.makefile_exe_folder_rel_path)
     for path in args.makefile_exe_folder_rel_path:
@@ -57,8 +70,6 @@ def main():
 
     if args.slurm_parameters and len(args.slurm_parameters) == 1:
         args.slurm_parameters = str(args.slurm_parameters[0]).split(' ')
-
-    logger.initialize(args.log_level)
 
     Compar.set_num_of_threads(args.jobs_quantity_at_once)
     compar_obj = Compar(
@@ -76,13 +87,14 @@ def main():
         include_dirs_list=args.include_dirs_list,
         main_file_parameters=args.main_file_parameters,
         slurm_parameters=args.slurm_parameters,
-        is_nas=args.is_nas,
+        extra_files=args.extra_files,
         main_file_rel_path=args.main_file_rel_path,
         time_limit=args.time_limit,
         slurm_partition=args.slurm_partition,
-        test_file_path=args.test_file_path
+        test_file_path=args.test_file_path,
+        mode=args.mode,
+        code_with_markers=args.code_with_markers
     )
-    # TODO: change fragment_and_add_timers main file path
     compar_obj.fragment_and_add_timers()
     compar_obj.run_serial()
     compar_obj.run_parallel_combinations()
@@ -96,3 +108,4 @@ if __name__ == "__main__":
     except Exception as e:
         logger.info_error(f'Exception at Compar Program: {e}')
         logger.debug_error(traceback.format_exc())
+        exit(1)

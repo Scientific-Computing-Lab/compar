@@ -1,0 +1,29 @@
+assets/omp_rtl_params.json
+	all
+assets/pips_stubs.c
+	all
+compilers/binaryCompiler.py
+	in run_compiler -  -qopenmp flag
+compilers/cetus.py
+	in replace_labels - /* */ comments
+	in compile - replace_line_in_code - #include <omp.h>
+	in compile - inject_line_in_code - #include <omp.h>
+	in copy_headers - h files
+compilers/icc.py
+	in run_compiler - fopenmp flag
+compilers/par4all.py
+	in Par4All - PIPS_STUBS_NAME
+	in __remove_bswap_function - static __uint64_t __bswap_64
+	in __run_p4a_process - common/*.c
+	in compile - wtime_sgi64.c
+	in compile - all if file.endswith('.p4a.c') statement
+compar.py
+	in add_to_loop_details_about_comp_and_combination - // COMBINATION_ID: and // COMPILER_NAME:
+	in make_relative_c_file_list - if os.path.splitext(file)[1] == '.c'
+file_formator.py
+	all
+fragmentator.py
+	all
+timer.py
+	all
+	

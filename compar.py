@@ -1,11 +1,9 @@
+import enum
 import os
 import re
 from time import sleep
 from execute_job import ExecuteJob
 from combination import Combination
-from compilers.autopar import Autopar
-from compilers.cetus import Cetus
-from compilers.par4all import Par4all
 from compilers.gcc import Gcc
 from compilers.icc import Icc
 from exceptions import UserInputError
@@ -16,9 +14,6 @@ from fragmentator import Fragmentator
 import shutil
 import csv
 from exceptions import FileError
-from exceptions import CompilationError
-from exceptions import ExecutionError
-from parameters import Parameters
 from timer import Timer
 import exceptions as e
 from database import Database
@@ -26,14 +21,25 @@ from compilers.makefile import Makefile
 import traceback
 import logger
 from unit_test import UnitTest
+from assets.parallelizers_mapper import parallelizers
+
+
+class ComparMode(enum.IntEnum):
+    NEW = 0
+    CONTINUE = 1
+    OVERRIDE = 2
 
 
 class Compar:
     BACKUP_FOLDER_NAME = "backup"
     ORIGINAL_FILES_FOLDER_NAME = "original_files"
     COMBINATIONS_FOLDER_NAME = "combinations"
+    COMPAR_COMBINATION_FOLDER_NAME = Combination.COMPAR_COMBINATION_ID
+    FINAL_RESULTS_FOLDER_NAME = Combination.FINAL_RESULTS_COMBINATION_ID
     SUMMARY_FILE_NAME = 'summary.csv'
     NUM_OF_THREADS = 4
+    MODES = dict((mode.name.lower(), mode) for mode in ComparMode)
+    DEFAULT_MODE = ComparMode.OVERRIDE.name.lower()
 
     @staticmethod
     def set_num_of_threads(num_of_threads):
@@ -54,202 +60,26 @@ class Compar:
             raise e.FileError(str(err))
 
     @staticmethod
+    def __copy_folder_content(src, dst):
+        for rel_path in os.listdir(src):
+            src_full_path = os.path.join(src, rel_path)
+            if os.path.isfile(src_full_path):
+                shutil.copy(src_full_path, dst)
+            elif os.path.isdir(src_full_path):
+                dest_path_include_new_dir = os.path.join(dst, rel_path)
+                if os.path.exists(dest_path_include_new_dir):
+                    shutil.rmtree(dest_path_include_new_dir)
+                shutil.copytree(src_full_path, dest_path_include_new_dir)
+
+    @staticmethod
+    def __delete_combination_folder(combination_folder_path):
+        if os.path.exists(combination_folder_path):
+            shutil.rmtree(combination_folder_path)
+
+    @staticmethod
     def format_c_files(list_of_file_paths):
         for file_path in list_of_file_paths:
             format_c_code([file_path, ])
-
-    def __init__(self,
-                 working_directory,
-                 input_dir,
-                 main_file_rel_path,
-                 binary_compiler_type="",
-                 binary_compiler_version=None,
-                 binary_compiler_flags=None,
-                 save_combinations_folders=False,
-                 is_make_file=False,
-                 makefile_commands=None,
-                 makefile_exe_folder_rel_path="",
-                 makefile_output_exe_file_name="",
-                 ignored_rel_paths=None,
-                 include_dirs_list=None,
-                 main_file_parameters=None,
-                 slurm_parameters=None,
-                 is_nas=False,
-                 time_limit=None,
-                 slurm_partition='grid',
-                 test_file_path=''):
-
-        if not is_make_file:
-            e.assert_only_files(input_dir)
-        if not include_dirs_list:
-            include_dirs_list = []
-        if not makefile_commands:
-            makefile_commands = []
-        if not binary_compiler_flags:
-            binary_compiler_flags = []
-        if not main_file_parameters:
-            main_file_parameters = []
-        if not slurm_parameters:
-            slurm_parameters = ['--exclusive', ]
-        if not ignored_rel_paths:
-            ignored_rel_paths = []
-        if not test_file_path:
-            test_file_path = UnitTest.UNIT_TEST_DEFAULT_PATH
-
-        self.binary_compiler = None
-        self.__timer = None
-        self.serial_run_time = {}
-        self.files_loop_dict = {}
-        self.main_file_rel_path = main_file_rel_path
-        self.save_combinations_folders = save_combinations_folders
-        self.binary_compiler_version = binary_compiler_version
-        self.ignored_rel_paths = ignored_rel_paths
-        self.include_dirs_list = include_dirs_list
-        self.time_limit = time_limit
-        self.slurm_partition = slurm_partition
-        self.parallel_jobs_pool_executor = JobExecutor(Compar.NUM_OF_THREADS)
-
-        # Unit test
-        self.test_file_path = test_file_path
-        e.assert_file_exist(self.test_file_path)
-        e.assert_test_file_name(os.path.basename(self.test_file_path))
-        e.assert_test_file_function_name(self.test_file_path)
-
-        # Initiate Compar environment
-        e.assert_forbidden_characters(working_directory)
-        self.working_directory = working_directory
-        self.backup_files_dir = os.path.join(working_directory, Compar.BACKUP_FOLDER_NAME)
-        self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
-        self.combinations_dir = os.path.join(working_directory, Compar.COMBINATIONS_FOLDER_NAME)
-        self.__create_directories_structure(input_dir)
-
-        # Compilers variables
-        self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
-        self.binary_compiler_type = binary_compiler_type
-        self.par4all_compiler = Par4all("", include_dirs_list=self.include_dirs_list, is_nas=is_nas)
-        self.autopar_compiler = Autopar("", include_dirs_list=self.include_dirs_list)
-        self.cetus_compiler = Cetus("", include_dirs_list=self.include_dirs_list)
-
-        # Compiler flags
-        self.user_binary_compiler_flags = binary_compiler_flags
-
-        # Makefile
-        self.is_make_file = is_make_file
-        self.makefile_commands = makefile_commands
-        self.makefile_exe_folder_rel_path = makefile_exe_folder_rel_path
-        self.makefile_output_exe_file_name = makefile_output_exe_file_name
-
-        # Main file
-        self.main_file_parameters = main_file_parameters
-
-        # SLURM
-        self.slurm_parameters = slurm_parameters
-
-        # Initialization
-        if not is_make_file:
-            self.__initialize_binary_compiler()
-        self.db = Database(self.__extract_working_directory_name())
-
-    def generate_optimal_code(self):
-        logger.info('Start to combine the Compar combination')
-        compar_combination_folder_name = 'compar_combination'
-        final_result_folder_name = 'final_results'
-        optimal_loops_data = []
-
-        # copy final results into this folder
-        compar_combination_folder_path = self.create_combination_folder(compar_combination_folder_name,
-                                                                        base_dir=self.working_directory)
-        final_files_list = self.make_absolute_file_list(compar_combination_folder_path)
-
-        for file_id_by_rel_path, loops in self.files_loop_dict.items():
-            current_file = {"file_id_by_rel_path": file_id_by_rel_path, 'optimal_loops': []}
-            for loop_id in range(1, loops[0]+1):
-                start_label = Fragmentator.get_start_label()+str(loop_id)
-                end_label = Fragmentator.get_end_label()+str(loop_id)
-                try:
-                    current_optimal_id, current_loop = self.db.find_optimal_loop_combination(file_id_by_rel_path,
-                                                                                             str(loop_id))
-                    # update the optimal loops list
-                    current_loop['_id'] = current_optimal_id
-                    current_file["optimal_loops"].append(current_loop)
-                except e.DeadCodeFile:
-                    current_file["dead_code_file"] = True
-                    break
-                except e.DeadCodeLoop:
-                    current_file["optimal_loops"].append({'_id': '0', 'loop_label': str(loop_id), 'dead_code': True})
-                    current_optimal_id = '0'
-
-                # if the optimal combination is the serial => do nothing
-                if current_optimal_id != '0':
-                    current_optimal_combination = self.__combination_json_to_obj(
-                        self.db.get_combination_from_static_db(current_optimal_id))
-                    final_results_folder_path = self.create_combination_folder(
-                        "current_combination", base_dir=self.working_directory)
-                    files_list = self.make_absolute_file_list(final_results_folder_path)
-                    current_comp_name = current_optimal_combination.compiler_name
-
-                    # get direct file path to inject params
-                    src_file_path = list(filter(lambda x: x['file_id_by_rel_path'] == file_id_by_rel_path, files_list))
-                    src_file_path = src_file_path[0]['file_full_path']
-
-                    # parallelize and inject
-                    self.parallel_compilation_of_one_combination(current_optimal_combination, final_results_folder_path)
-
-                    # replace loop in c file using final_files_list
-                    target_file_path = list(filter(lambda x: x['file_id_by_rel_path'] == file_id_by_rel_path,
-                                                   final_files_list))
-                    target_file_path = target_file_path[0]['file_full_path']
-
-                    Compar.replace_loops_in_files(src_file_path, target_file_path, start_label, end_label)
-                    Compar.add_to_loop_details_about_comp_and_combination(target_file_path, start_label,
-                                                                          current_optimal_id, current_comp_name)
-                    sleep(1)  # prevent IO error
-                    shutil.rmtree(final_results_folder_path)
-            optimal_loops_data.append(current_file)
-
-        # remove timers code
-        self.remove_timer_code(compar_combination_folder_path)
-        # inject new code
-        Timer.inject_timer_to_compar_mixed_file(os.path.join(compar_combination_folder_path,
-                                                             self.main_file_rel_path), compar_combination_folder_path)
-        # format all optimal files
-        self.format_c_files([file_dict['file_full_path'] for file_dict in final_files_list])
-        self.generate_summary_file(optimal_loops_data, compar_combination_folder_path)
-        try:
-            logger.info('Compiling Compar combination')
-            self.compile_combination_to_binary(compar_combination_folder_path, inject=False)
-            job = Job(compar_combination_folder_path, Combination(Combination.COMPAR_COMBINATION_ID, "mixed", []), [])
-            logger.info('Running Compar combination')
-            job = self.execute_job(job, self.serial_run_time)
-        except Exception as ex:
-            msg = f'Exception in Compar: {ex}\ngenerate_optimal_code: cannot compile compar combination'
-            self.save_combination_as_failure(Combination.COMPAR_COMBINATION_ID, msg, compar_combination_folder_path)
-        # Check for best total runtime
-        best_runtime_combination_id = self.db.get_total_runtime_best_combination()
-        if best_runtime_combination_id != Combination.COMPAR_COMBINATION_ID:
-            logger.info(f'Combination #{best_runtime_combination_id} is more optimal than Compar combination')
-            combination_obj = self.__combination_json_to_obj(
-                self.db.get_combination_from_static_db(best_runtime_combination_id))
-            final_results_folder_path = self.create_combination_folder(
-                final_result_folder_name, self.working_directory)
-            try:
-                if best_runtime_combination_id != Database.SERIAL_COMBINATION_ID:
-                    self.parallel_compilation_of_one_combination(combination_obj, final_results_folder_path)
-                self.compile_combination_to_binary(final_results_folder_path)
-                self.update_summary_file(combination_obj, compar_combination_folder_path)
-                summary_file_path = os.path.join(compar_combination_folder_path, self.SUMMARY_FILE_NAME)
-                summary_file_new_path = os.path.join(final_results_folder_path, self.SUMMARY_FILE_NAME)
-                shutil.move(summary_file_path, summary_file_new_path)
-            except Exception as ex:
-                raise Exception(f"Total runtime calculation - The optimal file could not be compiled, combination"
-                                f" {best_runtime_combination_id}.\n{ex}")
-        else:
-            logger.info(f'Compar combination is the optimal combination')
-            final_folder_path = os.path.join(self.working_directory, final_result_folder_name)
-            if os.path.exists(final_folder_path):
-                shutil.rmtree(final_folder_path)
-            shutil.copytree(compar_combination_folder_path, final_folder_path)
-        self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
 
     @staticmethod
     def get_file_content(file_path):
@@ -277,6 +107,17 @@ class Compar:
             raise e.FileError(str(err))
 
     @staticmethod
+    def remove_optimal_combinations_details(file_paths_list):
+        regex_pattern = r'\n.+COMBINATION_ID[^\n]+\n+[^\n]+?\n*.+COMPILER_NAME[^\n]+'
+        for file_path in file_paths_list:
+            with open(file_path, 'r+') as fp:
+                file_content = fp.read()
+                re.sub(regex_pattern, '', file_content)
+                fp.seek(0)
+                fp.write(file_content)
+                fp.truncate()
+
+    @staticmethod
     def replace_loops_in_files(origin_path, destination_path, start_label, end_label):
 
         origin_file_string = Compar.get_file_content(origin_path)
@@ -300,29 +141,241 @@ class Compar:
 
     @staticmethod
     def create_c_code_to_inject(parameters, option):
-        if option == "code":
-            params = parameters.get_code_params()
-        elif option == "env":
-            params = parameters.get_env_params()
+        if option == "omp_directives":
+            params = parameters.get_omp_directives_params()
+        elif option == "omp_rtl":
+            params = parameters.get_omp_rtl_params()
         else:
             raise UserInputError(f'The input {option} is not supported')
 
         c_code = ""
         for param in params:
-            if option == "env":
+            if option == "omp_rtl":
                 c_code += param + "\n"
         return c_code
 
-    @staticmethod
-    def __combination_json_to_obj(combination_json):
-        parameters_json = combination_json['parameters']
-        parameters_obj = Parameters(code_params=parameters_json['code_params'],
-                                    env_params=parameters_json['env_params'],
-                                    compilation_params=parameters_json['compilation_params'])
-        combination_obj = Combination(combination_id=combination_json['_id'],
-                                      compiler_name=combination_json['compiler_name'],
-                                      parameters=parameters_obj)
-        return combination_obj
+    def __init__(self,
+                 working_directory,
+                 input_dir,
+                 main_file_rel_path,
+                 binary_compiler_type="",
+                 binary_compiler_version=None,
+                 binary_compiler_flags=None,
+                 save_combinations_folders=False,
+                 is_make_file=False,
+                 makefile_commands=None,
+                 makefile_exe_folder_rel_path="",
+                 makefile_output_exe_file_name="",
+                 ignored_rel_paths=None,
+                 include_dirs_list=None,
+                 main_file_parameters=None,
+                 slurm_parameters=None,
+                 extra_files=None,
+                 time_limit=None,
+                 slurm_partition='grid',
+                 test_file_path='',
+                 mode=MODES[DEFAULT_MODE],
+                 code_with_markers=False):
+
+        e.assert_folder_exist(input_dir)
+
+        if not is_make_file:
+            e.assert_only_files(input_dir)
+        if not include_dirs_list:
+            include_dirs_list = []
+        if not makefile_commands:
+            makefile_commands = []
+        if not binary_compiler_flags:
+            binary_compiler_flags = []
+        if not main_file_parameters:
+            main_file_parameters = []
+        if not slurm_parameters:
+            slurm_parameters = ['--exclusive', ]
+        if not ignored_rel_paths:
+            ignored_rel_paths = []
+        if not test_file_path:
+            test_file_path = UnitTest.UNIT_TEST_DEFAULT_PATH
+        if not extra_files:
+            extra_files = []
+
+        self.binary_compiler = None
+        self.__timer = None
+        self.serial_run_time = {}
+        self.files_loop_dict = {}
+        self.main_file_rel_path = main_file_rel_path
+        self.save_combinations_folders = save_combinations_folders
+        self.binary_compiler_version = binary_compiler_version
+        self.ignored_rel_paths = ignored_rel_paths
+        self.include_dirs_list = include_dirs_list
+        self.time_limit = time_limit
+        self.slurm_partition = slurm_partition
+        self.parallel_jobs_pool_executor = JobExecutor(Compar.NUM_OF_THREADS)
+        self.mode = mode
+        self.code_with_markers = code_with_markers
+
+        # Unit test
+        self.test_file_path = test_file_path
+        e.assert_file_exist(self.test_file_path)
+        e.assert_test_file_name(os.path.basename(self.test_file_path))
+        e.assert_test_file_function_name(self.test_file_path)
+
+        # Initiate Compar environment
+        e.assert_forbidden_characters(working_directory)
+        self.working_directory = working_directory
+        self.backup_files_dir = os.path.join(working_directory, Compar.BACKUP_FOLDER_NAME)
+        self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
+        if self.mode == ComparMode.CONTINUE:
+            e.assert_folder_exist(self.original_files_dir)
+            self.__delete_combination_folder(os.path.join(working_directory, self.COMPAR_COMBINATION_FOLDER_NAME))
+            self.__delete_combination_folder(os.path.join(working_directory, self.FINAL_RESULTS_FOLDER_NAME))
+
+        self.combinations_dir = os.path.join(working_directory, Compar.COMBINATIONS_FOLDER_NAME)
+        self.__create_directories_structure(input_dir)
+
+        # Compilers variables
+        self.relative_c_file_list = self.make_relative_c_file_list(self.original_files_dir)
+        if self.code_with_markers:
+            file_paths = [file['file_full_path'] for file in self.make_absolute_file_list(self.original_files_dir)]
+            self.remove_optimal_combinations_details(file_paths)
+        self.binary_compiler_type = binary_compiler_type
+        self.parallelizers = dict()
+        for name, ctor in parallelizers.items():
+            self.parallelizers[name] = ctor("", include_dirs_list=self.include_dirs_list, extra_files=extra_files)
+
+        # Compiler flags
+        self.user_binary_compiler_flags = binary_compiler_flags
+
+        # Makefile
+        self.is_make_file = is_make_file
+        self.makefile_commands = makefile_commands
+        self.makefile_exe_folder_rel_path = makefile_exe_folder_rel_path
+        self.makefile_output_exe_file_name = makefile_output_exe_file_name
+
+        # Main file
+        self.main_file_parameters = main_file_parameters
+
+        # SLURM
+        self.slurm_parameters = slurm_parameters
+
+        # Initialization
+        if not is_make_file:
+            self.__initialize_binary_compiler()
+        self.db = Database(self.__extract_working_directory_name(), mode=self.mode)
+
+    def generate_optimal_code(self):
+        logger.info('Start to combine the Compar combination')
+        optimal_loops_data = []
+
+        # copy final results into this folder
+        compar_combination_folder_path = self.create_combination_folder(self.COMPAR_COMBINATION_FOLDER_NAME,
+                                                                        base_dir=self.working_directory)
+        final_files_list = self.make_absolute_file_list(compar_combination_folder_path)
+
+        for file_id_by_rel_path, loops in self.files_loop_dict.items():
+            current_file = {"file_id_by_rel_path": file_id_by_rel_path, 'optimal_loops': []}
+            for loop_id in range(1, loops[0]+1):
+                start_label = Fragmentator.get_start_label()+str(loop_id)
+                end_label = Fragmentator.get_end_label()+str(loop_id)
+                try:
+                    current_optimal_id, current_loop = self.db.find_optimal_loop_combination(file_id_by_rel_path,
+                                                                                             str(loop_id))
+                    # update the optimal loops list
+                    current_loop['_id'] = current_optimal_id
+                    current_file["optimal_loops"].append(current_loop)
+                except e.DeadCodeFile:
+                    current_file["dead_code_file"] = True
+                    break
+                except e.DeadCodeLoop:
+                    current_file["optimal_loops"].append({'_id': Database.SERIAL_COMBINATION_ID,
+                                                          'loop_label': str(loop_id), 'dead_code': True})
+                    current_optimal_id = Database.SERIAL_COMBINATION_ID
+
+                # if the optimal combination is the serial => do nothing
+                if current_optimal_id != Database.SERIAL_COMBINATION_ID:
+                    current_optimal_combination = Combination.json_to_obj(
+                        self.db.get_combination_from_static_db(current_optimal_id))
+                    current_combination_folder_path = self.create_combination_folder(
+                        "current_combination", base_dir=self.working_directory)
+                    files_list = self.make_absolute_file_list(current_combination_folder_path)
+                    current_comp_name = current_optimal_combination.compiler_name
+
+                    # get direct file path to inject params
+                    src_file_path = list(filter(lambda x: x['file_id_by_rel_path'] == file_id_by_rel_path, files_list))
+                    src_file_path = src_file_path[0]['file_full_path']
+
+                    # parallelize and inject
+                    self.parallel_compilation_of_one_combination(current_optimal_combination,
+                                                                 current_combination_folder_path)
+
+                    # replace loop in c file using final_files_list
+                    target_file_path = list(filter(lambda x: x['file_id_by_rel_path'] == file_id_by_rel_path,
+                                                   final_files_list))
+                    target_file_path = target_file_path[0]['file_full_path']
+
+                    Compar.replace_loops_in_files(src_file_path, target_file_path, start_label, end_label)
+                    Compar.add_to_loop_details_about_comp_and_combination(target_file_path, start_label,
+                                                                          current_optimal_id, current_comp_name)
+                    sleep(1)  # prevent IO error
+                    shutil.rmtree(current_combination_folder_path)
+            optimal_loops_data.append(current_file)
+
+        # remove timers code
+        Timer.remove_timer_code(self.make_absolute_file_list(compar_combination_folder_path))
+        # inject new code
+        Timer.inject_timer_to_compar_mixed_file(os.path.join(compar_combination_folder_path,
+                                                             self.main_file_rel_path), compar_combination_folder_path)
+        self.generate_summary_file(optimal_loops_data, compar_combination_folder_path)
+        try:
+            logger.info('Compiling Compar combination')
+            self.compile_combination_to_binary(compar_combination_folder_path, inject=False)
+            job = Job(compar_combination_folder_path, Combination(Combination.COMPAR_COMBINATION_ID, "mixed", []), [])
+            logger.info('Running Compar combination')
+            self.execute_job(job, self.serial_run_time)
+        except Exception as ex:
+            msg = f'Exception in Compar: {ex}\ngenerate_optimal_code: cannot compile compar combination'
+            self.save_combination_as_failure(Combination.COMPAR_COMBINATION_ID, msg, compar_combination_folder_path)
+        # Check for best total runtime
+        best_runtime_combination_id = self.db.get_total_runtime_best_combination()
+        best_combination_obj = None
+        if best_runtime_combination_id != Combination.COMPAR_COMBINATION_ID:
+            logger.info(f'Combination #{best_runtime_combination_id} is more optimal than Compar combination')
+            best_combination_obj = Combination.json_to_obj(
+                self.db.get_combination_from_static_db(best_runtime_combination_id))
+            final_results_folder_path = self.create_combination_folder(
+                self.FINAL_RESULTS_FOLDER_NAME, self.working_directory)
+            try:
+                if best_runtime_combination_id != Database.SERIAL_COMBINATION_ID:
+                    self.parallel_compilation_of_one_combination(best_combination_obj, final_results_folder_path)
+                self.compile_combination_to_binary(final_results_folder_path)
+                summary_file_path = os.path.join(compar_combination_folder_path, self.SUMMARY_FILE_NAME)
+                summary_file_new_path = os.path.join(final_results_folder_path, self.SUMMARY_FILE_NAME)
+                shutil.move(summary_file_path, summary_file_new_path)
+            except Exception as ex:
+                raise Exception(f"Total runtime calculation - The optimal file could not be compiled, combination"
+                                f" {best_runtime_combination_id}.\n{ex}")
+        else:
+            logger.info(f'Compar combination is the optimal combination')
+            final_folder_path = os.path.join(self.working_directory, self.FINAL_RESULTS_FOLDER_NAME)
+            if os.path.exists(final_folder_path):
+                shutil.rmtree(final_folder_path)
+            shutil.copytree(compar_combination_folder_path, final_folder_path)
+        # remove compar code from all the files in final result folder
+        final_folder_path = os.path.join(self.working_directory, self.FINAL_RESULTS_FOLDER_NAME)
+        Timer.remove_timer_code(self.make_absolute_file_list(final_folder_path))
+        final_combination_results = self.db.get_combination_results(best_runtime_combination_id)
+        if final_combination_results:
+            final_combination_results['_id'] = Combination.FINAL_RESULTS_COMBINATION_ID
+            final_combination_results['from_combination'] = best_runtime_combination_id
+            self.db.insert_new_combination_results(final_combination_results)
+            with open(os.path.join(final_folder_path, Timer.TOTAL_RUNTIME_FILENAME), 'w') as f:
+                f.write(str(final_combination_results['total_run_time']))
+            self.update_summary_file(final_folder_path, best_runtime_combination_id,
+                                     final_combination_results['total_run_time'], best_combination_obj)
+        # format all optimal files
+        self.format_c_files([file_dict['file_full_path'] for file_dict in
+                             self.make_absolute_file_list(final_folder_path)])
+        self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
+        self.db.close_connection()
 
     def __extract_working_directory_name(self):
         working_directory_name = self.working_directory
@@ -333,12 +386,7 @@ class Compar:
         return os.path.basename(working_directory_name)
 
     def __get_parallel_compiler_by_name(self, compiler_name):
-        compilers_map = {
-            Autopar.NAME: self.autopar_compiler,
-            Cetus.NAME: self.cetus_compiler,
-            Par4all.NAME: self.par4all_compiler,
-        }
-        return compilers_map[compiler_name.lower()]
+        return self.parallelizers[compiler_name.lower()]
 
     def __replace_result_file_name_prefix(self, container_folder_path):
         for c_file_dict in self.make_absolute_file_list(container_folder_path):
@@ -364,19 +412,15 @@ class Compar:
                                                 combination_folder_path,
                                                 self.make_absolute_file_list(combination_folder_path))
         pre_processing_args = dict()
-        if self.is_make_file:
-            makefile_obj = Makefile(combination_folder_path, self.makefile_exe_folder_rel_path,
-                                    self.makefile_output_exe_file_name, self.makefile_commands)
-            pre_processing_args['makefile_obj'] = makefile_obj
         parallel_compiler.pre_processing(**pre_processing_args)
         parallel_compiler.compile()
         post_processing_args = {'files_loop_dict': self.files_loop_dict}
         parallel_compiler.post_processing(**post_processing_args)
-        env_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'env')
+        omp_rtl_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'omp_rtl')
         for file_dict in self.make_absolute_file_list(combination_folder_path):
             for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):
                 loop_start_label = Fragmentator.get_start_label() + str(loop_id)
-                self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, env_code)
+                self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, omp_rtl_code)
 
     def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None, inject=True):
         if inject:
@@ -394,9 +438,6 @@ class Compar:
                                                        combination_folder_path,
                                                        self.main_file_rel_path)
             self.binary_compiler.compile()
-
-    def calculate_speedups(self):
-        self.db.update_all_speedups()
 
     def execute_job(self, job, serial_run_time=None):
         execute_job_obj = ExecuteJob(job, self.files_loop_dict, self.db, self.parallel_jobs_pool_executor.get_db_lock(),
@@ -420,7 +461,7 @@ class Compar:
             '_id': combination_id,
             'error': error_msg
         }
-        self.db.insert_new_combination(combination_dict)
+        self.db.insert_new_combination_results(combination_dict)
         sleep(1)
         if not self.save_combinations_folders:
             self.__delete_combination_folder(combination_folder_path)
@@ -428,8 +469,8 @@ class Compar:
     def run_parallel_combinations(self):
         logger.info('Start to work on parallel combinations')
         self.parallel_jobs_pool_executor.create_jobs_pool()
-        while self.db.has_next_combination():
-            combination_obj = self.__combination_json_to_obj(self.db.get_next_combination())
+        for combination_json in self.db.combinations_iterator():
+            combination_obj = Combination.json_to_obj(combination_json)
             logger.info(f'Working on combination #{combination_obj.combination_id}')
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
             try:
@@ -447,34 +488,20 @@ class Compar:
 
     def __create_directories_structure(self, input_dir):
         logger.info('Creating Compar directories structure')
-        os.makedirs(self.original_files_dir, exist_ok=True)
+        if self.mode != ComparMode.CONTINUE:
+            os.makedirs(self.original_files_dir, exist_ok=True)
         os.makedirs(self.combinations_dir, exist_ok=True)
         os.makedirs(self.backup_files_dir, exist_ok=True)
 
         if os.path.isdir(input_dir):
-            self.__copy_folder_content(input_dir, self.original_files_dir)
-            self.__copy_folder_content(input_dir, self.backup_files_dir)
+            if self.mode != ComparMode.CONTINUE:
+                self.__copy_folder_content(input_dir, self.original_files_dir)
+                self.__copy_folder_content(input_dir, self.backup_files_dir)
         else:
             raise UserInputError('The input path must be directory')
 
-    @staticmethod
-    def __copy_folder_content(src, dst):
-        for rel_path in os.listdir(src):
-            src_full_path = os.path.join(src, rel_path)
-            if os.path.isfile(src_full_path):
-                shutil.copy(src_full_path, dst)
-            elif os.path.isdir(src_full_path):
-                dest_path_include_new_dir = os.path.join(dst, rel_path)
-                if os.path.exists(dest_path_include_new_dir):
-                    shutil.rmtree(dest_path_include_new_dir)
-                shutil.copytree(src_full_path, dest_path_include_new_dir)
-
     def __copy_sources_to_combination_folder(self, combination_folder_path):
         self.__copy_folder_content(self.original_files_dir, combination_folder_path)
-
-    @staticmethod
-    def __delete_combination_folder(combination_folder_path):
-        shutil.rmtree(combination_folder_path)
 
     def make_relative_c_file_list(self, base_dir):
         e.assert_forbidden_characters(base_dir)
@@ -504,33 +531,36 @@ class Compar:
 
     def run_serial(self):
         logger.info('Start to work on serial combination')
-        serial_dir_path = os.path.join(self.combinations_dir, 'serial')
-        shutil.rmtree(serial_dir_path, ignore_errors=True)
-        os.mkdir(serial_dir_path)
-        self.__copy_sources_to_combination_folder(serial_dir_path)
-        Timer.inject_atexit_code_to_main_file(os.path.join(serial_dir_path, self.main_file_rel_path),
-                                              self.files_loop_dict, serial_dir_path)
-
-        if self.is_make_file:
-            compiler_type = "Makefile"
-            makefile = Makefile(serial_dir_path, self.makefile_exe_folder_rel_path, self.makefile_output_exe_file_name,
-                                self.makefile_commands)
-            makefile.make()
+        serial_dir_path = os.path.join(self.combinations_dir, Database.SERIAL_COMBINATION_ID)
+        if self.mode == ComparMode.CONTINUE and self.db.combination_has_results(Database.SERIAL_COMBINATION_ID):
+            job_results = self.db.get_combination_results(Database.SERIAL_COMBINATION_ID)['run_time_results']
         else:
-            compiler_type = self.binary_compiler_type
-            try:
-                self.__run_binary_compiler(serial_dir_path)
-            except e.CombinationFailure as ex:
-                raise e.CompilationError(str(ex))
+            shutil.rmtree(serial_dir_path, ignore_errors=True)
+            os.mkdir(serial_dir_path)
+            self.__copy_sources_to_combination_folder(serial_dir_path)
+            Timer.inject_atexit_code_to_main_file(os.path.join(serial_dir_path, self.main_file_rel_path),
+                                                  self.files_loop_dict, serial_dir_path)
 
-        combination = Combination(combination_id=Database.SERIAL_COMBINATION_ID,
-                                  compiler_name=compiler_type,
-                                  parameters=None)
-        job = Job(directory=serial_dir_path,
-                  exec_file_args=self.main_file_parameters,
-                  combination=combination)
-        job = self.execute_job(job)
-        job_results = job.get_job_results()['run_time_results']
+            if self.is_make_file:
+                compiler_type = "Makefile"
+                makefile = Makefile(serial_dir_path, self.makefile_exe_folder_rel_path,
+                                    self.makefile_output_exe_file_name, self.makefile_commands)
+                makefile.make()
+            else:
+                compiler_type = self.binary_compiler_type
+                try:
+                    self.__run_binary_compiler(serial_dir_path)
+                except e.CombinationFailure as ex:
+                    raise e.CompilationError(str(ex))
+
+            combination = Combination(combination_id=Database.SERIAL_COMBINATION_ID,
+                                      compiler_name=compiler_type,
+                                      parameters=None)
+            job = Job(directory=serial_dir_path,
+                      exec_file_args=self.main_file_parameters,
+                      combination=combination)
+            job = self.execute_job(job)
+            job_results = job.get_job_results()['run_time_results']
         for file_dict in job_results:
             if 'dead_code_file' not in file_dict.keys():
                 for loop_dict in file_dict['loops']:
@@ -546,17 +576,21 @@ class Compar:
         main_file_path = os.path.join(self.original_files_dir, self.main_file_rel_path)
         declaration_code_to_inject_to_main_file = ""
         for index, c_file_dict in enumerate(self.make_absolute_file_list(self.original_files_dir)):
-            self.__timer = Timer(c_file_dict['file_full_path'])
-            self.__timer.inject_timers(index, main_file_path)
-            num_of_loops = self.__timer.get_number_of_loops()
-            name_of_global_array = f'____compar____arr{str(index)}'
+            if self.mode == ComparMode.CONTINUE:
+                num_of_loops = Fragmentator.count_loops_in_prepared_file(c_file_dict['file_full_path'])
+            else:
+                self.__timer = Timer(c_file_dict['file_full_path'], code_with_markers=self.code_with_markers)
+                self.__timer.inject_timers(index, main_file_path)
+                num_of_loops = self.__timer.get_number_of_loops()
+            name_of_global_array = f'{Timer.NAME_OF_GLOBAL_ARRAY}{str(index)}'
             if num_of_loops != 0:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, name_of_global_array)
-                declaration_code_to_inject_to_main_file += f"____compar____struct " \
-                    f"{name_of_global_array}[{num_of_loops}] = {'{0}'};\n"
+                declaration_code_to_inject_to_main_file += Timer.DECL_GLOBAL_ARRAY.format(
+                    name_of_global_array, num_of_loops)
             else:
                 self.files_loop_dict[c_file_dict['file_id_by_rel_path']] = (num_of_loops, 'no_global_var')
-        self.__timer.inject_declarations_to_main_file(main_file_path, declaration_code_to_inject_to_main_file)
+        if self.mode != ComparMode.CONTINUE:
+            self.__timer.inject_declarations_to_main_file(main_file_path, declaration_code_to_inject_to_main_file)
         logger.info('Finish to enumerating loops and injecting run time timers')
 
     def create_combination_folder(self, combination_folder_name, base_dir=None):
@@ -569,63 +603,11 @@ class Compar:
             raise e.FolderError(f'Cannot create {combination_folder_path} folder')
         return combination_folder_path
 
-    @staticmethod
-    def remove_declaration_code(content):
-        run_time_vars_regex = rf'double[ ]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
-        file_pointer_vars_regex = rf'FILE[ ]*\*[ ]*{Timer.COMPAR_VAR_PREFIX}[^;]+;'
-        struct_regex_version_1 = r'typedef struct ____compar____[^\}]*\}[^;]*;'
-        struct_regex_version_2 = r'struct ____compar____[^\}]+int[^\}]+\}[^;]*;'
-        struct_regex_version_3 = r'typedef struct ____compar____[^\;]*____compar____struct;'
-        compar_dummy_var_regex = fr'{Timer.COMPAR_DUMMY_VAR}[^;]+;'
-        content = re.sub(rf'{Timer.DECL_GLOBAL_TIMER_VAR_CODE}', '', content)
-        content = re.sub(struct_regex_version_1, '', content, flags=re.DOTALL)
-        content = re.sub(struct_regex_version_2, '', content, flags=re.DOTALL)
-        content = re.sub(struct_regex_version_3, '', content, flags=re.DOTALL)
-        content = re.sub(run_time_vars_regex, '', content, flags=re.DOTALL)
-        content = re.sub(file_pointer_vars_regex, '', content, flags=re.DOTALL)
-        content = re.sub(compar_dummy_var_regex, '', content, flags=re.DOTALL)
-        return content
-
-    @staticmethod
-    def remove_run_time_calculation_code_code(content):
-        content = re.sub(rf'{Timer.GLOBAL_TIMER_VAR_NAME}[^;]+omp_get_wtime[^;]+;', '', content)
-        content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, flags=re.DOTALL)
-        content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}struct[ ]+extern[^;]+;', '', content, flags=re.DOTALL)
-        content = re.sub(Timer.COMPAR_VAR_PREFIX + r'struct[^\}]+arr[^\}]+\}[ ]*;', '', content, flags=re.DOTALL)
-        return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}arr[^;]+;', '', content, flags=re.DOTALL)
-
-    @staticmethod
-    def remove_writing_to_file_code(content):
-        fopen_regex = rf'{Timer.COMPAR_VAR_PREFIX}[^;]+fopen[^;]+{re.escape(Timer.get_file_name_prefix_token())}?[^;]+;'
-        fprintf_regex = rf'fprintf[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
-        fclose_regex = rf'fclose[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
-        main_file_at_exit_regex = r'void[ ]+____compar____atExit[^\}]+\}'
-        main_file_at_exit_call_regex = r'atexit[^\;]+;'
-        content = re.sub(main_file_at_exit_regex, '', content, flags=re.DOTALL)
-        content = re.sub(main_file_at_exit_call_regex, '', content, flags=re.DOTALL)
-        content = re.sub(fopen_regex, '', content, flags=re.DOTALL)
-        content = re.sub(fprintf_regex, '', content, flags=re.DOTALL)
-        content = re.sub(fclose_regex, '', content, flags=re.DOTALL)
-        return content
-
-    def remove_timer_code(self, container_folder_path):
-        for c_file_dict in self.make_absolute_file_list(container_folder_path):
-            try:
-                with open(c_file_dict['file_full_path'], 'r') as f:
-                    content = f.read()
-                content = self.remove_declaration_code(content)
-                content = self.remove_run_time_calculation_code_code(content)
-                content = self.remove_writing_to_file_code(content)
-                with open(c_file_dict['file_full_path'], 'w') as f:
-                    f.write(content)
-            except Exception as ex:
-                raise e.FileError(f'exception in Compar.remove_timer_code: {c_file_dict["file_full_path"]}: {str(ex)}')
-
     def generate_summary_file(self, optimal_data, dir_path):
         file_path = os.path.join(dir_path, self.SUMMARY_FILE_NAME)
         with open(file_path, 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["File", "Loop", "Combination", "Compiler", "Compilation Params", "Env flags",
+            writer.writerow(["File", "Loop", "Combination", "Compiler", "Compilation Params", "OMP RTL flags",
                              "Runtime", "Speedup"])
             for curr_file in optimal_data:
                 if 'dead_code_file' in curr_file.keys():
@@ -637,22 +619,26 @@ class Compar:
                         writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], 'dead code loop',
                                          "", "", "", "", ""])
                     else:
-                        combination_obj = self.__combination_json_to_obj(
+                        combination_obj = Combination.json_to_obj(
                             self.db.get_combination_from_static_db(loop['_id']))
                         writer.writerow([curr_file['file_id_by_rel_path'], loop['loop_label'], loop['_id'],
                                          combination_obj.get_compiler(),
                                          combination_obj.get_parameters().get_compilation_params(),
-                                         combination_obj.get_parameters().get_env_params(),
+                                         combination_obj.get_parameters().get_omp_rtl_params(),
                                          loop['run_time'], loop['speedup']])
 
-    def update_summary_file(self, best_runtime_combination, dir_path):
+    def update_summary_file(self, dir_path, best_runtime_combination_id, total_rum_time, best_combination=None):
         file_path = os.path.join(dir_path, self.SUMMARY_FILE_NAME)
         with open(file_path, 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([""])
-            writer.writerow([f"Combination {best_runtime_combination.get_combination_id()}"
-                             f" gave the best total runtime"])
-            writer.writerow(["Compiler", "Compilation Params", "Env flags"])
-            writer.writerow([best_runtime_combination.get_compiler(),
-                             best_runtime_combination.get_parameters().get_compilation_params(),
-                             best_runtime_combination.get_parameters().get_env_params()])
+            writer.writerow([f"{best_runtime_combination_id}"
+                             f" combination gave the best total runtime"])
+            writer.writerow([""])
+            if best_combination:
+                writer.writerow(["Compiler", "Compilation Params", "OMP RTL flags"])
+                writer.writerow([best_combination.get_compiler(),
+                                 best_combination.get_parameters().get_compilation_params(),
+                                 best_combination.get_parameters().get_omp_rtl_params()])
+            writer.writerow([""])
+            writer.writerow(['Total run time:', str(total_rum_time)])

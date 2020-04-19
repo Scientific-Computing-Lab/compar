@@ -5,9 +5,14 @@ from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFi
 from job import Job
 import logger
 import traceback
+import hashlib
+import getpass
+import compar
+from combination import Combination
+
 
 COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
-ENVIRONMENT_PARAMS_FILE_PATH = "assets/env_params.json"
+OMP_RTL_PARAMS_FILE_PATH = "assets/omp_rtl_params.json"
 STATIC_DB_NAME = "compar_combinations"
 DYNAMIC_DB_NAME = "compar_results"
 DB = "mongodb://10.10.10.120:27017"
@@ -15,63 +20,84 @@ DB = "mongodb://10.10.10.120:27017"
 
 class Database:
 
-    SERIAL_COMBINATION_ID = '0'
+    SERIAL_COMBINATION_ID = 'serial'
     SERIAL_COMPILER_NAME = 'serial'
 
-    def __init__(self, collection_name):
+    def __init__(self, collection_name, mode):
+        collection_name = f"{getpass.getuser()}_{collection_name}"
         logger.info(f'Initializing {collection_name} databases')
+        self.mode = mode
         try:
-            self.current_combination = None
-            self.current_combination_id = 1
             self.collection_name = collection_name
             self.connection = pymongo.MongoClient(DB)
             self.static_db = self.connection[STATIC_DB_NAME]
             self.dynamic_db = self.connection[DYNAMIC_DB_NAME]
 
             if self.collection_name in self.static_db.list_collection_names():
-                # TODO: should be depend on users choice
                 self.static_db.drop_collection(self.collection_name)
 
             self.static_db.create_collection(self.collection_name)
             self.initialize_static_db()
 
-            if self.collection_name in self.dynamic_db.list_collection_names():
-                # raise DatabaseError(f"results DB already has {self.collection_name} name collection!")
-                self.dynamic_db.drop_collection(self.collection_name)
-
-            self.dynamic_db.create_collection(self.collection_name)
-
+            if self.mode != compar.ComparMode.CONTINUE:
+                if self.collection_name in self.dynamic_db.list_collection_names():
+                    self.dynamic_db.drop_collection(self.collection_name)
+                self.dynamic_db.create_collection(self.collection_name)
+            else:
+                ids_in_static = [comb['_id'] for comb in self.static_db[self.collection_name].find({}, {"_id": 1})]
+                ids_in_dynamic = [comb['_id'] for comb in self.dynamic_db[self.collection_name].find({}, {"_id": 1})]
+                old_ids = [comb_id for comb_id in ids_in_dynamic if comb_id not in
+                           ids_in_static + [self.SERIAL_COMBINATION_ID]]
+                self.dynamic_db[self.collection_name].delete_many({'_id': {'$in': old_ids}})
+                del ids_in_static, ids_in_dynamic, old_ids
+                self.dynamic_db[self.collection_name].delete_one({'_id': Combination.COMPAR_COMBINATION_ID})
+                self.dynamic_db[self.collection_name].delete_one({'_id': Combination.FINAL_RESULTS_COMBINATION_ID})
         except Exception as e:
             raise DatabaseError(str(e) + "\nFailed to initialize DB!")
 
     def initialize_static_db(self):
         try:
-            comb_array = generate_combinations()
-            for current_id, comb in enumerate(comb_array, 1):
-                comb["_id"] = str(current_id)
-                self.static_db[self.collection_name].insert_one(comb)
-            return True
-
+            combinations = generate_combinations()
+            for combination in combinations:
+                curr_combination_id = Database.generate_combination_id(combination)
+                self.static_db[self.collection_name].update_one(
+                    filter={
+                        '_id': curr_combination_id
+                    },
+                    update={
+                        '$setOnInsert': combination
+                    },
+                    upsert=True
+                )
         except Exception as e:
             logger.info_error(f'Exception at {Database.__name__}: cannot initialize static DB: {e}')
             logger.debug_error(f'{traceback.format_exc()}')
             raise DatabaseError()
+        finally:
+            del combinations
 
-    def get_next_combination(self):
-        self.current_combination = self.static_db[self.collection_name].find_one({"_id": str(self.current_combination_id)})
-        self.current_combination_id += 1
-        return self.current_combination
+    def close_connection(self):
+        self.connection.close()
 
-    def has_next_combination(self):
-        checked_combination = self.static_db[self.collection_name].find_one({"_id": str(self.current_combination_id)})
-        return checked_combination is not None
+    def combination_has_results(self, combination_id):
+        return self.get_combination_results(combination_id) is not None
 
-    def insert_new_combination(self, combination_result):
+    def combinations_iterator(self):
+        try:
+            for combination in self.static_db[self.collection_name].find():
+                if self.combination_has_results(combination['_id']):
+                    continue
+                yield combination
+        except Exception:
+            logger.info_error(f"Execption at {Database.__name__}: get_next_combination")
+            raise
+
+    def insert_new_combination_results(self, combination_result):
         try:
             self.dynamic_db[self.collection_name].insert_one(combination_result)
             return True
         except Exception as e:
-            logger.info_error(f'{Database.__name__} cannot initialize static DB: {e}')
+            logger.info_error(f'{Database.__name__} cannot update dynamic DB: {e}')
             logger.debug_error(f'{traceback.format_exc()}')
             return False
 
@@ -83,95 +109,6 @@ class Database:
             logger.info_error(f'Exception at {Database.__name__}: Could not delete combination: {e}')
             logger.debug_error(f'{traceback.format_exc()}')
             return False
-
-    def update_serial_combination_speedup(self):
-        self.dynamic_db[self.collection_name].update_many(
-            filter={
-                '_id': self.SERIAL_COMBINATION_ID
-            },
-            update={
-                '$set': {
-                    'run_time_results.$[].loops.$[loopFilter].speedup': 1.0
-                }
-            },
-            array_filters=[
-                {
-                    'loopFilter.dead_code': None
-                }
-            ]
-        )
-
-    def update_parallel_combinations_speedup(self, serial_run_time_dict):
-        """
-        :param serial_run_time_dict:
-        {
-            <file id by rel path>:
-            {
-                <loop label>: <run time>,
-                ...
-            },
-            ...
-        }
-        """
-        for combination_id in range(1, self.dynamic_db[self.collection_name].count()):
-            combination_id = str(combination_id)
-            parallel_combination = self.dynamic_db[self.collection_name].find_one({"_id": combination_id})
-            if 'error' in parallel_combination.keys():
-                continue
-            for file_id_by_rel_path, loops_details_dict in serial_run_time_dict.items():
-                for loop_label, serial_run_time in loops_details_dict.items():
-                    if not serial_run_time:
-                        continue
-                    # get results of a parallel combination from db
-                    parallel_files_details = parallel_combination['run_time_results']
-                    # get the loops details of the combination (file_id_by_rel_path should be unique)
-                    parallel_loops_details = list(filter(
-                        lambda file: file['file_id_by_rel_path'] == file_id_by_rel_path, parallel_files_details))
-                    assert len(parallel_loops_details) == 1, 'file_id_by_rel_path should be unique'
-                    parallel_loops_details = parallel_loops_details[0]['loops']
-                    # get the run_time of the loop (loop_label should be unique)
-                    parallel_loop_run_time = list(filter(
-                        lambda loop: loop['loop_label'] == loop_label, parallel_loops_details))
-                    assert len(parallel_loop_run_time) == 1, 'loop_label should be unique'
-                    parallel_loop_run_time = parallel_loop_run_time[0]['run_time']
-                    # calculate the speedup
-                    try:
-                        speedup = float(serial_run_time) / float(parallel_loop_run_time)
-                    except ZeroDivisionError:
-                        speedup = 0.0
-                    # update the speedup in the db
-                    self.dynamic_db[self.collection_name].update_one(
-                        filter={
-                            '_id': combination_id,
-                        },
-                        update={
-                            '$set': {
-                                'run_time_results.$[fileFilter].loops.$[loopFilter].speedup': speedup
-                            }
-                        },
-                        array_filters=[
-                            {
-                                'fileFilter.file_id_by_rel_path': file_id_by_rel_path
-                            }, {
-                                'loopFilter.loop_label': loop_label
-                            }
-                        ]
-                    )
-
-    def update_all_speedups(self):
-        self.update_serial_combination_speedup()
-        serial_results = self.dynamic_db[self.collection_name].find_one({"_id": self.SERIAL_COMBINATION_ID})
-        if not serial_results:
-            raise MissingDataError('You must have a serial combination saved in DB to calculate speedups.')
-
-        serial_run_time_dict = dict(map(lambda file_details: (
-            file_details['file_id_by_rel_path'],
-            dict(map(lambda loop_details: (
-                loop_details['loop_label'], loop_details['run_time']
-            ) if 'dead_code' not in loop_details.keys() else (loop_details['loop_label'], None), file_details['loops']))
-        ), serial_results['run_time_results']))
-
-        self.update_parallel_combinations_speedup(serial_run_time_dict)
 
     def find_optimal_loop_combination(self, file_id_by_rel_path, loop_label):
         best_speedup = 1
@@ -195,7 +132,8 @@ class Database:
                                         loop_is_dead_code = loop_is_dead_code and True
                                     else:
                                         loop_is_dead_code = False
-                                        if combination['_id'] == '0' and not best_loop and best_combination_id == '0':
+                                        if combination['_id'] == Database.SERIAL_COMBINATION_ID and not best_loop \
+                                                and best_combination_id == Database.SERIAL_COMBINATION_ID:
                                             best_loop = loop
                                         if loop['speedup'] > best_speedup:
                                             best_speedup = loop['speedup']
@@ -203,6 +141,7 @@ class Database:
                                             best_loop = loop
                                     break
                             break
+        del combinations
         if file_is_dead_code:
             raise DeadCodeFile(f'file {file_id_by_rel_path} is dead code!')
         if loop_is_dead_code:
@@ -211,15 +150,25 @@ class Database:
             raise MissingDataError(f'Cannot find any loop in db, loop: {loop_label}, file: {file_id_by_rel_path}')
         return best_combination_id, best_loop
 
+    def get_combination_results(self, combination_id):
+        combination = None
+        try:
+            combination = self.dynamic_db[self.collection_name].find_one({"_id": combination_id})
+        except Exception as e:
+            logger.info_error(f'Exception at {Database.__name__}: Could not find results for combination: {e}')
+            logger.debug_error(f'{traceback.format_exc()}')
+        finally:
+            return combination
+
     def get_combination_from_static_db(self, combination_id):
         combination = None
         if combination_id == self.SERIAL_COMBINATION_ID:
             return {
-                "_id": "0",
+                "_id": Database.SERIAL_COMBINATION_ID,
                 "compiler_name": Database.SERIAL_COMPILER_NAME,
                 "parameters": {
-                    "env_params": [],
-                    "code_params": [],
+                    "omp_rtl_params": [],
+                    "omp_directives_params": [],
                     "compilation_params": []
                 }
             }
@@ -239,8 +188,8 @@ class Database:
             raise NoOptimalCombinationError("All Compar combinations finished with error.")
         return best_combination["_id"]
 
-    def remove_unused_data(self, combination_name):
-        self.dynamic_db[self.collection_name].update({"_id": combination_name}, {'$unset': {'run_time_results': ""}})
+    def remove_unused_data(self, combination_id):
+        self.dynamic_db[self.collection_name].update({"_id": combination_id}, {'$unset': {'run_time_results': ""}})
 
     def set_error_in_combination(self, combination_id, error):
         self.dynamic_db[self.collection_name].update_one(
@@ -254,15 +203,30 @@ class Database:
             }
         )
 
+    @staticmethod
+    def generate_combination_id(combination):
+        fields = [f'compiler_name:{combination["compiler_name"]}']
+        omp_rtl_params = combination['parameters']['omp_rtl_params']
+        for omp_rtl_param in omp_rtl_params:
+            fields.append(f'omp_rtl_params:{omp_rtl_param}')
+        omp_directives_params = combination['parameters']['omp_directives_params']
+        for omp_directives_param in omp_directives_params:
+            fields.append(f'omp_directives_params:{omp_directives_param}')
+        compilation_params = combination['parameters']['compilation_params']
+        for compilation_param in compilation_params:
+            fields.append(f'compilation_params:{compilation_param}')
+        fields.sort()
+        return hashlib.sha3_384(str(fields).encode()).hexdigest()
+
 
 def generate_combinations():
-    env_params = []
+    omp_rtl_params = []
     combinations = []
-    with open(ENVIRONMENT_PARAMS_FILE_PATH, 'r') as f:
-        env_array = json_util.loads(f.read())
-        for param in env_array:
-            env_params.append(generate_env_params(param))
-        env_params = mult_lists(env_params)
+    with open(OMP_RTL_PARAMS_FILE_PATH, 'r') as f:
+        omp_rtl_array = json_util.loads(f.read())
+        for param in omp_rtl_array:
+            omp_rtl_params.append(generate_omp_rtl_params(param))
+        omp_rtl_params = mult_lists(omp_rtl_params)
 
     with open(COMPILATION_PARAMS_FILE_PATH, 'r') as f:
         comb_array = json_util.loads(f.read())
@@ -284,11 +248,11 @@ def generate_combinations():
             all_combs = mult_lists(all_combs)
 
             for compile_comb in all_combs:
-                for env_comb in env_params:
-                    if not env_comb:
-                        curr_env_comb = []
+                for omp_rtl_comb in omp_rtl_params:
+                    if not omp_rtl_comb:
+                        curr_omp_rtl_comb = []
                     else:
-                        curr_env_comb = env_comb.split(" ")
+                        curr_omp_rtl_comb = omp_rtl_comb.split(" ")
                     if not compile_comb:
                         curr_compile_comb = []
                     else:
@@ -296,8 +260,8 @@ def generate_combinations():
                     new_comb = {
                         "compiler_name": compiler,
                         "parameters": {
-                            "env_params": curr_env_comb,
-                            "code_params": [],
+                            "omp_rtl_params": curr_omp_rtl_comb,
+                            "omp_directives_params": [],
                             "compilation_params": curr_compile_comb
                         }
                     }
@@ -345,7 +309,7 @@ def generate_valued_params_list(valued_list, mandatory=False):
     return lst
 
 
-def generate_env_params(param):
+def generate_omp_rtl_params(param):
     if not param:
         return [""]
     lst = []

@@ -2,12 +2,16 @@ import re
 from exceptions import FileError
 from exceptions import assert_file_exist
 from exceptions import FragmentError
+from exceptions import UserInputError
 from file_formator import format_c_code
 
 
 class Fragmentator:
-    __START_LOOP_LABEL_MARKER = '// START_LOOP_MARKER'
-    __END_LOOP_LABEL_MARKER = '// END_LOOP_MARKER'
+    __LOOP_LABEL_MARKER = 'LOOP_MARKER'
+    __START_MARKER = f'START_{__LOOP_LABEL_MARKER}'
+    __END_MARKER = f'END_{__LOOP_LABEL_MARKER}'
+    __START_LOOP_LABEL_MARKER = f'// {__START_MARKER}'
+    __END_LOOP_LABEL_MARKER = f'// {__END_MARKER}'
 
     @staticmethod
     def set_start_label(new_start_label):
@@ -25,13 +29,25 @@ class Fragmentator:
     def get_end_label():
         return Fragmentator.__END_LOOP_LABEL_MARKER
 
-    def __init__(self, file_path):
+    @staticmethod
+    def count_loops_in_prepared_file(file_path):
+        with open(file_path, 'r') as fp:
+            content = fp.read()
+        all_markers = re.findall(rf'.*{Fragmentator.__LOOP_LABEL_MARKER}\d+', content)
+        loop_labels = list(set([int(re.search(r'\d+$', marker).group(0)) for marker in all_markers if marker]))
+        num_of_loops = max(loop_labels)
+        if num_of_loops != len(loop_labels):
+            raise UserInputError(f'Error in {file_path}: the file must contains #{num_of_loops} loop markers!')
+        return num_of_loops
+
+    def __init__(self, file_path, code_with_markers=False):
         assert_file_exist(file_path)
         self.__file_path = file_path
         self.__file_content = ''
         self.__loops_list = []
         self.__fragments = []
         self.__occurrences_index_list = []
+        self.code_with_markers = code_with_markers
 
     def __reset_data(self):
         self.__file_content = ''
@@ -161,8 +177,31 @@ class Fragmentator:
             }
             self.__fragments.append(loop_with_markers)
 
+    def __search_markers(self):
+        regex = re.compile(rf'{self.__START_MARKER}(?P<loop_id>\d+).*{self.__END_MARKER}(?P=loop_id)', re.DOTALL)
+        loops_with_markers = [loop.group() for loop in regex.finditer(self.__file_content)]
+        for loop in loops_with_markers:
+            start_marker_pattern = rf'{self.__START_MARKER}\d+'
+            end_marker_pattern = rf'{self.__END_MARKER}\d+'
+            start_marker = re.search(start_marker_pattern, loop).group()
+            end_marker = re.search(end_marker_pattern, loop).group()
+            just_loop = re.sub(rf'{start_marker_pattern}[^\n]\n', '', loop)
+            just_loop = re.sub(rf'\n.+{start_marker_pattern}', '', just_loop)
+            loop_and_markers = {
+                'start_label': start_marker,
+                'loop': just_loop,
+                'end_label': end_marker
+            }
+            self.__fragments.append(loop_and_markers)
+        num_of_loops = max([int(re.search(r'\d+', loop['start_label']).group()) for loop in self.__fragments])
+        if num_of_loops != len(loops_with_markers):
+            raise UserInputError(f'Error in {self.__file_path}: the file must contains #{num_of_loops} loop markers!')
+        return self.__fragments
+
     def fragment_code(self):
         self.__get_file_content()
+        if self.code_with_markers:
+            return self.__search_markers()
         self.__find_loops()
         self.__create_list_of_fragments()
         new_content = ''
