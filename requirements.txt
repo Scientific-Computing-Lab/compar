@@ -1,5 +1,5 @@
 wtforms
-flask
+flask >= 1.1
 flask-wtf
 python-dotenv
 flask-bootstrap

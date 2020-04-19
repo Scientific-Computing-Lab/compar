@@ -42,12 +42,23 @@ button:focus {
 }
 
 .form-container {
+    display: flex;
+    flex-direction: column;
     height: 100%;
     min-width: 310px;
     border: 2px solid gray;
     width: 20%;
     background: #282a36;
-    overflow: scroll;
+    overflow: hidden;
+}
+
+div::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE and Edge */
+div {
+  -ms-overflow-style: none;
 }
 
 .screen-container {
@@ -72,19 +83,24 @@ button:focus {
     width: 100%;
 }
 
+
 .out {
     height: 100%;
     width: 100%;
     padding: 8px;
     color: white;
-    overflow: scroll;
+    overflow: auto;
+}
+
+.form-area {
+    padding: 12px;
+    overflow: auto;
 }
 
 .flex-col {
     display: flex;
     flex-direction: column;
     width: 100%;
-    overflow: scroll;
 }
 
 .flex-row-spaced {
@@ -152,7 +168,6 @@ button:focus {
 }
 
 .form {
-    padding: 12px;
     color: white;
 }
 
@@ -197,10 +212,14 @@ select:focus{
 }
 
 .mybutton {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     color: white;
     border-radius: 30%;
-    width: 29px;
-    max-width: 29px;
+    width: 24px;
+    height: 24px;
     font-weight: bold;
     margin-left: 20px;
 }
@@ -249,10 +268,13 @@ select:focus{
     color: #989898;
     text-decoration: underline;
     cursor: pointer;
+    margin: 16px 0px;
 }
 
 #advanced {
     display: none;
+    flex-direction: column;
+    width: 100%;
 }
 
 .advanced:active {
@@ -272,3 +294,56 @@ select:focus{
     transition: 2s;
 }
 
+.resizable {
+    border: 2px solid gray;
+    resize: vertical;
+    z-index: 1000;
+    min-width: 200px;
+}
+
+.informationButton {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    color: black;
+    border: 1px solid gray;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+.informationButton:hover{
+    text-decoration: none;
+}
+
+.tooltip {
+  position: relative;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: white;
+    color: black;
+    text-align: center;
+    padding: 4px;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 1000;
+    font-size: 12px;
+    border: 2px solid gray;
+    top: -8px;
+    right: 105%;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}

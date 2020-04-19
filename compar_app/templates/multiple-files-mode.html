@@ -88,66 +88,66 @@
         <div class="mycontainer">
             <div class="form-container">
                 <div class="title">Compar Parameters</div>
-                <div class="form">
-                    <div class="form-title">Input directory:</div>
-                    <input type="text" id="input-directory"/>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Output directory:</div>
-                    <input type="text" id="output-directory"/>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Slurm parameters:</div>
-                    <div style="align-items: center" class="flex-row">
-                         <input type="text" id="slurm-params"/>
-                         <button onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
-                         <button onclick="removeParameter('parameters')" class="mybutton negative">-</button>
-                    </div>
-                    <textarea readonly style="width: 100%" id="parameters"></textarea>
-                    <div class="horizontal-separator"></div>
-                    <div style="align-items: center" class="flex-row">
-                        <div class="form-title">Save combination folders:</div>
-                        <input  style="margin-left:30px" type="checkbox" value="yes">
-                    </div>
-                    <div class="horizontal-separator"></div>
-                    <div style="align-items: center" class="flex-row">
-                       <div class="form-title">Compiler:</div>
-                        <select style="margin-left: 30px">
-                            <option value="GCC">GCC</option>
-                            <option value="ICC">ICC</option>
-                         </select>
-                    </div>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Compiler version:</div>
-                    <input type="text" id="compiler-version"/>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Compiler flags:</div>
-                    <div style="align-items: center" class="flex-row">
-                        <input type="text" id="compiler-flags"/>
-                        <button onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
-                        <button onclick="removeParameter('flags')" class="mybutton negative">-</button>
-                    </div>
-                    <textarea readonly style="width: 100%;" id="flags"></textarea>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Main c file:</div>
-                    <input style="color:red; padding: 0px; display: flex; font-size: 16px; border: none; width: 100%;
-                     font-weight: bold; margin-bottom: 12px" type="file" class="choosefile"/>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Main c file parameters:</div>
-                    <div style="align-items: center" class="flex-row">
-                        <input type="text" id="file-parameters"/>
-                        <button onclick="addParameter('file-parameters','cfile-parameters')" class="mybutton positive">+</button>
-                        <button onclick="removeParameter('cfile-parameters')" class="mybutton negative">-</button>
-                    </div>
-                    <textarea readonly style="width: 100%;" id="cfile-parameters"></textarea>
-                    <div class="horizontal-separator"></div>
-                    <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
-                    <div id="advanced">
+                    <div style="padding: 12px" class="form">
+                        <div class="form-title">Input directory:</div>
+                        <input type="text" id="input-directory"/>
+                        <div class="horizontal-separator"></div>
+                        <div class="form-title">Output directory:</div>
+                        <input type="text" id="output-directory"/>
+                        <div class="horizontal-separator"></div>
+                        <div class="form-title">Slurm parameters:</div>
                         <div style="align-items: center" class="flex-row">
-                        <div class="form-title">Save combination folders:</div>
-                        <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
+                             <input type="text" id="slurm-params"/>
+                             <button onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
+                             <button onclick="removeParameter('parameters')" class="mybutton negative">-</button>
+                        </div>
+                        <textarea readonly style="width: 100%" id="parameters"></textarea>
+                        <div class="horizontal-separator"></div>
+                        <div style="align-items: center" class="flex-row">
+                            <div class="form-title">Save combination folders:</div>
+                            <input  style="margin-left:30px" type="checkbox" value="yes">
+                        </div>
+                        <div class="horizontal-separator"></div>
+                        <div style="align-items: center" class="flex-row">
+                           <div class="form-title">Compiler:</div>
+                            <select style="margin-left: 30px">
+                                <option value="GCC">GCC</option>
+                                <option value="ICC">ICC</option>
+                             </select>
+                        </div>
+                        <div class="horizontal-separator"></div>
+                        <div class="form-title">Compiler version:</div>
+                        <input type="text" id="compiler-version"/>
+                        <div class="horizontal-separator"></div>
+                        <div class="form-title">Compiler flags:</div>
+                        <div style="align-items: center" class="flex-row">
+                            <input type="text" id="compiler-flags"/>
+                            <button onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
+                            <button onclick="removeParameter('flags')" class="mybutton negative">-</button>
+                        </div>
+                        <textarea readonly style="width: 100%;" id="flags"></textarea>
+                        <div class="horizontal-separator"></div>
+                        <div class="form-title">Main c file:</div>
+                        <input style="color:red; padding: 0px; display: flex; font-size: 16px; border: none; width: 100%;
+                         font-weight: bold; margin-bottom: 12px" type="file" class="choosefile"/>
+                        <div class="horizontal-separator"></div>
+                        <div class="form-title">Main c file parameters:</div>
+                        <div style="align-items: center" class="flex-row">
+                            <input type="text" id="file-parameters"/>
+                            <button onclick="addParameter('file-parameters','cfile-parameters')" class="mybutton positive">+</button>
+                            <button onclick="removeParameter('cfile-parameters')" class="mybutton negative">-</button>
+                        </div>
+                        <textarea readonly style="width: 100%;" id="cfile-parameters"></textarea>
+                        <div class="horizontal-separator"></div>
+                        <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
+                        <div id="advanced">
+                            <div style="align-items: center" class="flex-row">
+                            <div class="form-title">Save combination folders:</div>
+                            <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
+                        </div>
+                        </div>
+                        <button class="startbtn">START</button>
                     </div>
-                    </div>
-                    <button class="startbtn">START</button>
-                </div>
             </div>
             <div class="screen-container">
               <div class="output-folder" class="flex-col">

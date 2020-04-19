@@ -8,6 +8,7 @@
     <script src="{{ url_for('static', filename='js/codemirror.js')}}"></script>
     <script src="{{ url_for('static', filename='js/clike/clike.js')}}"></script>
     <script src="{{ url_for('static', filename='js/simplescrollbars.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/closebrackets.js')}}"></script>
     <link href="{{ url_for('static', filename='css/codemirror.css')}}" rel="stylesheet"/>
     <link href="{{ url_for('static', filename='css/dracula.css')}}" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" />
@@ -17,16 +18,19 @@
 
         function init() {
 
-            var editor1 = CodeMirror.fromTextArea(document.getElementById('editor1'), {
+            var code_mirror_source_editor = CodeMirror.fromTextArea(document.getElementById('source_editor'), {
                 mode: "clike",
                 theme: "dracula",
-                lineNumbers: true
+                lineNumbers: true,
+                autoCloseBrackets: true
             });
 
-            var editor2 = CodeMirror.fromTextArea(document.getElementById('editor2'), {
+            var code_mirror_result_editor = CodeMirror.fromTextArea(document.getElementById('result_editor'), {
                 mode: "clike",
                 theme: "dracula",
-                lineNumbers: true
+                lineNumbers: true,
+                autoCloseBrackets: true,
+                readOnly: true
             });
 
             var singleModNav = document.getElementById('singlemod');
@@ -34,6 +38,10 @@
             singleModNav.style.fontWeight = "bold";
             singleModNav.style.fontSize = "18px";
             singleModNav.style.textDecoration = "underline"
+            code_mirror_source_editor.on("change",function(cm,change){
+                source_editor.value = code_mirror_source_editor.getValue();
+            });
+
         }
 
     </script>
@@ -70,6 +78,28 @@
             params.innerHTML = p.join(' ');
         }
     </script>
+    <script>
+         function Upload_file(fileId, textAreaId) {
+            var file = document.getElementById(fileId).files[0];
+            var code_mirror_source_editor = $('.CodeMirror')[0].CodeMirror;
+            if(file){
+                console.log("js file test " + file.name);
+                var reader = new FileReader();
+                reader.readAsText(file, "UTF-8");
+                 console.log("upload file function");
+                 reader.onload = function (evt) {
+                    document.getElementById('source_editor').innerHTML = evt.target.result;
+                    code_mirror_source_editor.setValue(evt.target.result);
+                    code_mirror_source_editor.refresh();
+                 }
+                 reader.onerror = function (evt) {
+                    document.getElementById('source_editor').innerHTML = "Error reading file!";
+                    code_mirror_source_editor.setValue("Error reading file!");
+                    code_mirror_source_editor.refresh();
+                 }
+             }
+        }
+    </script>
     <style>
 
         nav {
@@ -104,89 +134,240 @@
         <a href="/multiplefiles" class="seperate ref">Multiple files Mode</a>
         <a href="/makefile" class="seperate ref">Makefile Mode</a>
     </nav>
-    <div class="page-layout">
-        <div class="mycontainer">
-            <div class="form-container">
-                <div class="title">Compar Parameters</div>
-                <form method="POST" action="/singlefile" class="form">
-                    {{ form.csrf_token }}
-                    <div class="form-title">Slurm parameters:</div>
-                    <div class="flex-row-centered">
-                         <input type="text" id="slurm-params"/>
-                         <button type="button" onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
-                         <button type="button" onclick="removeParameter('parameters')" class="mybutton negative">-</button>
-                    </div>
-                    {% for error in form.slurm_parameters.errors %}
-                        <div style="color: red;">{{ error }}</div>
-                    {% endfor %}
-                    {{ form.slurm_parameters(id="parameters", readonly=true) }}
+    <form method="POST" action="/singlefile"  enctype="multipart/form-data" id="form" novalidate>
+        {{ form.slurm_parameters(id="slurmParametersList", style="display:none") }}
+        {{ form.main_file_parameters(id="mainFileParamList", style="display:none") }}
+        {{ form.compiler_flags(id="binaryCompilerFlags", style="display:none") }}
+        <div class="page-layout">
+            <div class="mycontainer">
+                <div class="form-container form">
+                    <div class="title">Compar Parameters</div>
+                    <div class="form-area">
+                        {{ form.csrf_token }}
 
-                    <div class="horizontal-separator"></div>
-                    <div style="align-items: center" class="flex-row">
-                        <div class="form-title">Save combination folders:</div>
-                        {{ form.save_combinations(style='margin-left: 30px')}}
-                    </div>
-                    <div class="horizontal-separator"></div>
-                    <div style="align-items: center" class="flex-row">
-                        <div class="form-title">Compiler:</div>
-                        {{ form.compiler(style='margin-left: 30px') }}
-                    </div>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Compiler version:</div>
-                    {{ form.compiler_version }}
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Compiler flags:</div>
-                    <div style="align-items: center" class="flex-row">
-                        <input type="text" id="compiler-flags"/>
-                        <button type="button" onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
-                        <button type="button" onclick="removeParameter('flags')" class="mybutton negative">-</button>
-                    </div>
-                    {{ form.compiler_flags(id="flags", readonly=true) }}
-                    <div class="horizontal-separator"></div>
-                    <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
-                    <div id="advanced">
                         <div style="align-items: center" class="flex-row">
-                        <div class="form-title">Save combination folders:</div>
-                        <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
-                    </div>
-                    </div>
-                    <button type="submit" value="Submit" class="startbtn">START</button>
-                </form>
-            </div>
-            <div class="screen-container">
-                <div style="height: 50%" class="flex-row">
-                    <div class="flex-col">
-                        <div class="flex-row-spaced title">
-                            <div>Source File</div>
-                            <button>Upload</button>
+                            <div class="form-title">Binary Compiler:</div>
+                            {{ form.compiler(style='margin-left: 30px') }}
                         </div>
-                        <div class="textarea-cover">
-                            <textarea id="editor1">{{source_file}}</textarea>
-                        </div>
-                    </div>
-                    <div style="margin-left: 20px;" class="flex-col">
-                        <div class="flex-row-spaced title">
-                            <div>Result File</div>
-                            <button>Download</button>
-                        </div>
-                        <textarea readonly id="editor2">{{result_file}}</textarea>
-                    </div>
-                </div>
-                <div class="output-log flex-col">
-                    <div class="title">Output Log</div>
-                    <div class="out">
-                        <div id="output"></div>
-                    </div>
-                </div>
+                        <div class="horizontal-separator"></div>
+                        <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
+                        <div id="advanced">
+                            <div class="form-title">Binary compiler flags:</div>
+                            <div style="align-items: center" class="flex-row">
+                                <input type="text" id="compiler-flags"/>
+                                <button type="button" onclick="addItem('binaryCompilerFlags','compiler-flags', 'compiler-flags-list')" class="mybutton positive">+</button>
+                            </div>
+                            <div id="compiler-flags-list"></div>
+                            <div class="horizontal-separator"></div>
+                            <div class="form-title">Binary compiler version:</div>
+                                <div style="color: red;" id="compilerVersionAlert">{{ error }}</div>
+                            {{ form.compiler_version }}
+                            <div class="horizontal-separator"></div>
+                            <div class="form-title">Slurm partition:</div>
+                            {{ form.slurm_partition(id="slurm_part") }}
+                            <div style="color: red;" id="slurmPartitionAlert">{{ error }}</div>
+                            <div class="horizontal-separator"></div>
+                            <div style="align-items: center" class="flex-row">
+                                <div class="form-title">Save combination folders:</div>
+                                {{ form.save_combinations(style='margin-left: 30px')}}
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="form-title">Slurm parameters:</div>
+                            <div class="flex-row-centered">
+                             <input type="text" id="slurm-params"/>
+                             <button type="button" onclick="addItem('slurmParametersList','slurm-params', 'slurm-parameters-list')" class="mybutton positive">+</button>
+                            </div>
+                            <div id="slurm-parameters-list"></div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">Maximum job count:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Maximum number of jobs running simultaneously</span>
+                                </div>
+                            </div>
+                            <div style="color: red;" id="jobCount">{{ error }}</div>
+                            {{ form.jobs_count }}
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">Execution time limit:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Time limit for each combination</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: row; align-items: center" id="time-span">
+                                <div class="flex-col">
+                                    <div>D</div>
+                                    {{ form.days_field(style='width: 50px') }}
+                                </div>
 
+                                <div class="flex-col">
+                                    <div>H</div>
+                                    {{ form.hours_field(style='width: 50px') }}
+                                </div>
+
+                                <div class="flex-col">
+                                    <div>M</div>
+                                    {{ form.minutes_field(style='width: 50px') }}
+                                </div>
+
+                                <div class="flex-col">
+                                    <div>S</div>
+                                    {{ form.seconds_field(style='width: 50px') }}
+                                </div>
+
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="form-title">Main file parameters:</div>
+                            <div class="flex-row-centered">
+                             <input type="text" id="main-file-params"/>
+                             <button type="button" onclick="addItem('mainFileParamList','main-file-params','main-params-list')" class="mybutton positive">+</button>
+                            </div>
+                            <div id="main-params-list"></div>
+                            <div class="horizontal-separator"></div>
+                            <div style="align-items: center" class="flex-row">
+                            <div class="form-title">Log level:</div>
+                            {{ form.log_level(style='margin-left: 30px') }}
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                               <div class="form-title">Validation file path:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Absolute path to python file named “test_output.py” with test function “test_output”. This file will validate the output of every combination.</span>
+                                </div>
+                            </div>
+                            {{ form.test_path }}
+                            <div style="color: red" id="validationPathAlert"></div>
+                        </div>
+                        <button type="submit" value="Submit" id="startComparButton" class="startbtn">START</button>
+                    </div>
+                </div>
+                <div class="screen-container">
+                    <div style="height: 50%" class="flex-row">
+                        <div style="overflow: auto" class="flex-col resizable">
+                            <div class="flex-row-spaced title">
+                                {{ form.upload_file(id="upload_source_file", style="display:none") }}
+                                <div>Source File</div>
+                                    <button id="browse_button" type="button" name="upload_button"
+                                            onclick="upload_source_file.click()">
+                                        Upload
+                                    </button>
+                            </div>
+                            <div class="textarea-cover">
+                                {{ form.source_file_code(id="source_editor") }}
+                            </div>
+                        </div>
+                        <div style="margin-left: 20px; direction: rtl; overflow: auto;" class="flex-col resizable">
+                            <div style="direction: ltr" class="flex-row-spaced title">
+                                <div>Result File</div>
+                                <button onclick="downloadFile()" type="button">Download</button>
+                            </div>
+                            {{ form.result_file_area(id="result_editor") }}
+                        </div>
+                    </div>
+                    <div class="output-log flex-col">
+                        <div class="title">Output Log</div>
+                        <div class="out">
+                            <div id="output"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </form>
 </body>
 
-
-
 <script>
+    var comparIsRunning = false;
+
+    upload_source_file.onchange = function(){
+        console.log("upload file on change triggered");
+        Upload_file('upload_source_file','source_file_code');
+    }
+    function downloadFile(){
+        var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
+        resultCode = codeMirrorResultEditor.getValue();
+        if (resultCode && !comparIsRunning){
+    	var anchor=document.createElement('a');
+    	anchor.setAttribute('href',"{{ url_for('download_result_file') }}");
+    	anchor.setAttribute('download','');
+    	document.body.appendChild(anchor);
+    	anchor.click();
+    	anchor.parentNode.removeChild(anchor);
+    	}
+     }
+
+    function handleErrors(errors){
+        console.log("handling errors");
+        console.log(errors);
+        if(errors){
+            if (errors.test_path){
+                document.getElementById('validationPathAlert').innerHTML = errors.test_path;
+            }
+            else{
+                document.getElementById('validationPathAlert').innerHTML = "";
+            }
+            if(errors.slurm_partition){
+                document.getElementById('slurmPartitionAlert').innerHTML = errors.slurm_partition;
+            }
+            else{
+                document.getElementById('slurmPartitionAlert').innerHTML = "";
+            }
+
+        }
+        // if (errors && errors.slurm_parameters){
+        //     document.getElementById('slurmAlert').innerHTML = errors.slurm_parameters;
+        // }
+        // else{
+        //     document.getElementById('slurmAlert').innerHTML = "";
+        // }
+    }
+
+    $(document).ready(function() {
+        $('form').submit(function (e) {
+            var url = "{{ url_for('single_file_submit') }}"; // send the form data here.
+            if(!comparIsRunning){
+                source_editor.innerHTML = ($('.CodeMirror')[0].CodeMirror).getValue();
+                submitForm(url);
+            }
+            e.preventDefault(); // block the traditional submission of the form.
+        });
+    });
+
+  function submitForm(url){
+    console.log($('form').serialize());
+    var formData = new FormData($('#form')[0]);
+    $.ajax({
+                type: "POST",
+                url: url,
+                contentType: false,
+                processData: false,
+                data: formData, // serializes the form's elements.
+                success: function (data) {
+                    console.log("received: ")
+                    console.log(data)  // display the returned data in the console.
+                },
+                error: function(error){
+                    console.log("received errors: ")
+                    console.log(error)
+                }
+            })
+            .done(function(data) {
+                handleErrors(data.errors);
+                if(!data.errors){
+                    run();
+                }
+            });
+
+        // Inject our CSRF token into our AJAX request.
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ form.csrf_token._value() }}")
+                }
+            }
+        })
+  }
+
   async function* makeTextFileLineIterator(fileURL) {
       const utf8Decoder = new TextDecoder('utf-8');
       const response = await fetch(fileURL);
@@ -220,14 +401,105 @@
   }
 
     async function run() {
-      for await (let line of makeTextFileLineIterator("stream_progress")) {
-                var item = document.createElement('li');
-                item.textContent = line;
-                output.appendChild(item);
+      if (!comparIsRunning){
+          output.innerHTML = "";
+          comparIsRunning = true;
+          var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
+          var codeMirrorSourceEditor = $('.CodeMirror')[0].CodeMirror;
+          codeMirrorSourceEditor.setOption("readOnly", true)
+          codeMirrorResultEditor.setValue("Compar in progress ...");
+          codeMirrorResultEditor.refresh();
+          startComparButton.disabled = true;
+
+          for await (let line of makeTextFileLineIterator("stream_progress")) {
+                    var item = document.createElement('li');
+                    item.textContent = line;
+                    output.appendChild(item);
+          }
+
+          var url = "{{ url_for('result_file') }}"
+          fetch(url)
+          .then((response) => {
+            return response.json();
+          })
+          .then((data) => {
+            var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
+            codeMirrorResultEditor.setValue(data.text);
+            codeMirrorResultEditor.refresh();
+          });
+
+          comparIsRunning = false;
+          codeMirrorSourceEditor.setOption("readOnly", false)
+          startComparButton.disabled = false;
+          // call here to show result file
       }
-    // call here to show result file
     }
 
-    run();
+</script>
+<script>
+    var binaryCompilerFlags = new Set();
+    var slurmParametersList = new Set();
+    var mainFileParamList = new Set();
+
+    var setDictionary = {
+        'binaryCompilerFlags': binaryCompilerFlags,
+        'slurmParametersList': slurmParametersList,
+        'mainFileParamList': mainFileParamList
+    }
+
+    function addItem(setName, inputName, divName){
+        var input = document.getElementById(inputName);
+        value = input.value;
+        if(value !== "")
+        {
+            setDictionary[setName].add(value);
+            appendChilds(setName, divName);
+            updateItem(setName);
+        }
+    }
+
+    function removeItem(setName,value,divName) {
+        setDictionary[setName].delete(value);
+        appendChilds(setName, divName);
+        updateItem(setName);
+    }
+
+    function createChild(setName, value, divName) {
+        var containerDiv = document.createElement("div");
+        containerDiv.classList.add("flex-row");
+
+        var innerDiv = document.createElement("div");
+        innerDiv.innerHTML = value;
+        innerDiv.style.width = '210px';
+        innerDiv.style.overflow = 'scroll';
+        innerDiv.style.margin = '2px 0px';
+
+        var innerButton = document.createElement("button");
+        innerButton.innerHTML = "-";
+        innerButton.classList.add("mybutton");
+        innerButton.classList.add("negative");
+        innerButton.onclick = function(){ removeItem(setName,value,divName) };
+        innerButton.setAttribute('type', 'button');
+
+        containerDiv.appendChild(innerDiv);
+        containerDiv.appendChild(innerButton);
+
+        return containerDiv;
+    }
+
+    function appendChilds(setName, divName){
+        var dynamicList = document.getElementById(divName);
+        dynamicList.innerHTML = '';
+        for(let item of setDictionary[setName]){
+           var child = createChild(setName, item, divName);
+            dynamicList.appendChild(child);
+        }
+    }
+
+    function updateItem(setName){
+        arrayAsText = Array.from(setDictionary[setName]).join(' ');
+        document.getElementById(setName).value = arrayAsText;
+    }
+
 </script>
 </html>
