@@ -243,11 +243,11 @@ def generate_compar_command_without_makefile():
     if session['job_count']:
         command += [f"-jobs_quantity {session['job_count']}"]
     # log level
-    if session['log_level'] and session['log_level'] != 'Basic':
+    if session['log_level'] and session['log_level'] != 'basic':
         level = ""
-        if session['log_level'] == 'Verbose':
+        if session['log_level'] == 'verbose':
             level = "v"
-        elif session['log_level'] == 'Debug':
+        elif session['log_level'] == 'debug':
             level = "vv"
         command += [f"-{level}"]
     # test file path
