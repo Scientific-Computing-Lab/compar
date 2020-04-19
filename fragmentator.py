@@ -177,16 +177,24 @@ class Fragmentator:
             }
             self.__fragments.append(loop_with_markers)
 
+    def remove_spaces_before_marker(self):
+        regex_start = re.compile(rf'[ \t]*{self.__START_LOOP_LABEL_MARKER}')
+        regex_end = re.compile(rf'[ \t]*{self.__END_LOOP_LABEL_MARKER}')
+        self.__file_content = regex_start.sub(f'{self.__START_LOOP_LABEL_MARKER}', self.__file_content)
+        self.__file_content = regex_end.sub(f'{self.__END_LOOP_LABEL_MARKER}', self.__file_content)
+        self.__write_to_file(self.__file_content)
+
     def __search_markers(self):
-        regex = re.compile(rf'{self.__START_MARKER}(?P<loop_id>\d+).*{self.__END_MARKER}(?P=loop_id)', re.DOTALL)
+        self.remove_spaces_before_marker()
+        regex = re.compile(rf'{self.__START_MARKER}(?P<loop_id>\d+).*{self.__END_MARKER}(?P=loop_id)[ ]*\n', re.DOTALL)
         loops_with_markers = [loop.group() for loop in regex.finditer(self.__file_content)]
+        start_marker_pattern = rf'{self.__START_MARKER}\d+'
+        end_marker_pattern = rf'{self.__END_MARKER}\d+'
         for loop in loops_with_markers:
-            start_marker_pattern = rf'{self.__START_MARKER}\d+'
-            end_marker_pattern = rf'{self.__END_MARKER}\d+'
-            start_marker = re.search(start_marker_pattern, loop).group()
-            end_marker = re.search(end_marker_pattern, loop).group()
-            just_loop = re.sub(rf'{start_marker_pattern}[^\n]\n', '', loop)
-            just_loop = re.sub(rf'\n.+{start_marker_pattern}', '', just_loop)
+            start_marker = f'// {re.search(start_marker_pattern, loop).group()}'
+            end_marker = f'// {re.search(end_marker_pattern, loop).group()}'
+            just_loop = re.sub(rf'{start_marker_pattern}[^\n]*\n', '', loop)
+            just_loop = re.sub(rf'\n.+{end_marker_pattern}[ ]*\n', '', just_loop)
             loop_and_markers = {
                 'start_label': start_marker,
                 'loop': just_loop,

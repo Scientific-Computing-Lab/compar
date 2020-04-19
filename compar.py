@@ -112,7 +112,7 @@ class Compar:
         for file_path in file_paths_list:
             with open(file_path, 'r+') as fp:
                 file_content = fp.read()
-                re.sub(regex_pattern, '', file_content)
+                file_content = re.sub(regex_pattern, '', file_content)
                 fp.seek(0)
                 fp.write(file_content)
                 fp.truncate()
