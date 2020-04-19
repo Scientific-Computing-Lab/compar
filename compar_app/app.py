@@ -201,7 +201,8 @@ def result_file():
 
 @app.route('/downloadResultFile', methods=['get'])
 def download_result_file():
-    with open(session['source_file_path'], 'r') as fp:
+    result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
+    with open(result_file_path, 'r') as fp:
         result_code = fp.read()
     return Response(
         result_code,
