@@ -270,7 +270,7 @@ class Compar:
                 params_code += f'{param}\n'
             loop_prefix = re.sub(rf'{start_marker_pattern}', params_code, loop_prefix)
             new_loop = f'{loop_prefix}{loop_body_and_suffix}'
-            c_code = re.sub(re.escape(loop_before_changes), new_loop, c_code)
+            c_code = c_code.replace(loop_before_changes, new_loop)
         try:
             with open(c_file_path, 'w') as output_file:
                 output_file.write(c_code)
