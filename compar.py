@@ -139,21 +139,6 @@ class Compar:
         with open(destination_path, "w") as input_file:
             input_file.write(destination_file_string)
 
-    @staticmethod
-    def create_c_code_to_inject(parameters, option):
-        if option == "omp_directives":
-            params = parameters.get_omp_directives_params()
-        elif option == "omp_rtl":
-            params = parameters.get_omp_rtl_params()
-        else:
-            raise UserInputError(f'The input {option} is not supported')
-
-        c_code = ""
-        for param in params:
-            if option == "omp_rtl":
-                c_code += param + "\n"
-        return c_code
-
     def __init__(self,
                  working_directory,
                  input_dir,
@@ -261,6 +246,36 @@ class Compar:
         if not is_make_file:
             self.__initialize_binary_compiler()
         self.db = Database(self.__extract_working_directory_name(), mode=self.mode)
+
+    def inject_rtl_params_to_loop(self, file_dict: dict, omp_rtl_params: list):
+        c_file_path = file_dict['file_full_path']
+        e.assert_file_exist(c_file_path)
+        with open(c_file_path, 'r') as input_file:
+            c_code = input_file.read()
+        e.assert_file_is_empty(c_code)
+        for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):
+            start_loop_marker = f'{Fragmentator.get_start_label()}{loop_id}'
+            end_loop_marker = f'{Fragmentator.get_end_label()}{loop_id}'
+            start_marker_pattern = rf'{start_loop_marker}[ \t]*\n'
+            loop_pattern = rf'{start_marker_pattern}.*{end_loop_marker}[ \t]*\n'
+            loop_before_changes = re.search(loop_pattern, c_code, re.DOTALL).group()
+            loop_prefix_pattern = rf'{start_marker_pattern}.*?(?=[\t ]*for[ \t]*\()'
+            loop_prefix = re.search(loop_prefix_pattern, loop_before_changes, re.DOTALL).group()
+            loop_body_and_suffix = re.sub(re.escape(loop_prefix), '', loop_before_changes)
+            params_code = f'{start_loop_marker}\n'
+            for param in omp_rtl_params:
+                omp_function_name = re.search(r'.+(?=\(.*\))', param).group()
+                if omp_function_name in loop_prefix:
+                    loop_prefix = re.sub(rf'{omp_function_name}[^;]*;[^\n]*\n', '', loop_prefix, re.DOTALL)
+                params_code += f'{param}\n'
+            loop_prefix = re.sub(rf'{start_marker_pattern}', params_code, loop_prefix)
+            new_loop = f'{loop_prefix}{loop_body_and_suffix}'
+            c_code = re.sub(re.escape(loop_before_changes), new_loop, c_code)
+        try:
+            with open(c_file_path, 'w') as output_file:
+                output_file.write(c_code)
+        except OSError as err:
+            raise e.FileError(str(err))
 
     def generate_optimal_code(self):
         logger.info('Start to combine the Compar combination')
@@ -416,11 +431,9 @@ class Compar:
         parallel_compiler.compile()
         post_processing_args = {'files_loop_dict': self.files_loop_dict}
         parallel_compiler.post_processing(**post_processing_args)
-        omp_rtl_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'omp_rtl')
+        omp_rtl_params = combination_obj.get_parameters().get_omp_rtl_params()
         for file_dict in self.make_absolute_file_list(combination_folder_path):
-            for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):
-                loop_start_label = Fragmentator.get_start_label() + str(loop_id)
-                self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, omp_rtl_code)
+            self.inject_rtl_params_to_loop(file_dict, omp_rtl_params)
 
     def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None, inject=True):
         if inject:
