@@ -207,11 +207,15 @@ class Fragmentator:
         return self.__fragments
 
     def move_omp_directives_into_marker(self):
-        for i, loop_fragment in enumerate(self.__fragments):
-            pattern = rf'[\t ]*#pragma omp[^\n]+\n(?=[\n\t ]*{self.__START_LOOP_LABEL_MARKER}{i})'
-            # TODO: search pattern
-            # TODO: replace lines order in the code
-            # TODO: add the new body to loop_fragment
+        for i, loop_fragment in enumerate(self.__fragments, 1):
+            pragma_pattern = rf'[\t ]*#pragma omp[^\n]+\n(?=[\n\t ]*{self.__START_LOOP_LABEL_MARKER}{i}[ \t]*\n)'
+            pragma = re.search(pragma_pattern, self.__file_content)
+            if pragma:
+                pragma = pragma.group()
+                self.__file_content = re.sub(rf'{pragma_pattern}[\n\t ]*{self.__START_LOOP_LABEL_MARKER}{i}[ \t]*\n',
+                                             f'{self.__START_LOOP_LABEL_MARKER}{i}\n{pragma}', self.__file_content)
+                loop_fragment['loop'] = f'{pragma}{loop_fragment["loop"]}'
+        self.__write_to_file(self.__file_content)
 
     def fragment_code(self):
         self.__get_file_content()
