@@ -206,6 +206,13 @@ class Fragmentator:
             raise UserInputError(f'Error in {self.__file_path}: the file must contains #{num_of_loops} loop markers!')
         return self.__fragments
 
+    def move_omp_directives_into_marker(self):
+        for i, loop_fragment in enumerate(self.__fragments):
+            pattern = rf'[\t ]*#pragma omp[^\n]+\n(?=[\n\t ]*{self.__START_LOOP_LABEL_MARKER}{i})'
+            # TODO: search pattern
+            # TODO: replace lines order in the code
+            # TODO: add the new body to loop_fragment
+
     def fragment_code(self):
         self.__get_file_content()
         if self.code_with_markers:
@@ -228,4 +235,6 @@ class Fragmentator:
         new_content += rest_of_the_content
         self.__file_content = new_content
         self.__write_to_file(self.__file_content)
+        if not self.code_with_markers:
+            self.move_omp_directives_into_marker()
         return self.get_fragments()
