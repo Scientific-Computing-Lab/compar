@@ -105,15 +105,15 @@ def single_file_submit():
                 # create input dir
                 input_dir_path = os.path.join(TEMP_FILES_DIRECTORY, file_hash)
                 os.makedirs(input_dir_path, exist_ok=True)
-                session['input_dir'] = os.path.join(GUI_DIR_NAME, input_dir_path)
+                current_dir_path = os.path.dirname(os.path.realpath(__file__))
+                session['input_dir'] = os.path.join(current_dir_path, input_dir_path)
                 source_file_name = f"{file_hash}.c"
                 source_file_path = os.path.join(input_dir_path, source_file_name)
-                session['source_file_path'] = source_file_path
                 save_source_file(file_path=source_file_path, txt=form.source_file_code.data)
                 # create working dir
                 working_dir_path = os.path.join(TEMP_FILES_DIRECTORY, f"{file_hash}_wd")
                 os.makedirs(working_dir_path, exist_ok=True)
-                session['working_dir'] = os.path.join(GUI_DIR_NAME, working_dir_path)
+                session['working_dir'] = os.path.join(current_dir_path, working_dir_path)
                 # update main file rel path as filename
                 session['main_file_rel_path'] = source_file_name
                 # other fields
