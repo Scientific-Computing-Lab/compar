@@ -1,6 +1,4 @@
 import pymongo
-import itertools
-from bson import json_util
 from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile, NoOptimalCombinationError
 from job import Job
 import logger
@@ -9,17 +7,14 @@ import hashlib
 import getpass
 import compar
 from combination import Combination
-
-
-COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
-OMP_RTL_PARAMS_FILE_PATH = "assets/omp_rtl_params.json"
-STATIC_DB_NAME = "compar_combinations"
-DYNAMIC_DB_NAME = "compar_results"
-DB = "mongodb://10.10.10.120:27017"
+from combinator import generate_combinations
 
 
 class Database:
 
+    STATIC_DB_NAME = "compar_combinations"
+    DYNAMIC_DB_NAME = "compar_results"
+    DB = "mongodb://10.10.10.120:27017"
     SERIAL_COMBINATION_ID = 'serial'
     SERIAL_COMPILER_NAME = 'serial'
 
@@ -29,9 +24,9 @@ class Database:
         self.mode = mode
         try:
             self.collection_name = collection_name
-            self.connection = pymongo.MongoClient(DB)
-            self.static_db = self.connection[STATIC_DB_NAME]
-            self.dynamic_db = self.connection[DYNAMIC_DB_NAME]
+            self.connection = pymongo.MongoClient(self.DB)
+            self.static_db = self.connection[self.STATIC_DB_NAME]
+            self.dynamic_db = self.connection[self.DYNAMIC_DB_NAME]
 
             if self.collection_name in self.static_db.list_collection_names():
                 self.static_db.drop_collection(self.collection_name)
@@ -217,111 +212,3 @@ class Database:
             fields.append(f'compilation_params:{compilation_param}')
         fields.sort()
         return hashlib.sha3_384(str(fields).encode()).hexdigest()
-
-
-def generate_combinations():
-    omp_rtl_params = []
-    combinations = []
-    with open(OMP_RTL_PARAMS_FILE_PATH, 'r') as f:
-        omp_rtl_array = json_util.loads(f.read())
-        for param in omp_rtl_array:
-            omp_rtl_params.append(generate_omp_rtl_params(param))
-        omp_rtl_params = mult_lists(omp_rtl_params)
-
-    with open(COMPILATION_PARAMS_FILE_PATH, 'r') as f:
-        comb_array = json_util.loads(f.read())
-        for comb in comb_array:
-            compiler = comb["compiler"]
-            essential_valued_params_list = generate_valued_params_list(comb["essential_params"]["valued"], True)
-            essential_valued_params_list = mult_lists(essential_valued_params_list)
-            essential_toggle_params_list = generate_toggle_params_list(comb["essential_params"]["toggle"], True)
-            essential_toggle_params_list = mult_lists(essential_toggle_params_list)
-
-            optional_valued_params_list = generate_valued_params_list(comb["optional_params"]["valued"])
-            optional_valued_params_list = mult_lists(optional_valued_params_list)
-            optional_toggle_params_list = generate_toggle_params_list(comb["optional_params"]["toggle"])
-            optional_toggle_params_list = mult_lists(optional_toggle_params_list)
-
-            all_combs = [essential_valued_params_list, essential_toggle_params_list, optional_valued_params_list,
-                         optional_toggle_params_list]
-            all_combs = [x for x in all_combs if x != []]
-            all_combs = mult_lists(all_combs)
-
-            for compile_comb in all_combs:
-                for omp_rtl_comb in omp_rtl_params:
-                    if not omp_rtl_comb:
-                        curr_omp_rtl_comb = []
-                    else:
-                        curr_omp_rtl_comb = omp_rtl_comb.split(" ")
-                    if not compile_comb:
-                        curr_compile_comb = []
-                    else:
-                        curr_compile_comb = compile_comb.split(" ")
-                    new_comb = {
-                        "compiler_name": compiler,
-                        "parameters": {
-                            "omp_rtl_params": curr_omp_rtl_comb,
-                            "omp_directives_params": [],
-                            "compilation_params": curr_compile_comb
-                        }
-                    }
-                    combinations.append(new_comb)
-        return combinations
-
-
-def generate_toggle_params_list(toggle, mandatory=False):
-    lst = []
-    for val in toggle:
-        lst.append(generate_toggle_params(val, mandatory))
-    return lst
-
-
-def generate_toggle_params(toggle, mandatory=False):
-    if not toggle:
-        return [""]
-
-    lst = []
-    if not mandatory:
-        lst.append("")
-    lst.append(toggle)
-    return lst
-
-
-def generate_valued_params(valued, mandatory=False):
-    if not valued:
-        return [""]
-
-    lst = []
-    if not mandatory:
-        lst.append("")
-
-    param = valued["param"]
-    annotation = valued["annotation"]
-    for val in valued["values"]:
-        lst.append(param + annotation + str(val))
-    return lst
-
-
-def generate_valued_params_list(valued_list, mandatory=False):
-    lst = []
-    for valued in valued_list:
-        lst.append(generate_valued_params(valued, mandatory))
-    return lst
-
-
-def generate_omp_rtl_params(param):
-    if not param:
-        return [""]
-    lst = []
-    param_name = param["param"]
-    for val in param["vals"]:
-        lst.append(f"{param_name}({val});")
-    return lst
-
-
-def mult_lists(lst):
-    mult_list = []
-    for i in itertools.product(*lst):
-        i = list(filter(None, list(i)))  # remove white spaces
-        mult_list.append(" ".join(i))
-    return mult_list

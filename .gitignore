@@ -44,3 +44,4 @@
 !python_compar.sh
 !logger.py
 !c_code_dependencies_in_compar.txt
+!combinator.py
