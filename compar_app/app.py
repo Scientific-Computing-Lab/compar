@@ -5,6 +5,7 @@ import sys
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
 from flask_wtf.file import FileField
+from werkzeug.exceptions import abort
 from wtforms import StringField, TextAreaField, BooleanField, SelectField
 from wtforms.validators import InputRequired, ValidationError
 from flask_bootstrap import Bootstrap
@@ -30,6 +31,9 @@ Bootstrap(app)
 TEMP_FILES_DIRECTORY = 'temp'
 COMPAR_PROGRAM_FILE = 'program.py'
 GUI_DIR_NAME = 'compar_app'
+SINGLE_FILE_MODE = 'single-file-mode'
+MULTIPLE_FILES_MODE = 'multiple-files-mode'
+MAKEFILE_MODE = 'makefile-mode'
 
 
 def path_validator(form, field):
@@ -132,7 +136,7 @@ def single_file_submit():
         else:
             # TODO: add check in this case (if validation not worked)
             return jsonify(errors=form.errors)
-        return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
+        return jsonify(data={'message': 'The form is valid.'})
     return jsonify(errors=form.errors)
 
 
@@ -142,10 +146,10 @@ def multiple_files_submit():
     print(form.validate_on_submit())
     print(form.errors)
     if form.validate_on_submit():
-        session['input_dir'] = ''  # should be validated in the form
-        session['source_file_path'] = ''  # path for final results main c file
-        session['working_dir'] = ''  # should be validated in the form
-        session['main_file_rel_path'] = ''  # should be taken from the form
+        session['input_dir'] = form.input_dir.data
+        session['working_dir'] = form.working_dir.data
+        os.makedirs(session['working_dir'], exist_ok=True)
+        session['main_file_rel_path'] = form.main_file_rel_path
         # other fields
         session['compiler'] = form.compiler.data
         session['save_combinations'] = form.save_combinations.data
@@ -159,17 +163,28 @@ def multiple_files_submit():
         session['test_path'] = form.test_path.data
         session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                   form.minutes_field.data, form.seconds_field.data)
-        return jsonify(data={'message': 'hello {}'.format(form.slurm_parameters.data)})
+        return jsonify(data={'message': 'The form is valid.'})
     return jsonify(errors=form.errors)
 
 
-@app.route('/stream_progress')
+@app.route('/stream_progress', methods=['POST'])
 def stream():
-    compar_command = generate_compar_command_without_makefile()
+    compar_command = ''
+    compar_mode = ''
+    data = request.get_json()
+    if 'mode' not in data.keys():
+        abort(400, "Cannot initiate Compar without mode been specified.")
+    else:
+        compar_mode = data['mode']
+    if compar_mode in [SINGLE_FILE_MODE, MULTIPLE_FILES_MODE]:
+        compar_command = generate_compar_command_without_makefile()
+    elif compar_mode == MAKEFILE_MODE:
+        compar_command = generate_compar_command_with_makefile()
+    else:
+        abort(400, f"Cannot initiate Compar with mode: {compar_mode}.")
 
     def generate():
         compar_file = COMPAR_PROGRAM_FILE
-        compar_file = "compar_app/testt.py"
         interpreter = sys.executable
         command = [interpreter, '-u', compar_file, compar_command]
         print(command)
@@ -258,6 +273,9 @@ def generate_compar_command_without_makefile():
         command += [f"-t {session['time_limit']}"]
     return ' '.join(command)
 
+
+def generate_compar_command_with_makefile():
+    return ''
 
 def handle_time_limit(days, hours, minutes, seconds):
     time_limit = ''

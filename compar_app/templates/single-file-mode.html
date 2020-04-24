@@ -370,7 +370,13 @@
 
   async function* makeTextFileLineIterator(fileURL) {
       const utf8Decoder = new TextDecoder('utf-8');
-      const response = await fetch(fileURL);
+      const response = await fetch(fileURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify ({'mode': 'single-file-mode'})
+      });
       const reader = response.body.getReader();
       let { value: chunk, done: readerDone } = await reader.read();
       chunk = chunk ? utf8Decoder.decode(chunk) : '';
