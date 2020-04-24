@@ -453,15 +453,15 @@
         'mainFileParamList': mainFileParamList
     }
 
-    function addItem(dictName, inputName, divName){
+    function addItem(mapName, inputName, divName){
         var input = document.getElementById(inputName);
         value = input.value;
         if(value !== "")
         {
             var itemId = Date.now();
-            mapDictionary[dictName].set(itemId, value);
-            appendChilds(dictName, divName);
-            updateItem(dictName);
+            mapDictionary[mapName].set(itemId, value);
+            appendChilds(mapName, divName);
+            updateItem(mapName);
         }
     }
 
