@@ -443,34 +443,35 @@
 
 </script>
 <script>
-    var binaryCompilerFlags = new Set();
-    var slurmParametersList = new Set();
-    var mainFileParamList = new Set();
+    var binaryCompilerFlags = new Map();
+    var slurmParametersList = new Map();
+    var mainFileParamList = new Map();
 
-    var setDictionary = {
+    var mapDictionary = {
         'binaryCompilerFlags': binaryCompilerFlags,
         'slurmParametersList': slurmParametersList,
         'mainFileParamList': mainFileParamList
     }
 
-    function addItem(setName, inputName, divName){
+    function addItem(dictName, inputName, divName){
         var input = document.getElementById(inputName);
         value = input.value;
         if(value !== "")
         {
-            setDictionary[setName].add(value);
-            appendChilds(setName, divName);
-            updateItem(setName);
+            var itemId = Date.now();
+            mapDictionary[dictName].set(itemId, value);
+            appendChilds(dictName, divName);
+            updateItem(dictName);
         }
     }
 
-    function removeItem(setName,value,divName) {
-        setDictionary[setName].delete(value);
-        appendChilds(setName, divName);
-        updateItem(setName);
+    function removeItem(mapName, itemId, divName) {
+        mapDictionary[mapName].delete(itemId);
+        appendChilds(mapName, divName);
+        updateItem(mapName);
     }
 
-    function createChild(setName, value, divName) {
+    function createChild(mapName, itemId, value, divName) {
         var containerDiv = document.createElement("div");
         containerDiv.classList.add("flex-row");
 
@@ -484,7 +485,7 @@
         innerButton.innerHTML = "-";
         innerButton.classList.add("mybutton");
         innerButton.classList.add("negative");
-        innerButton.onclick = function(){ removeItem(setName,value,divName) };
+        innerButton.onclick = function(){ removeItem(mapName, itemId, divName) };
         innerButton.setAttribute('type', 'button');
 
         containerDiv.appendChild(innerDiv);
@@ -493,18 +494,18 @@
         return containerDiv;
     }
 
-    function appendChilds(setName, divName){
+    function appendChilds(mapName, divName){
         var dynamicList = document.getElementById(divName);
         dynamicList.innerHTML = '';
-        for(let item of setDictionary[setName]){
-           var child = createChild(setName, item, divName);
-            dynamicList.appendChild(child);
+        for(var [itemId, value] of mapDictionary[mapName]){
+           var child = createChild(mapName, itemId, value, divName);
+           dynamicList.appendChild(child);
         }
     }
 
-    function updateItem(setName){
-        arrayAsText = Array.from(setDictionary[setName]).join(' ');
-        document.getElementById(setName).value = arrayAsText;
+    function updateItem(mapName){
+        arrayAsText = Array.from(mapDictionary[mapName].values()).join(' ');
+        document.getElementById(mapName).value = arrayAsText;
     }
 
 </script>
