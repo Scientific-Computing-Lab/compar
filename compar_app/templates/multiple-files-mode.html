@@ -84,87 +84,149 @@
         <a href="/multiplefiles" id="multiplemod" class="seperate ref">Multiple files Mode</a>
         <a href="/makefile" class="seperate ref">Makefile Mode</a>
     </nav>
-    <div class="page-layout">
-        <div class="mycontainer">
-            <div class="form-container">
-                <div class="title">Compar Parameters</div>
-                    <div style="padding: 12px" class="form">
-                        <div class="form-title">Input directory:</div>
-                        <input type="text" id="input-directory"/>
-                        <div class="horizontal-separator"></div>
-                        <div class="form-title">Output directory:</div>
-                        <input type="text" id="output-directory"/>
-                        <div class="horizontal-separator"></div>
-                        <div class="form-title">Slurm parameters:</div>
-                        <div style="align-items: center" class="flex-row">
-                             <input type="text" id="slurm-params"/>
-                             <button onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
-                             <button onclick="removeParameter('parameters')" class="mybutton negative">-</button>
+    <form method="POST" action="/multiplefiles"  enctype="multipart/form-data" id="form" novalidate>
+        <div class="page-layout">
+            <div class="mycontainer">
+                <div class="form-container form">
+                    <div class="title">Compar Parameters</div>
+                    <div class="form-area">
+                        {{ form.csrf_token }}
+                        <div class="flex-row-spaced">
+                            <div class="form-title">Input directory:</div>
+                            <div class="tooltip informationButton">i
+                                <span class="tooltiptext">Absolute path to the input directory</span>
+                            </div>
                         </div>
-                        <textarea readonly style="width: 100%" id="parameters"></textarea>
+                        {{ form.input_directory }}
+                        <div class="horizontal-separator"></div>
+                        <div class="flex-row-spaced">
+                            <div class="form-title">Output directory:</div>
+                            <div class="tooltip informationButton">i
+                                <span class="tooltiptext">Absolute path to the output directory</span>
+                            </div>
+                        </div>
+                        {{ form.output_directory }}
+                        <div class="horizontal-separator"></div>
+                        <div class="flex-row-spaced">
+                            <div class="form-title">Main c file:</div>
+                            <div class="tooltip informationButton">i
+                                <span class="tooltiptext">Relative path to the directory containing the main c file</span>
+                            </div>
+                        </div>
+                        {{ form.main_file_path }}
                         <div class="horizontal-separator"></div>
                         <div style="align-items: center" class="flex-row">
-                            <div class="form-title">Save combination folders:</div>
-                            <input  style="margin-left:30px" type="checkbox" value="yes">
+                            <div class="form-title">Binary Compiler:</div>
+                            {{ form.compiler(style='margin-left: 30px') }}
                         </div>
-                        <div class="horizontal-separator"></div>
-                        <div style="align-items: center" class="flex-row">
-                           <div class="form-title">Compiler:</div>
-                            <select style="margin-left: 30px">
-                                <option value="GCC">GCC</option>
-                                <option value="ICC">ICC</option>
-                             </select>
-                        </div>
-                        <div class="horizontal-separator"></div>
-                        <div class="form-title">Compiler version:</div>
-                        <input type="text" id="compiler-version"/>
-                        <div class="horizontal-separator"></div>
-                        <div class="form-title">Compiler flags:</div>
-                        <div style="align-items: center" class="flex-row">
-                            <input type="text" id="compiler-flags"/>
-                            <button onclick="addParameter('compiler-flags','flags')" class="mybutton positive">+</button>
-                            <button onclick="removeParameter('flags')" class="mybutton negative">-</button>
-                        </div>
-                        <textarea readonly style="width: 100%;" id="flags"></textarea>
-                        <div class="horizontal-separator"></div>
-                        <div class="form-title">Main c file:</div>
-                        <input style="color:red; padding: 0px; display: flex; font-size: 16px; border: none; width: 100%;
-                         font-weight: bold; margin-bottom: 12px" type="file" class="choosefile"/>
-                        <div class="horizontal-separator"></div>
-                        <div class="form-title">Main c file parameters:</div>
-                        <div style="align-items: center" class="flex-row">
-                            <input type="text" id="file-parameters"/>
-                            <button onclick="addParameter('file-parameters','cfile-parameters')" class="mybutton positive">+</button>
-                            <button onclick="removeParameter('cfile-parameters')" class="mybutton negative">-</button>
-                        </div>
-                        <textarea readonly style="width: 100%;" id="cfile-parameters"></textarea>
                         <div class="horizontal-separator"></div>
                         <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
-                        <div id="advanced">
-                            <div style="align-items: center" class="flex-row">
-                            <div class="form-title">Save combination folders:</div>
-                            <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
+                            <div id="advanced">
+                                <div class="form-title">Binary compiler flags:</div>
+                                <div style="align-items: center" class="flex-row">
+                                    <input type="text" id="compiler-flags"/>
+                                    <button type="button" onclick="addItem('binaryCompilerFlags','compiler-flags', 'compiler-flags-list')" class="mybutton positive">+</button>
+                                </div>
+                                <div id="compiler-flags-list"></div>
+                                <div class="horizontal-separator"></div>
+                                <div class="form-title">Binary compiler version:</div>
+                                    <div style="color: red;" id="compilerVersionAlert">{{ error }}</div>
+                                {{ form.compiler_version }}
+                                <div class="horizontal-separator"></div>
+                                <div class="form-title">Slurm partition:</div>
+                                {{ form.slurm_partition(id="slurm_part") }}
+                                <div style="color: red;" id="slurmPartitionAlert">{{ error }}</div>
+                                <div class="horizontal-separator"></div>
+                                <div style="align-items: center" class="flex-row">
+                                    <div class="form-title">Save combination folders:</div>
+                                    {{ form.save_combinations(style='margin-left: 30px')}}
+                                </div>
+                                <div class="horizontal-separator"></div>
+                                <div class="form-title">Slurm parameters:</div>
+                                <div class="flex-row-centered">
+                                 <input type="text" id="slurm-params"/>
+                                 <button type="button" onclick="addItem('slurmParametersList','slurm-params', 'slurm-parameters-list')" class="mybutton positive">+</button>
+                                </div>
+                                <div id="slurm-parameters-list"></div>
+                                <div class="horizontal-separator"></div>
+                                <div class="flex-row-spaced">
+                                    <div class="form-title">Maximum job count:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Maximum number of jobs running simultaneously</span>
+                                    </div>
+                                </div>
+                                <div style="color: red;" id="jobCount">{{ error }}</div>
+                                {{ form.jobs_count }}
+                                <div class="horizontal-separator"></div>
+                                <div class="flex-row-spaced">
+                                    <div class="form-title">Execution time limit:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Time limit for each combination</span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; flex-direction: row; align-items: center" id="time-span">
+                                    <div class="flex-col">
+                                        <div>D</div>
+                                        {{ form.days_field(style='width: 50px') }}
+                                    </div>
+
+                                    <div class="flex-col">
+                                        <div>H</div>
+                                        {{ form.hours_field(style='width: 50px') }}
+                                    </div>
+
+                                    <div class="flex-col">
+                                        <div>M</div>
+                                        {{ form.minutes_field(style='width: 50px') }}
+                                    </div>
+
+                                    <div class="flex-col">
+                                        <div>S</div>
+                                        {{ form.seconds_field(style='width: 50px') }}
+                                    </div>
+
+                                </div>
+                                <div class="horizontal-separator"></div>
+                                <div class="form-title">Main file parameters:</div>
+                                <div class="flex-row-centered">
+                                 <input type="text" id="main-file-params"/>
+                                 <button type="button" onclick="addItem('mainFileParamList','main-file-params','main-params-list')" class="mybutton positive">+</button>
+                                </div>
+                                <div id="main-params-list"></div>
+                                <div class="horizontal-separator"></div>
+                                <div style="align-items: center" class="flex-row">
+                                <div class="form-title">Log level:</div>
+                                {{ form.log_level(style='margin-left: 30px') }}
+                                </div>
+                                <div class="horizontal-separator"></div>
+                                <div class="flex-row-spaced">
+                                   <div class="form-title">Validation file path:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Absolute path to python file named “test_output.py” with test function “test_output”. This file will validate the output of every combination.</span>
+                                    </div>
+                                </div>
+                                {{ form.test_path }}
+                                <div style="color: red" id="validationPathAlert"></div>
+                            </div>
+                        <button type="submit" value="Submit" id="startComparButton" class="startbtn">START</button>
                         </div>
+                    </div>
+                    <div class="screen-container">
+                        <div class="output-folder flex-col">
+                            <div class="title">Output Folder</div>
+                            <div class="out"></div>
                         </div>
-                        <button class="startbtn">START</button>
-                    </div>
-            </div>
-            <div class="screen-container">
-              <div class="output-folder" class="flex-col">
-                    <div class="title">Output Folder</div>
-                    <div class="out">
-                        <div></div>
-                    </div>
-                </div>
-                <div class="output-log flex-col">
-                    <div class="title">Output Log</div>
-                    <div class="out">
-                        <div id="output"></div>
+                        <div class="output-log flex-col">
+                            <div class="title">Output Log</div>
+                            <div class="out">
+                                <div id="output"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
             </div>
         </div>
-    </div>
+    </form>
 </body>
 </html>
