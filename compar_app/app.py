@@ -125,12 +125,7 @@ def makefile():
     return render_template('makefile-mode.html', form=form)
 
 
-def save_source_file(file_path, txt):
-    with open(file_path, "w") as f:
-        f.write(txt)
-
-
-@app.route('/single_file_submit/', methods=['post'])
+@app.route('/single_file_submit', methods=['post'])
 def single_file_submit():
     form = SingleFileForm()
     print(form.validate_on_submit())
@@ -182,7 +177,7 @@ def single_file_submit():
     return jsonify(errors=form.errors)
 
 
-@app.route('/multiple_files_submit/', methods=['post'])
+@app.route('/multiple_files_submit', methods=['post'])
 def multiple_files_submit():
     form = MultipleFilesForm()
     print(form.validate_on_submit())
@@ -209,7 +204,7 @@ def multiple_files_submit():
     return jsonify(errors=form.errors)
 
 
-@app.route('/makefile_submit/', methods=['post'])
+@app.route('/makefile_submit', methods=['post'])
 def makefile_submit():
     form = MakefileForm()
     print(form.validate_on_submit())
@@ -256,6 +251,7 @@ def stream():
 
     def generate():
         compar_file = COMPAR_PROGRAM_FILE
+        compar_file = '../testt.py'
         interpreter = sys.executable
         command = [interpreter, '-u', compar_file, compar_command]
         print(command)
@@ -275,14 +271,12 @@ def result_file():
     return_code = session.get('return_code')
     if return_code is None:
         return_code = 0
-    if return_code != 0 or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(result_file_path):
+    if return_code != 0 or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(
+            result_file_path):
         return jsonify({"text": "Compar failed. Check the output log for more information."})
-    if os.path.exists(result_file_path):
-        result_file_code = ''
-        # print(session)
-        with open(result_file_path) as fp:
-            result_file_code = fp.read()
-        return jsonify({"text": result_file_code})
+    with open(result_file_path) as fp:
+        result_file_code = fp.read()
+    return jsonify({"text": result_file_code})
 
 
 @app.route('/downloadResultFile', methods=['get'])
@@ -299,7 +293,14 @@ def download_result_file():
 
 @app.route('/showFilesStructure', methods=['get'])
 def show_files_structure():
-    return jsonify({"text": "test"})
+    result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
+    return_code = session.get('return_code')
+    if return_code is None:
+        return_code = 0
+    if return_code != 0 or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(
+            result_file_path):
+        return jsonify({"text": "Compar failed. Check the output log for more information."})
+    return jsonify({"text": result_file_path})
 
 
 def generate_compar_command_without_makefile():
@@ -366,6 +367,11 @@ def handle_time_limit(days, hours, minutes, seconds):
 def clean_temp_files():
     if os.path.exists(TEMP_FILES_DIRECTORY):
         shutil.rmtree(TEMP_FILES_DIRECTORY)
+
+
+def save_source_file(file_path, txt):
+    with open(file_path, "w") as f:
+        f.write(txt)
 
 
 if __name__ == "__main__":

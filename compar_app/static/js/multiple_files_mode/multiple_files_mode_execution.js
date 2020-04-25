@@ -41,7 +41,7 @@ function handleErrors(errors){
 
 $(document).ready(function() {
     $('form').submit(function (e) {
-        var url = "/makefile_submit/"; // send the form data here.
+        var url = "/multiple_files_submit"; // send the form data here.
         if(!comparIsRunning){
             submitForm(url);
         }
@@ -91,7 +91,7 @@ async function* makeTextFileLineIterator(fileURL) {
   headers: {
     'Content-Type': 'application/json'
   },
-  body: JSON.stringify ({'mode': 'makefile-mode'})
+  body: JSON.stringify ({'mode': 'multiple-files-mode'})
   });
   const reader = response.body.getReader();
   let { value: chunk, done: readerDone } = await reader.read();
@@ -134,7 +134,7 @@ async function run() {
                 output.appendChild(item);
       }
 
-      var url = "/showFilesStructure/"
+      var url = "/showFilesStructure"
       fetch(url)
       .then((response) => {
         return response.json();

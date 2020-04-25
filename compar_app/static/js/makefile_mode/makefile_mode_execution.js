@@ -5,6 +5,24 @@ function handleErrors(errors){
     console.log("handling errors");
     console.log(errors);
     if(errors){
+        if(errors.input_directory){
+            document.getElementById('inputDirectoryAlert').innerHTML = errors.input_directory;
+        }
+        else {
+            document.getElementById('inputDirectoryAlert').innerHTML = "";
+        }
+        if(errors.output_directory){
+            document.getElementById('outputDirectoryAlert').innerHTML = errors.output_directory;
+        }
+        else {
+            document.getElementById('outputDirectoryAlert').innerHTML = "";
+        }
+        if(errors.main_file_path){
+            document.getElementById('mainFileAlert').innerHTML = errors.main_file_path;
+        }
+        else {
+            document.getElementById('mainFileAlert').innerHTML = "";
+        }
         if (errors.test_path){
             document.getElementById('validationPathAlert').innerHTML = errors.test_path;
         }
@@ -23,9 +41,8 @@ function handleErrors(errors){
 
 $(document).ready(function() {
     $('form').submit(function (e) {
-        var url = "/single_file_submit/"; // send the form data here.
+        var url = "/makefile_submit"; // send the form data here.
         if(!comparIsRunning){
-            source_editor.innerHTML = ($('.CodeMirror')[0].CodeMirror).getValue();
             submitForm(url);
         }
         e.preventDefault(); // block the traditional submission of the form.
@@ -74,7 +91,7 @@ async function* makeTextFileLineIterator(fileURL) {
   headers: {
     'Content-Type': 'application/json'
   },
-  body: JSON.stringify ({'mode': 'single-file-mode'})
+  body: JSON.stringify ({'mode': 'makefile-mode'})
   });
   const reader = response.body.getReader();
   let { value: chunk, done: readerDone } = await reader.read();
@@ -109,11 +126,6 @@ async function run() {
   if (!comparIsRunning){
       output.innerHTML = "";
       comparIsRunning = true;
-      var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
-      var codeMirrorSourceEditor = $('.CodeMirror')[0].CodeMirror;
-      codeMirrorSourceEditor.setOption("readOnly", true)
-      codeMirrorResultEditor.setValue("Compar in progress ...");
-      codeMirrorResultEditor.refresh();
       startComparButton.disabled = true;
 
       for await (let line of makeTextFileLineIterator("stream_progress")) {
@@ -122,20 +134,16 @@ async function run() {
                 output.appendChild(item);
       }
 
-      var url = "/result_file/"
+      var url = "/showFilesStructure"
       fetch(url)
       .then((response) => {
         return response.json();
       })
       .then((data) => {
-        var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
-        codeMirrorResultEditor.setValue(data.text);
-        codeMirrorResultEditor.refresh();
+        console.log(data);
       });
 
       comparIsRunning = false;
-      codeMirrorSourceEditor.setOption("readOnly", false)
       startComparButton.disabled = false;
-      // call here to show result file
   }
 }

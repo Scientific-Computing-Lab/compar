@@ -24,7 +24,7 @@ function downloadFile(){
     resultCode = codeMirrorResultEditor.getValue();
     if (resultCode && !comparIsRunning){
         var anchor=document.createElement('a');
-        anchor.setAttribute('href',"{{ url_for('download_result_file') }}");
+        anchor.setAttribute('href',"/downloadResultFile");
         anchor.setAttribute('download','');
         document.body.appendChild(anchor);
         anchor.click();
