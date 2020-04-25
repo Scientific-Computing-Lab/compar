@@ -6,6 +6,8 @@ COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
 OMP_RTL_PARAMS_FILE_PATH = "assets/omp_rtl_params.json"
 OMP_DIRECTIVES_FILE_PATH = "assets/omp_directives_params.json"
 PARAMS_SEPARATOR = '____compar____params____separator____'
+PARALLEL_DIRECTIVE_PREFIX = 'parallel'
+FOR_DIRECTIVE_PREFIX = 'for'
 
 
 def generate_combinations():
@@ -70,8 +72,9 @@ def generate_omp_directive_params():
     parallel_directive_params = json_omp_directives['parallel']
     for_directive_params = json_omp_directives['for']
     omp_directives_params = []
-    omp_directives_params.extend(generate_directive_list_from_json(parallel_directive_params, 'parallel'))
-    omp_directives_params.extend(generate_directive_list_from_json(for_directive_params, 'for'))
+    omp_directives_params.extend(generate_directive_list_from_json(parallel_directive_params,
+                                                                   PARALLEL_DIRECTIVE_PREFIX))
+    omp_directives_params.extend(generate_directive_list_from_json(for_directive_params, FOR_DIRECTIVE_PREFIX))
     return mult_lists(omp_directives_params)
 
 
