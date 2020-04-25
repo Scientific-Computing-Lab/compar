@@ -79,9 +79,6 @@ class MultipleFilesForm(FlaskForm):
     seconds_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
     main_file_parameters = StringField('main_file_parameters')
     compiler = SelectField('compiler', choices=[('gcc', 'GCC'), ('icc', 'ICC')])
-    source_file_code = TextAreaField('source_file_code', validators=[InputRequired()])
-    upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'Only C files allowed!')])
-    result_file_area = TextAreaField('result_file_area')
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
 
@@ -107,9 +104,6 @@ class MakefileForm(FlaskForm):
     minutes_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
     seconds_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
     main_file_parameters = StringField('main_file_parameters')
-    source_file_code = TextAreaField('source_file_code', validators=[InputRequired()])
-    upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'Only C files allowed!')])
-    result_file_area = TextAreaField('result_file_area')
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
 
@@ -121,13 +115,13 @@ def single_file():
     return render_template('single-file-mode.html', form=form)
 
 
-@app.route('/multiplefiles')
+@app.route('/multiplefiles', methods=['GET', 'POST'])
 def multiple_files():
     form = MultipleFilesForm(request.form)
     return render_template('multiple-files-mode.html', form=form)
 
 
-@app.route('/makefile')
+@app.route('/makefile', methods=['GET', 'POST'])
 def makefile():
     form = MakefileForm(request.form)
     return render_template('makefile-mode.html', form=form)
@@ -274,6 +268,11 @@ def download_result_file():
         mimetype="text/plain",
         headers={"Content-disposition": "attachment; filename=Compar_results.c"}
     )
+
+
+@app.route('/showFilesStructure', methods=['get'])
+def show_files_structure():
+    return jsonify({"text": "test"})
 
 
 def generate_compar_command_without_makefile():
