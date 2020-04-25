@@ -6,7 +6,11 @@ import re
 COMMENT_PREFIX = '//____compar____'
 
 
-def format_c_code(c_files_path_list, style_arguments='\"{AccessModifierOffset: -4, IndentWidth: 4, ColumnLimit: 0}\"'):
+def format_c_code(c_files_path_list, column_limit=True):
+    style_arguments = '\"{AccessModifierOffset: -4, IndentWidth: 4'
+    if column_limit:
+        style_arguments += ', ColumnLimit: 0'
+    style_arguments += '}\"'
     try:
         format_command = ['clang-format', '-i'] + c_files_path_list + ['-style', style_arguments]
         run_subprocess(format_command)

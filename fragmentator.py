@@ -67,7 +67,7 @@ class Fragmentator:
         return self.__fragments
 
     def __get_file_content(self):
-        format_c_code([self.__file_path, ])
+        format_c_code([self.__file_path, ], column_limit=False)
         try:
             with open(self.__file_path, 'r') as input_file:
                 self.__file_content = input_file.read()
