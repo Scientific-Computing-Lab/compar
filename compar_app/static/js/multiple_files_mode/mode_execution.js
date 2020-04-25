@@ -1,6 +1,44 @@
 
 var comparIsRunning = false;
 
+function handleErrors(errors){
+    console.log("handling errors");
+    console.log(errors);
+    if(errors){
+        if(errors.input_directory){
+            document.getElementById('inputDirectoryAlert').innerHTML = errors.input_directory;
+        }
+        else {
+            document.getElementById('inputDirectoryAlert').innerHTML = "";
+        }
+        if(errors.output_directory){
+            document.getElementById('outputDirectoryAlert').innerHTML = errors.output_directory;
+        }
+        else {
+            document.getElementById('outputDirectoryAlert').innerHTML = "";
+        }
+        if(errors.main_file_path){
+            document.getElementById('mainFileAlert').innerHTML = errors.main_file_path;
+        }
+        else {
+            document.getElementById('mainFileAlert').innerHTML = "";
+        }
+        if (errors.test_path){
+            document.getElementById('validationPathAlert').innerHTML = errors.test_path;
+        }
+        else{
+            document.getElementById('validationPathAlert').innerHTML = "";
+        }
+        if(errors.slurm_partition){
+            document.getElementById('slurmPartitionAlert').innerHTML = errors.slurm_partition;
+        }
+        else{
+            document.getElementById('slurmPartitionAlert').innerHTML = "";
+        }
+
+    }
+}
+
 $(document).ready(function() {
     $('form').submit(function (e) {
         var url = "/multiple_files_submit/"; // send the form data here.
