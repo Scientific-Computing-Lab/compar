@@ -4,20 +4,17 @@ var comparIsRunning = false;
 function handleErrors(errors){
     console.log("handling errors");
     console.log(errors);
-    if(errors){
-        if (errors.test_path){
-            document.getElementById('validationPathAlert').innerHTML = errors.test_path;
-        }
-        else{
-            document.getElementById('validationPathAlert').innerHTML = "";
-        }
-        if(errors.slurm_partition){
-            document.getElementById('slurmPartitionAlert').innerHTML = errors.slurm_partition;
-        }
-        else{
-            document.getElementById('slurmPartitionAlert').innerHTML = "";
-        }
-
+    if (errors && errors.test_path){
+        document.getElementById('validationPathAlert').innerHTML = errors.test_path;
+    }
+    else{
+        document.getElementById('validationPathAlert').innerHTML = "";
+    }
+    if(errors && errors.slurm_partition){
+        document.getElementById('slurmPartitionAlert').innerHTML = errors.slurm_partition;
+    }
+    else{
+        document.getElementById('slurmPartitionAlert').innerHTML = "";
     }
 }
 
