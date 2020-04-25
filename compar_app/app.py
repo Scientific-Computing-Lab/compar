@@ -85,6 +85,7 @@ class MultipleFilesForm(FlaskForm):
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
 
+
 class MakefileForm(FlaskForm):
     input_directory = StringField('input_directory', validators=[path_validator])
     output_directory = StringField('output_directory', validators=[path_validator])
@@ -195,10 +196,10 @@ def multiple_files_submit():
     print(form.validate_on_submit())
     print(form.errors)
     if form.validate_on_submit():
-        session['input_dir'] = form.input_dir.data
-        session['working_dir'] = form.working_dir.data
+        session['input_dir'] = form.input_directory.data
+        session['working_dir'] = form.output_directory.data
         os.makedirs(session['working_dir'], exist_ok=True)
-        session['main_file_rel_path'] = form.main_file_rel_path
+        session['main_file_rel_path'] = form.main_file_path.data
         # other fields
         session['compiler'] = form.compiler.data
         session['save_combinations'] = form.save_combinations.data
