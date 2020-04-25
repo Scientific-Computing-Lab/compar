@@ -95,7 +95,7 @@ class MakefileForm(FlaskForm):
     executable_file_name = StringField('executable_file_name', validators=[InputRequired()])
 
     ignore_folder_paths = StringField('ignore_folder_paths')
-    include_directories = StringField('include_directories')
+    include_folder_paths = StringField('include_folder_paths')
 
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')

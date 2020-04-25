@@ -23,6 +23,9 @@
         <a href="/makefile" class="seperate ref">Makefile Mode</a>
     </nav>
     <form method="POST" action="/multiplefiles"  enctype="multipart/form-data" id="form" novalidate>
+        {{ form.slurm_parameters(id="slurmParametersList", style="display:none") }}
+        {{ form.main_file_parameters(id="mainFileParamList", style="display:none") }}
+        {{ form.compiler_flags(id="binaryCompilerFlags", style="display:none") }}
         <div class="page-layout">
             <div class="mycontainer">
                 <div class="form-container form">

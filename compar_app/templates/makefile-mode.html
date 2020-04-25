@@ -23,6 +23,11 @@
         <a href="/makefile" id="makefilemode" class="seperate ref">Makefile Mode</a>
     </nav>
     <form method="POST" action="/makefile"  enctype="multipart/form-data" id="form" novalidate>
+        {{ form.ignore_folder_paths(id="ignoreFoldersList", style="display:none") }}
+        {{ form.include_folder_paths(id="includeFoldersList", style="display:none") }}
+        {{ form.makefile_commands(id="makefileCommands", style="display:none") }}
+        {{ form.slurm_parameters(id="slurmParametersList", style="display:none") }}
+        {{ form.main_file_parameters(id="mainFileParamList", style="display:none") }}
         <div class="page-layout">
             <div class="mycontainer">
                 <div class="form-container form">
