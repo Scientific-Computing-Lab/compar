@@ -85,6 +85,33 @@ class MultipleFilesForm(FlaskForm):
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
 
+class MakefileForm(FlaskForm):
+    input_directory = StringField('input_directory', validators=[path_validator])
+    output_directory = StringField('output_directory', validators=[path_validator])
+    main_file_path = StringField('main_file_path', validators=[path_validator])
+    makefile_commands = StringField('makefile_commands', validators=[InputRequired()])
+    executable_path = StringField('executable_path', validators=[path_validator])
+    executable_file_name = StringField('executable_file_name', validators=[InputRequired()])
+
+    ignore_folder_paths = StringField('ignore_folder_paths')
+    include_directories = StringField('include_directories')
+
+    slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
+    save_combinations = BooleanField('save_combinations')
+    slurm_parameters = StringField('slurm_parameters')
+    jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                       validators=[InputRequired()], default=4)
+    days_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=100, step=1), default=0)
+    hours_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=23, step=1), default=0)
+    minutes_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
+    seconds_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
+    main_file_parameters = StringField('main_file_parameters')
+    source_file_code = TextAreaField('source_file_code', validators=[InputRequired()])
+    upload_file = FileField('upload_file', validators=[FileAllowed(['c'], 'Only C files allowed!')])
+    result_file_area = TextAreaField('result_file_area')
+    log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
+    test_path = StringField('test_file_path', validators=[path_validator])
+
 
 @app.route("/")
 @app.route("/singlefile", methods=['GET', 'POST'])
@@ -101,7 +128,8 @@ def multiple_files():
 
 @app.route('/makefile')
 def makefile():
-    return render_template('makefile-mode.html')
+    form = MakefileForm(request.form)
+    return render_template('makefile-mode.html', form=form)
 
 
 def save_source_file(file_path, txt):

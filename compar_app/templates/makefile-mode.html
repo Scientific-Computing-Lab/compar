@@ -8,77 +8,10 @@
     <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" />
     <script src="{{ url_for('static', filename='js/jquery-3.4.1.min.js')}}"></script>
     <link href="{{ url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
+    <script src="{{ url_for('static', filename='js/common/advanced_options.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/makefile_mode/on_load.js')}}"></script>
 
-    <script>
-
-        function init() {
-
-            var multipleModNav = document.getElementById('makefilemode');
-            multipleModNav.style.color = "white";
-            multipleModNav.style.fontWeight = "bold";
-            multipleModNav.style.fontSize = "18px";
-            multipleModNav.style.textDecoration = "underline"
-        }
-
-    </script>
-    <script>
-        var showAdvanced = false;
-
-        function showAdvancedOptions() {
-            showAdvanced = !showAdvanced;
-            var advanced = document.getElementById('advanced');
-            if(showAdvanced){
-                advanced.style.display = "flex";
-            }
-            else{
-                advanced.style.display = "none";
-            }
-        }
-
-        function addParameter(inputId, textAreaId) {
-            var paramsInput = document.getElementById(inputId);
-            var params = document.getElementById(textAreaId);
-            if(params.innerHTML === ''){
-                params.innerHTML += paramsInput.value;
-            }
-            else{
-               params.innerHTML += ' ' + paramsInput.value;
-            }
-
-        }
-
-        function removeParameter(textAreaId) {
-            var params = document.getElementById(textAreaId);
-            var p = params.value.split(' ');
-            p.pop();
-            params.innerHTML = p.join(' ');
-        }
-    </script>
-    <style>
-
-        nav {
-            height: 42px;
-            display: flex;
-            background: gray;
-            color: white;
-            flex-direction: row;
-            width: 100%;
-            box-sizing: border-box;
-            padding: 4px;
-            align-items: center;
-            box-shadow: 0px 0px 5px black;
-        }
-
-        .navtitle {
-            font-weight: bold;
-            font-size: 24px;
-        }
-
-    </style>
 </head>
-
-
-
 
 <body onLoad="init()">
     <nav>
@@ -88,98 +21,180 @@
         <a href="/multiplefiles" class="seperate ref">Multiple files Mode</a>
         <a href="/makefile" id="makefilemode" class="seperate ref">Makefile Mode</a>
     </nav>
-    <div class="page-layout">
-        <div class="mycontainer">
-            <div class="form-container">
-                <div class="title">Compar Parameters</div>
-                <div style="padding: 12px"  class="form">
-                    <div class="form-title">Input directory:</div>
-                    <input type="text" id="input-directory"/>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Output directory:</div>
-                    <input type="text" id="output-directory"/>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Slurm parameters:</div>
-                    <div style="align-items: center" class="flex-row">
-                         <input type="text" id="slurm-params"/>
-                         <button onclick="addParameter('slurm-params','parameters')" class="mybutton positive">+</button>
-                         <button onclick="removeParameter('parameters')" class="mybutton negative">-</button>
-                    </div>
-                    <textarea readonly style="width: 100%" id="parameters"></textarea>
-                    <div class="horizontal-separator"></div>
-                    <div style="align-items: center" class="flex-row">
-                        <div class="form-title">Save combination folders:</div>
-                        <input  style="margin-left:30px" type="checkbox" value="yes">
-                    </div>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Folders to ignore:</div>
-                    <div style="align-items: center" class="flex-row">
-                         <input type="text" id="ignore-folders"/>
-                         <button onclick="addParameter('ignore-folders','ignore')" class="mybutton positive">+</button>
-                         <button onclick="removeParameter('ignore')" class="mybutton negative">-</button>
-                    </div>
-                    <textarea readonly style="width: 100%" id="ignore"></textarea>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Folders to include:</div>
-                    <div style="align-items: center" class="flex-row">
-                         <input type="text" id="include-folders"/>
-                         <button onclick="addParameter('include-folders','include')" class="mybutton positive">+</button>
-                         <button onclick="removeParameter('include')" class="mybutton negative">-</button>
-                    </div>
-                    <textarea readonly style="width: 100%" id="include"></textarea>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Makefile commands:</div>
-                    <div style="align-items: center" class="flex-row">
-                        <input type="text" id="makefile-commands"/>
-                        <button onclick="addParameter('makefile-commands','makecommands')" class="mybutton positive">+</button>
-                        <button onclick="removeParameter('makecommands')" class="mybutton negative">-</button>
-                    </div>
-                    <textarea readonly style="width: 100%;" id="makecommands"></textarea>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Executable output directory:</div>
-                    <input type="text" id="executable-out-directory"/>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Executable file name:</div>
-                    <input type="text" id="executable-file-name"/>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Main c file:</div>
-                    <input style="color:red; padding: 0px; display: flex; font-size: 16px; border: none; width: 100%;
-                     margin-bottom: 12px; font-weight: bold" type="file" class="choosefile"/>
-                    <div class="horizontal-separator"></div>
-                    <div class="form-title">Main c file parameters:</div>
-                    <div style="align-items: center" class="flex-row">
-                        <input type="text" id="file-parameters"/>
-                        <button onclick="addParameter('file-parameters','cfile-parameters')" class="mybutton positive">+</button>
-                        <button onclick="removeParameter('cfile-parameters')" class="mybutton negative">-</button>
-                    </div>
-                    <textarea readonly style="width: 100%;" id="cfile-parameters"></textarea>
-                    <div class="horizontal-separator"></div>
-                    <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
-                    <div id="advanced">
+    <form method="POST" action="/makefile"  enctype="multipart/form-data" id="form" novalidate>
+        <div class="page-layout">
+            <div class="mycontainer">
+                <div class="form-container form">
+                    <div class="title">Compar Parameters</div>
+                    <div style="padding: 12px"  class="form-area">
+                        {{ form.csrf_token }}
+                        <div class="flex-row-spaced">
+                            <div class="form-title">Input directory:</div>
+                            <div class="tooltip informationButton">i
+                                <span class="tooltiptext">Absolute path to the input directory</span>
+                            </div>
+                        </div>
+                        {{ form.input_directory }}
+                        <div style="color: red;" id="inputDirectoryAlert">{{ error }}</div>
+                        <div class="horizontal-separator"></div>
+                        <div class="flex-row-spaced">
+                            <div class="form-title">Output directory:</div>
+                            <div class="tooltip informationButton">i
+                                <span class="tooltiptext">Absolute path to the output directory</span>
+                            </div>
+                        </div>
+                        {{ form.output_directory }}
+                        <div style="color: red;" id="outputDirectoryAlert">{{ error }}</div>
+                        <div class="horizontal-separator"></div>
+                        <div class="flex-row-spaced">
+                            <div class="form-title">Main c file:</div>
+                            <div class="tooltip informationButton">i
+                                <span class="tooltiptext">Relative path to the directory containing the main c file</span>
+                            </div>
+                        </div>
+                        {{ form.main_file_path }}
+                        <div style="color: red;" id="mainFileAlert">{{ error }}</div>
+                        <div class="horizontal-separator"></div>
+                        <div class="form-title">Makefile commands:</div>
                         <div style="align-items: center" class="flex-row">
-                        <div class="form-title">Save combination folders:</div>
-                        <input  style="margin-left:30px" type="checkbox" id="combination-folders-no" value="yes">
-                    </div>
-                    </div>
-                    <button class="startbtn">START</button>
-                </div>
-            </div>
-            <div class="screen-container">
-              <div class="output-folder" class="flex-col">
-                    <div class="title">Output Folder</div>
-                    <div class="out">
-                        <div></div>
-                    </div>
-                </div>
-                <div class="output-log flex-col">
-                    <div class="title">Output Log</div>
-                    <div class="out">
-                        <div id="output"></div>
-                    </div>
-                </div>
+                            <input type="text" id="makefile_commands"/>
+                            <button type="button" onclick="addItem('makefileCommands','makefile_commands', 'makefile_commands_list')" class="mybutton positive">+</button>
+                        </div>
+                        <div id="makefile_commands_list"></div>
+                        <div class="horizontal-separator"></div>
+                        <div class="flex-row-spaced">
+                            <div class="form-title">Executable relative path:</div>
+                            <div class="tooltip informationButton">i
+                                <span class="tooltiptext">Relative path to the directory containing executable file (Relative to input directory)</span>
+                            </div>
+                        </div>
+                        {{ form.executable_path }}
+                        <div class="horizontal-separator"></div>
+                        <div class="flex-row-spaced">
+                            <div class="form-title">Executable file name:</div>
+                            <div class="tooltip informationButton">i
+                                <span class="tooltiptext">Name of executable file created by makefile</span>
+                            </div>
+                        </div>
+                        {{ form.executable_file_name }}
+                        <div class="horizontal-separator"></div>
+                        <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
+                            <div id="advanced">
+                                <div class="flex-row-spaced">
+                                    <div class="form-title">Folders to ignore:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Folders paths that do not need to be parallelized. (Relative to input directory)</span>
+                                    </div>
+                                </div>
+                                <div style="align-items: center" class="flex-row">
+                                    <input type="text" id="ignore_folders"/>
+                                    <button type="button" onclick="addItem('ignoreFolders','ignore_folders', 'ignore-folders-list')" class="mybutton positive">+</button>
+                                </div>
+                                <div id="ignore-folders-list"></div>
+                                <div class="horizontal-separator"></div>
+                                <div class="flex-row-spaced">
+                                    <div class="form-title">Folders to include:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Folders paths that need to be included for parallelization. (Relative to input directory)</span>
+                                    </div>
+                                </div>
+                                <div style="align-items: center" class="flex-row">
+                                    <input type="text" id="included_folders"/>
+                                    <button type="button" onclick="addItem('includeFolders','included_folders', 'include-folders-list')" class="mybutton positive">+</button>
+                                </div>
+                                <div id="include-folders-list"></div>
+                                <div class="horizontal-separator"></div>
+                                <div style="align-items: center" class="flex-row">
+                                    <div class="form-title">Save combination folders:</div>
+                                    {{ form.save_combinations(style='margin-left: 30px')}}
+                                </div>
+                                <div class="horizontal-separator"></div>
+                                <div class="form-title">Slurm parameters:</div>
+                                <div class="flex-row-centered">
+                                 <input type="text" id="slurm-params"/>
+                                 <button type="button" onclick="addItem('slurmParametersList','slurm-params', 'slurm-parameters-list')" class="mybutton positive">+</button>
+                                </div>
+                                <div id="slurm-parameters-list"></div>
+                                <div class="horizontal-separator"></div>
+                                <div class="flex-row-spaced">
+                                    <div class="form-title">Maximum job count:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Maximum number of jobs running simultaneously</span>
+                                    </div>
+                                </div>
+                                <div style="color: red;" id="jobCount">{{ error }}</div>
+                                {{ form.jobs_count }}
+                                <div class="horizontal-separator"></div>
+                                <div class="flex-row-spaced">
+                                    <div class="form-title">Execution time limit:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Time limit for each combination</span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; flex-direction: row; align-items: center" id="time-span">
+                                    <div class="flex-col">
+                                        <div>D</div>
+                                        {{ form.days_field(style='width: 50px') }}
+                                    </div>
 
+                                    <div class="flex-col">
+                                        <div>H</div>
+                                        {{ form.hours_field(style='width: 50px') }}
+                                    </div>
+
+                                    <div class="flex-col">
+                                        <div>M</div>
+                                        {{ form.minutes_field(style='width: 50px') }}
+                                    </div>
+
+                                    <div class="flex-col">
+                                        <div>S</div>
+                                        {{ form.seconds_field(style='width: 50px') }}
+                                    </div>
+
+                                </div>
+                                <div class="horizontal-separator"></div>
+                                <div class="form-title">Main file parameters:</div>
+                                <div class="flex-row-centered">
+                                 <input type="text" id="main-file-params"/>
+                                 <button type="button" onclick="addItem('mainFileParamList','main-file-params','main-params-list')" class="mybutton positive">+</button>
+                                </div>
+                                <div id="main-params-list"></div>
+                                <div class="horizontal-separator"></div>
+                                <div style="align-items: center" class="flex-row">
+                                <div class="form-title">Log level:</div>
+                                {{ form.log_level(style='margin-left: 30px') }}
+                                </div>
+                                <div class="horizontal-separator"></div>
+                                <div class="flex-row-spaced">
+                                   <div class="form-title">Validation file path:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Absolute path to python file named “test_output.py” with test function “test_output”. This file will validate the output of every combination.</span>
+                                    </div>
+                                </div>
+                                {{ form.test_path }}
+                                <div style="color: red" id="validationPathAlert"></div>
+                            </div>
+                        <button class="startbtn">START</button>
+                    </div>
+                </div>
+                <div class="screen-container">
+                  <div class="output-folder" class="flex-col">
+                        <div class="title">Output Folder</div>
+                        <div class="out">
+                            <div></div>
+                        </div>
+                    </div>
+                    <div class="output-log flex-col">
+                        <div class="title">Output Log</div>
+                        <div class="out">
+                            <div id="output"></div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
-    </div>
+    </form>
 </body>
 </html>

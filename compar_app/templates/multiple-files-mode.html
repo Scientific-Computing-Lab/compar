@@ -8,72 +8,10 @@
     <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" />
     <script src="{{ url_for('static', filename='js/jquery-3.4.1.min.js')}}"></script>
     <link href="{{ url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
+    <script src="{{ url_for('static', filename='js/multiple_files_mode/on_load.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/common/advanced_options.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/single_file_mode/dynamic_parameters.js')}}"></script>
 
-    <script>
-
-        function init() {
-
-            var multipleModNav = document.getElementById('multiplemod');
-            multipleModNav.style.color = "white";
-            multipleModNav.style.fontWeight = "bold";
-            multipleModNav.style.fontSize = "18px";
-            multipleModNav.style.textDecoration = "underline"
-        }
-
-    </script>
-    <script>
-        var showAdvanced = false;
-
-        function showAdvancedOptions() {
-            showAdvanced = !showAdvanced;
-            var advanced = document.getElementById('advanced');
-            if(showAdvanced){
-                advanced.style.display = "flex";
-            }
-            else{
-                advanced.style.display = "none";
-            }
-        }
-
-        function addParameter(inputId, textAreaId) {
-            var paramsInput = document.getElementById(inputId);
-            var params = document.getElementById(textAreaId);
-            if(params.innerHTML === ''){
-                params.innerHTML += paramsInput.value;
-            }
-            else{
-               params.innerHTML += ' ' + paramsInput.value;
-            }
-
-        }
-
-        function removeParameter(textAreaId) {
-            var params = document.getElementById(textAreaId);
-            var p = params.value.split(' ');
-            p.pop();
-            params.innerHTML = p.join(' ');
-        }
-    </script>
-    <style>
-        nav {
-            height: 42px;
-            display: flex;
-            background: gray;
-            color: white;
-            flex-direction: row;
-            width: 100%;
-            box-sizing: border-box;
-            padding: 4px;
-            align-items: center;
-            box-shadow: 0px 0px 5px black;
-        }
-
-        .navtitle {
-            font-weight: bold;
-            font-size: 24px;
-        }
-
-    </style>
 </head>
 
 <body onLoad="init()">
@@ -98,6 +36,7 @@
                             </div>
                         </div>
                         {{ form.input_directory }}
+                        <div style="color: red;" id="inputDirectoryAlert">{{ error }}</div>
                         <div class="horizontal-separator"></div>
                         <div class="flex-row-spaced">
                             <div class="form-title">Output directory:</div>
@@ -106,6 +45,7 @@
                             </div>
                         </div>
                         {{ form.output_directory }}
+                        <div style="color: red;" id="outputDirectoryAlert">{{ error }}</div>
                         <div class="horizontal-separator"></div>
                         <div class="flex-row-spaced">
                             <div class="form-title">Main c file:</div>
@@ -114,6 +54,7 @@
                             </div>
                         </div>
                         {{ form.main_file_path }}
+                        <div style="color: red;" id="mainFileAlert">{{ error }}</div>
                         <div class="horizontal-separator"></div>
                         <div style="align-items: center" class="flex-row">
                             <div class="form-title">Binary Compiler:</div>

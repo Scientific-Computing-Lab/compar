@@ -347,3 +347,22 @@ select:focus{
 .tooltip:hover .tooltiptext {
   visibility: visible;
 }
+
+nav {
+    height: 42px;
+    display: flex;
+    background: gray;
+    color: white;
+    flex-direction: row;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 4px;
+    align-items: center;
+    box-shadow: 0px 0px 5px black;
+}
+
+.navtitle {
+    font-weight: bold;
+    font-size: 24px;
+    padding: 0px 4px;
+}
