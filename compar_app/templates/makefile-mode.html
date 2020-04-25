@@ -10,6 +10,7 @@
     <link href="{{ url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
     <script src="{{ url_for('static', filename='js/common/advanced_options.js')}}"></script>
     <script src="{{ url_for('static', filename='js/makefile_mode/on_load.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/makefile_mode/dynamic_parameters.js')}}"></script>
 
 </head>
 
@@ -88,7 +89,7 @@
                                 </div>
                                 <div style="align-items: center" class="flex-row">
                                     <input type="text" id="ignore_folders"/>
-                                    <button type="button" onclick="addItem('ignoreFolders','ignore_folders', 'ignore-folders-list')" class="mybutton positive">+</button>
+                                    <button type="button" onclick="addItem('ignoreFoldersList','ignore_folders', 'ignore-folders-list')" class="mybutton positive">+</button>
                                 </div>
                                 <div id="ignore-folders-list"></div>
                                 <div class="horizontal-separator"></div>
@@ -99,8 +100,8 @@
                                     </div>
                                 </div>
                                 <div style="align-items: center" class="flex-row">
-                                    <input type="text" id="included_folders"/>
-                                    <button type="button" onclick="addItem('includeFolders','included_folders', 'include-folders-list')" class="mybutton positive">+</button>
+                                    <input type="text" id="include_folders"/>
+                                    <button type="button" onclick="addItem('includeFoldersList','include_folders', 'include-folders-list')" class="mybutton positive">+</button>
                                 </div>
                                 <div id="include-folders-list"></div>
                                 <div class="horizontal-separator"></div>
