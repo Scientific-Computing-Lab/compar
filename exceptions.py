@@ -2,6 +2,7 @@ import os
 
 import compar
 from unit_test import UnitTest
+import combinator
 
 
 class FileError(Exception):
@@ -110,3 +111,9 @@ def assert_original_files_folder_exists(working_directory):
 def assert_folder_exist(folder_path):
     if not os.path.exists(folder_path):
         raise FolderError(f'Folder {folder_path} not exist')
+
+
+def assert_allowed_directive_type(directive_type: str):
+    allowed_types = (combinator.PARALLEL_DIRECTIVE_PREFIX, combinator.FOR_DIRECTIVE_PREFIX)
+    if directive_type not in allowed_types:
+        raise UserInputError(f'omp directives prefix of {directive_type} is incorrect!')
