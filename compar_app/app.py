@@ -209,6 +209,35 @@ def multiple_files_submit():
     return jsonify(errors=form.errors)
 
 
+@app.route('/makefile_submit/', methods=['post'])
+def makefile_submit():
+    form = MakefileForm()
+    print(form.validate_on_submit())
+    print(form.errors)
+    if form.validate_on_submit():
+        session['input_dir'] = form.input_directory.data
+        session['working_dir'] = form.output_directory.data
+        os.makedirs(session['working_dir'], exist_ok=True)
+        session['main_file_rel_path'] = form.main_file_path.data
+        # other fields
+        session['makefile_commands'] = form.makefile_commands.data
+        session['executable_path'] = form.executable_path.data
+        session['executable_file_name'] = form.executable_file_name.data
+        session['ignore_folder_paths'] = form.ignore_folder_paths.data
+        session['include_folder_paths'] = form.include_folder_paths.data
+        session['save_combinations'] = form.save_combinations.data
+        session['main_file_parameters'] = form.main_file_parameters.data
+        session['slurm_parameters'] = form.slurm_parameters.data
+        session['slurm_partition'] = form.slurm_partition.data
+        session['job_count'] = form.jobs_count.data
+        session['log_level'] = form.log_level.data
+        session['test_path'] = form.test_path.data
+        session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
+                                                  form.minutes_field.data, form.seconds_field.data)
+        return jsonify(data={'message': 'The form is valid.'})
+    return jsonify(errors=form.errors)
+
+
 @app.route('/stream_progress', methods=['POST'])
 def stream():
     compar_command = ''
