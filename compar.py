@@ -22,6 +22,7 @@ import traceback
 import logger
 from unit_test import UnitTest
 from assets.parallelizers_mapper import parallelizers
+import combinator
 
 
 class ComparMode(enum.IntEnum):
@@ -277,6 +278,54 @@ class Compar:
         except OSError as err:
             raise e.FileError(str(err))
 
+    def inject_directive_params_to_loop(self, file_dict: dict, omp_directive_params: list):
+        if not omp_directive_params:
+            return
+        c_file_path = file_dict['file_full_path']
+        e.assert_file_exist(c_file_path)
+        format_c_code([c_file_path, ])  # mainly to arrange directives in a single line
+        with open(c_file_path, 'r') as input_file:
+            c_code = input_file.read()
+        e.assert_file_is_empty(c_code)
+        for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):
+            start_loop_marker = f'{Fragmentator.get_start_label()}{loop_id}'
+            end_loop_marker = f'{Fragmentator.get_end_label()}{loop_id}'
+            start_marker_pattern = rf'{start_loop_marker}[ \t]*\n'
+            loop_pattern = rf'{start_marker_pattern}.*{end_loop_marker}[ \t]*\n'
+            loop_before_changes = re.search(loop_pattern, c_code, re.DOTALL).group()
+            loop_prefix_pattern = rf'{start_marker_pattern}.*?(?=[\t ]*for[ \t]*\()'
+            loop_prefix = re.search(loop_prefix_pattern, loop_before_changes, re.DOTALL).group()
+            loop_body_and_suffix = re.sub(re.escape(loop_prefix), '', loop_before_changes)
+            pragma_pattern = r'#pragma omp[^\n]+\n'
+            pragma = re.search(rf'{pragma_pattern}\n', loop_prefix)
+            if pragma:
+                pragma = pragma.group().replace('\n', '')
+                new_directives = ''
+                for directive in omp_directive_params:
+                    pragma_type, directive = directive.split('_', 1)
+                    pragma_name = re.search(r'[^\(]+', directive).group()
+                    if not re.search(rf' {pragma_type} ?', pragma):
+                        if pragma_type == combinator.PARALLEL_DIRECTIVE_PREFIX:
+                            pragma = re.sub(r'pragma omp', f'pragma omp {pragma_type}', pragma)
+                        if pragma_type == combinator.FOR_DIRECTIVE_PREFIX:
+                            if re.search(rf' {combinator.PARALLEL_DIRECTIVE_PREFIX} ?', pragma):
+                                pragma = re.sub(rf'pragma omp {combinator.PARALLEL_DIRECTIVE_PREFIX} ?',
+                                                f'pragma omp {combinator.PARALLEL_DIRECTIVE_PREFIX} {pragma_type} ',
+                                                pragma)
+                            else:
+                                pragma = re.sub(r'pragma omp', f'pragma omp {pragma_type}', pragma)
+                    if pragma_name in pragma:
+                        pragma = re.sub(rf'{"pragma_name"}(?:\([^\)]+\))? ?', '', pragma)
+                    new_directives += f' {directive}'
+                new_pragma = f'{pragma} {new_directives}'
+                new_prefix = re.sub(rf'{pragma_pattern}', new_pragma, loop_prefix)
+                c_code = c_code.replace(loop_before_changes, f'{new_prefix}{loop_body_and_suffix}')
+        try:
+            with open(c_file_path, 'w') as output_file:
+                output_file.write(c_code)
+        except OSError as err:
+            raise e.FileError(str(err))
+
     def generate_optimal_code(self):
         logger.info('Start to combine the Compar combination')
         optimal_loops_data = []
@@ -432,8 +481,10 @@ class Compar:
         post_processing_args = {'files_loop_dict': self.files_loop_dict}
         parallel_compiler.post_processing(**post_processing_args)
         omp_rtl_params = combination_obj.get_parameters().get_omp_rtl_params()
+        omp_directive_params = combination_obj.get_parameters().get_omp_directives_params()
         for file_dict in self.make_absolute_file_list(combination_folder_path):
             self.inject_rtl_params_to_loop(file_dict, omp_rtl_params)
+            self.inject_directive_params_to_loop(file_dict, omp_directive_params)
 
     def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None, inject=True):
         if inject:
