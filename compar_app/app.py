@@ -63,9 +63,9 @@ class SingleFileForm(FlaskForm):
 
 
 class MultipleFilesForm(FlaskForm):
-    input_directory = StringField('input_directory', validators=[path_validator])
-    output_directory = StringField('output_directory', validators=[path_validator])
-    main_file_path = StringField('main_file_path', validators=[path_validator])
+    input_directory = StringField('input_directory', validators=[path_validator, InputRequired()])
+    output_directory = StringField('output_directory', validators=[path_validator, InputRequired()])
+    main_file_path = StringField('main_file_path', validators=[path_validator, InputRequired()])
     compiler_flags = StringField('compiler_flags')
     compiler_version = StringField('compiler_version')
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
@@ -84,16 +84,14 @@ class MultipleFilesForm(FlaskForm):
 
 
 class MakefileForm(FlaskForm):
-    input_directory = StringField('input_directory', validators=[path_validator])
-    output_directory = StringField('output_directory', validators=[path_validator])
-    main_file_path = StringField('main_file_path', validators=[path_validator])
+    input_directory = StringField('input_directory', validators=[path_validator, InputRequired()])
+    output_directory = StringField('output_directory', validators=[path_validator, InputRequired()])
+    main_file_path = StringField('main_file_path', validators=[path_validator, InputRequired()])
     makefile_commands = StringField('makefile_commands', validators=[InputRequired()])
-    executable_path = StringField('executable_path', validators=[path_validator])
+    executable_path = StringField('executable_path', validators=[path_validator, InputRequired()])
     executable_file_name = StringField('executable_file_name', validators=[InputRequired()])
-
     ignore_folder_paths = StringField('ignore_folder_paths')
     include_folder_paths = StringField('include_folder_paths')
-
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     slurm_parameters = StringField('slurm_parameters')
@@ -325,6 +323,7 @@ def generate_compar_command_without_makefile():
 
 def generate_compar_command_with_makefile():
     return ''
+
 
 def handle_time_limit(days, hours, minutes, seconds):
     time_limit = ''
