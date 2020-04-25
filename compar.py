@@ -297,13 +297,13 @@ class Compar:
             loop_prefix = re.search(loop_prefix_pattern, loop_before_changes, re.DOTALL).group()
             loop_body_and_suffix = re.sub(re.escape(loop_prefix), '', loop_before_changes)
             pragma_pattern = r'#pragma omp[^\n]+\n'
-            pragma = re.search(rf'{pragma_pattern}\n', loop_prefix)
+            pragma = re.search(rf'{pragma_pattern}', loop_prefix)
             if pragma:
                 pragma = pragma.group().replace('\n', '')
                 new_directives = ''
                 for directive in omp_directive_params:
                     pragma_type, directive = directive.split('_', 1)
-                    pragma_name = re.search(r'[^\(]+', directive).group()
+                    pragma_name = re.search(r'[^(]+', directive).group()
                     if not re.search(rf' {pragma_type} ?', pragma):
                         if pragma_type == combinator.PARALLEL_DIRECTIVE_PREFIX:
                             pragma = re.sub(r'pragma omp', f'pragma omp {pragma_type}', pragma)
@@ -315,9 +315,9 @@ class Compar:
                             else:
                                 pragma = re.sub(r'pragma omp', f'pragma omp {pragma_type}', pragma)
                     if pragma_name in pragma:
-                        pragma = re.sub(rf'{"pragma_name"}(?:\([^\)]+\))? ?', '', pragma)
+                        pragma = re.sub(rf'{"pragma_name"}(?:\([^)]+\))? ?', '', pragma)
                     new_directives += f' {directive}'
-                new_pragma = f'{pragma} {new_directives}'
+                new_pragma = f'{pragma} {new_directives}\n'
                 new_prefix = re.sub(rf'{pragma_pattern}', new_pragma, loop_prefix)
                 c_code = c_code.replace(loop_before_changes, f'{new_prefix}{loop_body_and_suffix}')
         try:
