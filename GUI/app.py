@@ -47,6 +47,7 @@ class SingleFileForm(FlaskForm):
     compiler_version = StringField('compiler_version')
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
+    clear_database = BooleanField('clear_database')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
                                        validators=[InputRequired()], default=4)
@@ -71,6 +72,7 @@ class MultipleFilesForm(FlaskForm):
     compiler_version = StringField('compiler_version')
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
+    clear_database = BooleanField('clear_database')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
                                        validators=[InputRequired()], default=4)
@@ -95,6 +97,7 @@ class MakefileForm(FlaskForm):
     include_folder_paths = StringField('include_folder_paths')
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
+    clear_database = BooleanField('clear_database')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
                                        validators=[InputRequired()], default=4)
@@ -143,7 +146,7 @@ def single_file_submit():
                 pass
             finally:
                 guid = getpass.getuser() + str(datetime.now())
-                file_hash = hashlib.sha3_256(guid.encode()).hexdigest()
+                file_hash = f"temp_{hashlib.sha3_256(guid.encode()).hexdigest()}"
                 # create input dir
                 input_dir_path = os.path.join(TEMP_FILES_DIRECTORY, file_hash)
                 os.makedirs(input_dir_path, exist_ok=True)
@@ -161,6 +164,7 @@ def single_file_submit():
                 # other fields
                 session['compiler'] = form.compiler.data
                 session['save_combinations'] = form.save_combinations.data
+                session['clear_database'] = form.clear_database.data
                 session['main_file_parameters'] = form.main_file_parameters.data
                 session['compiler_flags'] = form.compiler_flags.data
                 session['compiler_version'] = form.compiler_version.data
@@ -190,6 +194,7 @@ def multiple_files_submit():
         # other fields
         session['compiler'] = form.compiler.data
         session['save_combinations'] = form.save_combinations.data
+        session['clear_database'] = form.clear_database.data
         session['main_file_parameters'] = form.main_file_parameters.data
         session['compiler_flags'] = form.compiler_flags.data
         session['compiler_version'] = form.compiler_version.data
@@ -221,6 +226,7 @@ def makefile_submit():
         session['ignore_folder_paths'] = form.ignore_folder_paths.data
         session['include_folder_paths'] = form.include_folder_paths.data
         session['save_combinations'] = form.save_combinations.data
+        session['clear_database'] = form.clear_database.data
         session['main_file_parameters'] = form.main_file_parameters.data
         session['slurm_parameters'] = form.slurm_parameters.data
         session['slurm_partition'] = form.slurm_partition.data
@@ -347,6 +353,9 @@ def generate_compar_command_without_makefile():
     # time limit
     if session['time_limit']:
         command += [f"-t {session['time_limit']}"]
+    # clear database
+    if session['clear_database']:
+        command += [f"-clear_db"]
     return ' '.join(command)
 
 
@@ -399,6 +408,9 @@ def generate_compar_command_with_makefile():
     # time limit
     if session['time_limit']:
         command += [f"-t {session['time_limit']}"]
+    # clear database
+    if session['clear_database']:
+        command += [f"-clear_db"]
     return ' '.join(command)
 
 

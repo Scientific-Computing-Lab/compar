@@ -66,6 +66,11 @@
                                 {{ form.save_combinations(style='margin-left: 30px')}}
                             </div>
                             <div class="horizontal-separator"></div>
+                             <div style="align-items: center" class="flex-row">
+                                <div class="form-title">Clear database data:</div>
+                                {{ form.clear_database(checked=True, style='margin-left: 30px')}}
+                            </div>
+                            <div class="horizontal-separator"></div>
                             <div class="form-title">Slurm parameters:</div>
                             <div class="flex-row-centered">
                              <input type="text" id="slurm-params"/>
