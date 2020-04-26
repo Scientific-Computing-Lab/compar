@@ -59,6 +59,7 @@ def main():
                         default=Compar.DEFAULT_MODE, choices=Compar.MODES.keys())
     parser.add_argument('-with_markers', '--code_with_markers', action='store_true',
                         help='Mark that the code was parallelized with Compar before')
+    parser.add_argument('-clear_db', '--clear_db', action='store_true', help='Delete the results from database.')
     args = parser.parse_args()
     args.mode = Compar.MODES[args.mode]
 
@@ -104,13 +105,19 @@ def main():
         slurm_partition=args.slurm_partition,
         test_file_path=args.test_file_path,
         mode=args.mode,
-        code_with_markers=args.code_with_markers
+        code_with_markers=args.code_with_markers,
+        clear_db=args.clear_db
     )
-    compar_obj.fragment_and_add_timers()
-    compar_obj.run_serial()
-    compar_obj.run_parallel_combinations()
-    compar_obj.generate_optimal_code()
-    logger.info('Finish Compar execution')
+    try:
+        compar_obj.fragment_and_add_timers()
+        compar_obj.run_serial()
+        compar_obj.run_parallel_combinations()
+        compar_obj.generate_optimal_code()
+        logger.info('Finish Compar execution')
+    except Exception:
+        if args.clear_db:
+            compar_obj.clear_related_collections()
+        raise
 
 
 if __name__ == "__main__":

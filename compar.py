@@ -161,7 +161,8 @@ class Compar:
                  slurm_partition='grid',
                  test_file_path='',
                  mode=MODES[DEFAULT_MODE],
-                 code_with_markers=False):
+                 code_with_markers=False,
+                 clear_db=False):
 
         e.assert_folder_exist(input_dir)
 
@@ -198,6 +199,7 @@ class Compar:
         self.parallel_jobs_pool_executor = JobExecutor(Compar.NUM_OF_THREADS)
         self.mode = mode
         self.code_with_markers = code_with_markers
+        self.clear_db = clear_db
 
         # Unit test
         self.test_file_path = test_file_path
@@ -247,6 +249,10 @@ class Compar:
         if not is_make_file:
             self.__initialize_binary_compiler()
         self.db = Database(self.__extract_working_directory_name(), mode=self.mode)
+
+    def clear_related_collections(self):
+        if self.db:
+            self.db.delete_all_related_collections()
 
     def inject_rtl_params_to_loop(self, file_dict: dict, omp_rtl_params: list):
         c_file_path = file_dict['file_full_path']
@@ -439,6 +445,8 @@ class Compar:
         self.format_c_files([file_dict['file_full_path'] for file_dict in
                              self.make_absolute_file_list(final_folder_path)])
         self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
+        if self.clear_db:
+            self.clear_related_collections()
         self.db.close_connection()
 
     def __extract_working_directory_name(self):

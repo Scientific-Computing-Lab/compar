@@ -198,6 +198,12 @@ class Database:
             }
         )
 
+    def delete_all_related_collections(self):
+        if self.collection_name in self.static_db.list_collection_names():
+            self.static_db.drop_collection(self.collection_name)
+        if self.collection_name in self.dynamic_db.list_collection_names():
+            self.dynamic_db.drop_collection(self.collection_name)
+
     @staticmethod
     def generate_combination_id(combination):
         fields = [f'compiler_name:{combination["compiler_name"]}']
