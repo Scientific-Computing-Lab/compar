@@ -1,7 +1,5 @@
-import json
 import os
 import sys
-
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
 from flask_wtf.file import FileField
@@ -16,7 +14,6 @@ from flask import request, jsonify, Response, session, stream_with_context
 from flask import Flask, render_template
 from datetime import datetime
 import hashlib
-import tempfile
 import getpass
 import shutil
 
@@ -27,10 +24,9 @@ SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 Bootstrap(app)
 
-# SOURCE_FILE_DIRECTORY = tempfile.gettempdir()
 TEMP_FILES_DIRECTORY = 'temp'
 COMPAR_PROGRAM_FILE = 'program.py'
-GUI_DIR_NAME = 'compar_app'
+GUI_DIR_NAME = 'GUI'
 SINGLE_FILE_MODE = 'single-file-mode'
 MULTIPLE_FILES_MODE = 'multiple-files-mode'
 MAKEFILE_MODE = 'makefile-mode'
@@ -176,7 +172,6 @@ def single_file_submit():
                 session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                           form.minutes_field.data, form.seconds_field.data)
         else:
-            # TODO: add check in this case (if validation not worked)
             return jsonify(errors=form.errors)
         return jsonify(data={'message': 'The form is valid.'})
     return jsonify(errors=form.errors)
