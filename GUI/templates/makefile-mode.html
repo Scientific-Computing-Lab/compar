@@ -67,6 +67,7 @@
                             <button type="button" onclick="addItem('makefileCommands','makefile_commands', 'makefile_commands_list')" class="mybutton positive">+</button>
                         </div>
                         <div id="makefile_commands_list"></div>
+                        <div style="color: red;" id="makefileCommandsAlert">{{ error }}</div>
                         <div class="horizontal-separator"></div>
                         <div class="flex-row-spaced">
                             <div class="form-title">Executable relative path:</div>
@@ -109,6 +110,10 @@
                                     <button type="button" onclick="addItem('includeFoldersList','include_folders', 'include-folders-list')" class="mybutton positive">+</button>
                                 </div>
                                 <div id="include-folders-list"></div>
+                                <div class="horizontal-separator"></div>
+                                 <div class="form-title">Slurm partition:</div>
+                                {{ form.slurm_partition(id="slurm_part") }}
+                                <div style="color: red;" id="slurmPartitionAlert">{{ error }}</div>
                                 <div class="horizontal-separator"></div>
                                 <div style="align-items: center" class="flex-row">
                                     <div class="form-title">Save combination folders:</div>
@@ -186,7 +191,7 @@
                                 {{ form.test_path }}
                                 <div style="color: red" id="validationPathAlert"></div>
                             </div>
-                        <button class="startbtn">START</button>
+                        <button type="submit" value="Submit" id="startComparButton" class="startbtn">START</button>
                     </div>
                 </div>
                 <div class="screen-container">
