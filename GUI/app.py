@@ -251,7 +251,6 @@ def stream():
 
     def generate():
         compar_file = COMPAR_PROGRAM_FILE
-        compar_file = '../testt.py'
         interpreter = sys.executable
         command = [interpreter, '-u', compar_file, compar_command]
         print(command)
@@ -352,7 +351,55 @@ def generate_compar_command_without_makefile():
 
 
 def generate_compar_command_with_makefile():
-    return ''
+    command = []
+    # input dir
+    command += [f"-dir {session['input_dir']}"]
+    # working dir
+    command += [f"-wd {session['working_dir']}"]
+    # main file rel path
+    command += [f"-main_file_r_p {session['main_file_rel_path']}"]
+    # makefile commands
+    command += [f"-make_c {session['makefile_commands']}"]
+    # executable path
+    command += [f"-make_op {session['executable_path']}"]
+    # executable file name
+    command += [f"-make_on {session['executable_file_name']}"]
+    # folders to ignore
+    if session['ignore_folder_paths']:
+        command += [f"-ignore {session['ignore_folder_paths']}"]
+    # folders to include
+    if session['include_folder_paths']:
+        command += [f"-include {session['include_folder_paths']}"]
+    # save combinations
+    if session['save_combinations']:
+        command += [f"-save_folders"]
+    # main file parameters
+    if session['main_file_parameters']:
+        command += [f"-main_file_p {session['main_file_parameters']}"]
+    # slurm_parameters
+    if session['slurm_parameters']:
+        command += [f"-slurm_p {session['slurm_parameters']}"]
+    # slurm partition
+    if session['slurm_partition']:
+        command += [f"-partition {session['slurm_partition']}"]
+    # job count
+    if session['job_count']:
+        command += [f"-jobs_quantity {session['job_count']}"]
+    # log level
+    if session['log_level'] and session['log_level'] != 'basic':
+        level = ""
+        if session['log_level'] == 'verbose':
+            level = "v"
+        elif session['log_level'] == 'debug':
+            level = "vv"
+        command += [f"-{level}"]
+    # test file path
+    if session['test_path']:
+        command += [f"-test_file {session['test_path']}"]
+    # time limit
+    if session['time_limit']:
+        command += [f"-t {session['time_limit']}"]
+    return ' '.join(command)
 
 
 def handle_time_limit(days, hours, minutes, seconds):
