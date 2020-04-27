@@ -165,6 +165,7 @@ class Compar:
                  clear_db=False):
 
         e.assert_folder_exist(input_dir)
+        e.assert_user_json_structure()
 
         if not is_make_file:
             e.assert_only_files(input_dir)
