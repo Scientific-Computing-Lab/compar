@@ -68,7 +68,7 @@ class SingleFileForm(FlaskForm):
 
 class MultipleFilesForm(FlaskForm):
     input_directory = StringField('input_directory', validators=[path_validator, InputRequired()])
-    output_directory = StringField('output_directory', validators=[path_validator, InputRequired()])
+    output_directory = StringField('output_directory', validators=[InputRequired()])
     main_file_path = StringField('main_file_path', validators=[relative_path_validator, InputRequired()])
     compiler_flags = StringField('compiler_flags')
     compiler_version = StringField('compiler_version')
@@ -92,10 +92,10 @@ class MultipleFilesForm(FlaskForm):
 
 class MakefileForm(FlaskForm):
     input_directory = StringField('input_directory', validators=[path_validator, InputRequired()])
-    output_directory = StringField('output_directory', validators=[path_validator, InputRequired()])
+    output_directory = StringField('output_directory', validators=[InputRequired()])
     main_file_path = StringField('main_file_path', validators=[relative_path_validator, InputRequired()])
     makefile_commands = StringField('makefile_commands', validators=[InputRequired()])
-    executable_path = StringField('executable_path', validators=[path_validator, InputRequired()])
+    executable_path = StringField('executable_path', validators=[relative_path_validator, InputRequired()])
     executable_file_name = StringField('executable_file_name', validators=[InputRequired()])
     ignore_folder_paths = StringField('ignore_folder_paths')
     include_folder_paths = StringField('include_folder_paths')
@@ -459,4 +459,4 @@ def save_source_file(file_path, txt):
 if __name__ == "__main__":
     clean_temp_files()
     app.debug = True
-    app.run(port=4444)
+    app.run(port=4445)
