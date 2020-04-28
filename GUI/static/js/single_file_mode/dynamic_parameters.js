@@ -2,6 +2,11 @@ var binaryCompilerFlags = new Map();
 var slurmParametersList = new Map();
 var mainFileParamList = new Map();
 
+var mapsWithApostrophes = [
+    'binaryCompilerFlags',
+    'slurmParametersList'
+]
+
 var mapDictionary = {
     'binaryCompilerFlags': binaryCompilerFlags,
     'slurmParametersList': slurmParametersList,
@@ -59,6 +64,10 @@ function appendChilds(mapName, divName){
 }
 
 function updateItem(mapName){
-    arrayAsText = Array.from(mapDictionary[mapName].values()).join(' ');
+    mapValuesArray = Array.from(mapDictionary[mapName].values())
+    if mapsWithApostrophes.includes(mapName){
+        mapValuesArray = mapValuesArray.map(x => "'" + x + "'")
+    }
+    arrayAsText = Array.from(mapValuesArray).join(' ');
     document.getElementById(mapName).value = arrayAsText;
 }
