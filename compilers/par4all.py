@@ -7,11 +7,11 @@ from subprocess_handler import run_subprocess
 import logger
 import traceback
 import shutil
+from globals import Par4allConfig, GlobalsConfig
 
 
 class Par4all(ParallelCompiler):
     NAME = 'par4all'
-    PIPS_STUBS_NAME = 'pips_stubs.c'
 
     def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
                  include_dirs_list=None, extra_files=None, **kwargs):
@@ -21,10 +21,10 @@ class Par4all(ParallelCompiler):
 
     def __copy_pips_stubs_to_folder(self):
         destination_folder_path = self.get_input_file_directory()
-        pips_stubs_path = os.path.join('assets', Par4all.PIPS_STUBS_NAME)
-        if Par4all.PIPS_STUBS_NAME not in os.listdir(destination_folder_path):
+        pips_stubs_path = os.path.join(GlobalsConfig.ASSETS_DIR_PATH, Par4allConfig.PIPS_STUBS_NAME)
+        if Par4allConfig.PIPS_STUBS_NAME not in os.listdir(destination_folder_path):
             shutil.copy(pips_stubs_path, destination_folder_path)
-        return os.path.join(destination_folder_path, Par4all.PIPS_STUBS_NAME)
+        return os.path.join(destination_folder_path, Par4allConfig.PIPS_STUBS_NAME)
 
     @staticmethod
     def remove_code_from_file(file_path, code_to_be_removed):
@@ -81,13 +81,13 @@ class Par4all(ParallelCompiler):
         try:
             logger.info(f'{Par4all.__name__} start to parallelizing')
             stdout, stderr, ret_code = run_subprocess([command, ], self.get_input_file_directory())
-            log_file_path = os.path.join(self.get_input_file_directory(), 'par4all_output.log')
+            log_file_path = os.path.join(self.get_input_file_directory(), Par4allConfig.LOG_FILE_NAME)
             logger.log_to_file(f'{stdout}\n{stderr}', log_file_path)
             logger.debug(f'{Par4all.__name__} {stdout}')
             logger.debug_error(f'{Par4all.__name__} {stderr}')
             logger.info(f'{Par4all.__name__} finish to parallelizing')
         except subprocess.CalledProcessError as e:
-            log_file_path = os.path.join(self.get_input_file_directory(), 'par4all_output.log')
+            log_file_path = os.path.join(self.get_input_file_directory(), Par4allConfig.LOG_FILE_NAME)
             logger.log_to_file(f'{e.output}\n{e.stderr}', log_file_path)
             raise CombinationFailure(f'par4all return with {e.returncode} code: {str(e)} : {e.output} : {e.stderr}')
         except Exception as e:
@@ -100,14 +100,14 @@ class Par4all(ParallelCompiler):
             for root, dirs, files in os.walk(self.get_input_file_directory()):
                 for file in files:
                     full_path = os.path.join(root, file)
-                    if file.endswith('.p4a.c'):
+                    if file.endswith(Par4allConfig.PARALLEL_FILE_EXTENSION):
                         os.rename(full_path, full_path[0:-6] + '.c')
                         full_path = full_path[0:-6] + '.c'
                         self.__remove_bswap_function(full_path)
                         with open(full_path, "r+") as f:
                             input_file_text = f.read()
-                            if '#include <omp.h>' not in input_file_text:
-                                input_file_text = f'#ifdef _OPENMP\n#include <omp.h>\n#endif\n{input_file_text}'
+                            if GlobalsConfig.OMP_HEADER not in input_file_text:
+                                input_file_text = f'{GlobalsConfig.IFDEF_OMP_HEADER}\n{input_file_text}'
                                 f.seek(0)
                                 f.write(input_file_text)
                                 f.truncate()
@@ -121,4 +121,4 @@ class Par4all(ParallelCompiler):
 
     def post_processing(self, **kwargs):
         super().post_processing(**kwargs)
-        os.remove(os.path.join(self.get_input_file_directory(), self.PIPS_STUBS_NAME))
+        os.remove(os.path.join(self.get_input_file_directory(), Par4allConfig.PIPS_STUBS_NAME))

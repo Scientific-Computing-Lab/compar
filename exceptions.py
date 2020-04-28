@@ -1,9 +1,10 @@
 import os
 import json
 import compar
-from unit_test import UnitTest
+from combination_validator import CombinationValidator
 import combinator
 import jsonschema
+from globals import ExceptionConfig, GlobalsConfig
 
 
 class FileError(Exception):
@@ -93,13 +94,13 @@ def assert_forbidden_characters(path):
 
 
 def assert_test_file_name(test_file_name):
-    if test_file_name != UnitTest.UNIT_TEST_FILE_NAME:
-        raise UserInputError(f'Unit test file must be named as: {UnitTest.UNIT_TEST_FILE_NAME}!')
+    if test_file_name != CombinationValidator.UNIT_TEST_FILE_NAME:
+        raise UserInputError(f'Unit test file must be named as: {CombinationValidator.UNIT_TEST_FILE_NAME}!')
 
 
 def assert_test_file_function_name(test_file_path):
-    if not UnitTest.check_if_test_exists(test_file_path):
-        raise UserInputError(f'Unit test file must contain test named: "{UnitTest.UNIT_TEST_NAME}"!')
+    if not CombinationValidator.check_if_test_exists(test_file_path):
+        raise UserInputError(f'Unit test file must contain test named: "{CombinationValidator.UNIT_TEST_NAME}"!')
 
 
 def assert_original_files_folder_exists(working_directory):
@@ -121,7 +122,8 @@ def assert_allowed_directive_type(directive_type: str):
 
 
 def assert_user_json_structure():
-    with open('assets/parameters_json_schema.json', 'r') as fp:
+    schema_file_path = os.path.join(GlobalsConfig.ASSETS_DIR_PATH, ExceptionConfig.PARAMETERS_SCHEMA_FILE_NAME)
+    with open(schema_file_path, 'r') as fp:
         json_schema = json.load(fp)
     args_for_validation_func = (
         (json_schema['compilation'], combinator.COMPILATION_PARAMS_FILE_PATH),

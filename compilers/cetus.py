@@ -7,6 +7,7 @@ import exceptions as e
 from fragmentator import Fragmentator
 from subprocess_handler import run_subprocess
 import logger
+from globals import CetusConfig, GlobalsConfig
 
 
 class Cetus(ParallelCompiler):
@@ -35,28 +36,28 @@ class Cetus(ParallelCompiler):
         super().compile()
         try:
             for file in self.get_file_list():
-                Cetus.replace_line_in_code(file["file_full_path"], '#include <omp.h>', '')
+                Cetus.replace_line_in_code(file["file_full_path"], GlobalsConfig.OMP_HEADER, '')
                 cwd_path = os.path.dirname(file["file_full_path"])
                 self.copy_headers(cwd_path)
                 logger.info(f'{Cetus.__name__} start to parallelizing {file["file_name"]}')
                 command = [f'cetus {" ".join(self.get_compilation_flags())} {file["file_name"]}']
                 stdout, stderr, ret_code = run_subprocess(command, cwd_path)
-                log_file_path = f'{os.path.splitext(file["file_full_path"])[0]}_cetus_output.log'
+                log_file_path = f'{os.path.splitext(file["file_full_path"])[0]}{CetusConfig.LOG_FILE_SUFFIX}'
                 logger.log_to_file(f'{stdout}\n{stderr}', log_file_path)
                 logger.debug(f'{Cetus.__name__} {stdout}')
                 logger.debug_error(f'{Cetus.__name__} {stderr}')
                 logger.info(f'{Cetus.__name__} finish to parallelizing {file["file_name"]}')
                 # Replace file from cetus output folder into original file folder
-                if os.path.isdir(os.path.join(cwd_path, "cetus_output")):
-                    src_file = os.path.join(cwd_path, "cetus_output", file["file_name"])
+                if os.path.isdir(os.path.join(cwd_path, CetusConfig.OUTPUT_DIR_NAME)):
+                    src_file = os.path.join(cwd_path, CetusConfig.OUTPUT_DIR_NAME, file["file_name"])
                     dst_file = file["file_full_path"]
                     shutil.copy(src_file, dst_file)
-                    shutil.rmtree(os.path.join(cwd_path, "cetus_output"))
+                    shutil.rmtree(os.path.join(cwd_path, CetusConfig.OUTPUT_DIR_NAME))
 
-                Cetus.inject_line_in_code(file["file_full_path"], '#include <omp.h>')
+                Cetus.inject_line_in_code(file["file_full_path"], GlobalsConfig.OMP_HEADER)
             return True
         except subprocess.CalledProcessError as ex:
-            log_file_path = f'{os.path.splitext(file["file_full_path"])[0]}_cetus_output.log'
+            log_file_path = f'{os.path.splitext(file["file_full_path"])[0]}{CetusConfig.LOG_FILE_SUFFIX}'
             logger.log_to_file(f'{ex.output}\n{ex.stderr}', log_file_path)
             raise CombinationFailure(f'cetus return with {ex.returncode} code: {str(ex)} : {ex.output} : {ex.stderr}')
         except Exception as ex:

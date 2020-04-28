@@ -1,13 +1,14 @@
 import itertools
 import json
+from os.path import join as path_join
+from globals import CombinatorConfig, GlobalsConfig
 
 
-COMPILATION_PARAMS_FILE_PATH = "assets/compilation_params.json"
-OMP_RTL_PARAMS_FILE_PATH = "assets/omp_rtl_params.json"
-OMP_DIRECTIVES_FILE_PATH = "assets/omp_directives_params.json"
-PARAMS_SEPARATOR = '____compar____params____separator____'
-PARALLEL_DIRECTIVE_PREFIX = 'parallel'
-FOR_DIRECTIVE_PREFIX = 'for'
+COMPILATION_PARAMS_FILE_PATH = path_join(GlobalsConfig.ASSETS_DIR_PATH, CombinatorConfig.COMPILATION_PARAMS_FILE_NAME)
+OMP_RTL_PARAMS_FILE_PATH = path_join(GlobalsConfig.ASSETS_DIR_PATH, CombinatorConfig.OMP_RTL_PARAMS_FILE_NAME)
+OMP_DIRECTIVES_FILE_PATH = path_join(GlobalsConfig.ASSETS_DIR_PATH, CombinatorConfig.OMP_DIRECTIVES_FILE_NAME)
+PARALLEL_DIRECTIVE_PREFIX = CombinatorConfig.PARALLEL_DIRECTIVE_PREFIX
+FOR_DIRECTIVE_PREFIX = CombinatorConfig.FOR_DIRECTIVE_PREFIX
 
 
 def generate_combinations():
@@ -45,15 +46,15 @@ def generate_combinations():
                     if not omp_rtl_comb:
                         curr_omp_rtl_comb = []
                     else:
-                        curr_omp_rtl_comb = omp_rtl_comb.split(f"{PARAMS_SEPARATOR}")
+                        curr_omp_rtl_comb = omp_rtl_comb.split(f"{CombinatorConfig.PARAMS_SEPARATOR}")
                     if not compile_comb:
                         curr_compile_comb = []
                     else:
-                        curr_compile_comb = compile_comb.split(f"{PARAMS_SEPARATOR}")
+                        curr_compile_comb = compile_comb.split(f"{CombinatorConfig.PARAMS_SEPARATOR}")
                     if not omp_directives_comb:
                         curr_omp_directives_comb = []
                     else:
-                        curr_omp_directives_comb = omp_directives_comb.split(f"{PARAMS_SEPARATOR}")
+                        curr_omp_directives_comb = omp_directives_comb.split(f"{CombinatorConfig.PARAMS_SEPARATOR}")
                     new_comb = {
                         "compiler_name": compiler,
                         "parameters": {
@@ -158,5 +159,5 @@ def mult_lists(lst: list):
     mult_list = []
     for i in itertools.product(*lst):
         i = list(filter(None, i))  # filter empty elements
-        mult_list.append(f"{PARAMS_SEPARATOR}".join(i))
+        mult_list.append(f"{CombinatorConfig.PARAMS_SEPARATOR}".join(i))
     return mult_list

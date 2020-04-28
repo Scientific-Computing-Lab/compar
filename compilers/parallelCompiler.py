@@ -6,6 +6,7 @@ import subprocess
 import logger
 import json
 import os
+from globals import GlobalsConfig, ParallelCompilerConfig
 
 
 class ParallelCompiler(Compiler, ABC):
@@ -34,7 +35,7 @@ class ParallelCompiler(Compiler, ABC):
             raise CompilationError("Missing working directory!")
 
     def __run_user_script(self, script_name):
-        json_script_file_path = os.path.join('assets', script_name)
+        json_script_file_path = os.path.join(GlobalsConfig.ASSETS_DIR_PATH, script_name)
         if os.path.exists(json_script_file_path):
             with open(json_script_file_path, 'r') as f:
                 json_content = json.load(f)
@@ -52,7 +53,7 @@ class ParallelCompiler(Compiler, ABC):
                         logger.info_error(e.stderr)
 
     def pre_processing(self, **kwargs):
-        self.__run_user_script('pre_processing.json')
+        self.__run_user_script(ParallelCompilerConfig.PRE_PROCESSING_FILE_NAME)
 
     def post_processing(self, **kwargs):
-        self.__run_user_script('post_processing.json')
+        self.__run_user_script(ParallelCompilerConfig.POST_PROCESSING_FILE_NAME)

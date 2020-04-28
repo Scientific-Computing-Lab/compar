@@ -4,14 +4,12 @@ from exceptions import assert_file_exist
 from exceptions import FragmentError
 from exceptions import UserInputError
 from file_formator import format_c_code
+from globals import FragmentatorConfig
 
 
 class Fragmentator:
-    __LOOP_LABEL_MARKER = 'LOOP_MARKER'
-    __START_MARKER = f'START_{__LOOP_LABEL_MARKER}'
-    __END_MARKER = f'END_{__LOOP_LABEL_MARKER}'
-    __START_LOOP_LABEL_MARKER = f'// {__START_MARKER}'
-    __END_LOOP_LABEL_MARKER = f'// {__END_MARKER}'
+    __START_LOOP_LABEL_MARKER = FragmentatorConfig.START_LOOP_LABEL_MARKER
+    __END_LOOP_LABEL_MARKER = FragmentatorConfig.END_LOOP_LABEL_MARKER
 
     @staticmethod
     def set_start_label(new_start_label):
@@ -33,7 +31,7 @@ class Fragmentator:
     def count_loops_in_prepared_file(file_path):
         with open(file_path, 'r') as fp:
             content = fp.read()
-        all_markers = re.findall(rf'.*{Fragmentator.__LOOP_LABEL_MARKER}\d+', content)
+        all_markers = re.findall(rf'.*{FragmentatorConfig.LOOP_LABEL_MARKER}\d+', content)
         loop_labels = list(set([int(re.search(r'\d+$', marker).group(0)) for marker in all_markers if marker]))
         num_of_loops = max(loop_labels)
         if num_of_loops != len(loop_labels):
@@ -186,10 +184,11 @@ class Fragmentator:
 
     def __search_markers(self):
         self.remove_spaces_before_marker()
-        regex = re.compile(rf'{self.__START_MARKER}(?P<loop_id>\d+).*{self.__END_MARKER}(?P=loop_id)[ ]*\n', re.DOTALL)
+        regex = re.compile(rf'{FragmentatorConfig.START_MARKER}(?P<loop_id>\d+).*'
+                           rf'{FragmentatorConfig.END_MARKER}(?P=loop_id)[ ]*\n', re.DOTALL)
         loops_with_markers = [loop.group() for loop in regex.finditer(self.__file_content)]
-        start_marker_pattern = rf'{self.__START_MARKER}\d+'
-        end_marker_pattern = rf'{self.__END_MARKER}\d+'
+        start_marker_pattern = rf'{FragmentatorConfig.START_MARKER}\d+'
+        end_marker_pattern = rf'{FragmentatorConfig.END_MARKER}\d+'
         for loop in loops_with_markers:
             start_marker = f'// {re.search(start_marker_pattern, loop).group()}'
             end_marker = f'// {re.search(end_marker_pattern, loop).group()}'

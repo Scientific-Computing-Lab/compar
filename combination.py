@@ -3,9 +3,6 @@ from parameters import Parameters
 
 class Combination:
 
-    COMPAR_COMBINATION_ID = 'compar_combination'
-    FINAL_RESULTS_COMBINATION_ID = 'final_results'
-
     @staticmethod
     def json_to_obj(combination_json):
         return Combination(combination_id=combination_json['_id'],

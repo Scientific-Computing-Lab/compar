@@ -1,10 +1,11 @@
 import argparse
-from compar import Compar, ComparMode
+from compar import Compar
 import traceback
 import os
 import shutil
 from exceptions import assert_rel_path_starts_without_sep, assert_original_files_folder_exists
 import logger
+from globals import ComparConfig, ComparMode
 
 
 def positive_int_validation(value):
@@ -55,13 +56,13 @@ def main():
     parser.add_argument('-test_file', '--test_file_path', help="Unit test file path", default="")
     parser.add_argument('-jobs_quantity', '--jobs_quantity_at_once', help='The number of jobs to be executed at once',
                         default=num_of_jobs_at_once, type=positive_int_validation)
-    parser.add_argument('-mode', '--mode', help=f'Compar working mode {Compar.MODES.keys()}.',
-                        default=Compar.DEFAULT_MODE, choices=Compar.MODES.keys())
+    parser.add_argument('-mode', '--mode', help=f'Compar working mode {ComparConfig.MODES.keys()}.',
+                        default=ComparConfig.DEFAULT_MODE, choices=ComparConfig.MODES.keys())
     parser.add_argument('-with_markers', '--code_with_markers', action='store_true',
                         help='Mark that the code was parallelized with Compar before')
     parser.add_argument('-clear_db', '--clear_db', action='store_true', help='Delete the results from database.')
     args = parser.parse_args()
-    args.mode = Compar.MODES[args.mode]
+    args.mode = ComparConfig.MODES[args.mode]
 
     if args.mode == ComparMode.CONTINUE:
         assert_original_files_folder_exists(args.working_directory)

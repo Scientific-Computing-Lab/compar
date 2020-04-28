@@ -5,18 +5,30 @@ import logger
 import traceback
 import hashlib
 import getpass
-import compar
-from combination import Combination
 from combinator import generate_combinations
+from globals import ComparMode, DatabaseConfig
 
 
 class Database:
 
-    STATIC_DB_NAME = "compar_combinations"
-    DYNAMIC_DB_NAME = "compar_results"
-    DB = "mongodb://10.10.10.120:27017"
-    SERIAL_COMBINATION_ID = 'serial'
-    SERIAL_COMPILER_NAME = 'serial'
+    SERIAL_COMBINATION_ID = DatabaseConfig.SERIAL_COMBINATION_ID
+    COMPAR_COMBINATION_ID = DatabaseConfig.COMPAR_COMBINATION_ID
+    FINAL_RESULTS_COMBINATION_ID = DatabaseConfig.FINAL_RESULTS_COMBINATION_ID
+
+    @staticmethod
+    def generate_combination_id(combination):
+        fields = [f'compiler_name:{combination["compiler_name"]}']
+        omp_rtl_params = combination['parameters']['omp_rtl_params']
+        for omp_rtl_param in omp_rtl_params:
+            fields.append(f'omp_rtl_params:{omp_rtl_param}')
+        omp_directives_params = combination['parameters']['omp_directives_params']
+        for omp_directives_param in omp_directives_params:
+            fields.append(f'omp_directives_params:{omp_directives_param}')
+        compilation_params = combination['parameters']['compilation_params']
+        for compilation_param in compilation_params:
+            fields.append(f'compilation_params:{compilation_param}')
+        fields.sort()
+        return hashlib.sha3_384(str(fields).encode()).hexdigest()
 
     def __init__(self, collection_name, mode):
         collection_name = f"{getpass.getuser()}_{collection_name}"
@@ -24,9 +36,9 @@ class Database:
         self.mode = mode
         try:
             self.collection_name = collection_name
-            self.connection = pymongo.MongoClient(self.DB)
-            self.static_db = self.connection[self.STATIC_DB_NAME]
-            self.dynamic_db = self.connection[self.DYNAMIC_DB_NAME]
+            self.connection = pymongo.MongoClient(DatabaseConfig.SERVER_ADDRESS)
+            self.static_db = self.connection[DatabaseConfig.STATIC_DB_NAME]
+            self.dynamic_db = self.connection[DatabaseConfig.DYNAMIC_DB_NAME]
 
             if self.collection_name in self.static_db.list_collection_names():
                 self.static_db.drop_collection(self.collection_name)
@@ -34,7 +46,7 @@ class Database:
             self.static_db.create_collection(self.collection_name)
             self.initialize_static_db()
 
-            if self.mode != compar.ComparMode.CONTINUE:
+            if self.mode != ComparMode.CONTINUE:
                 if self.collection_name in self.dynamic_db.list_collection_names():
                     self.dynamic_db.drop_collection(self.collection_name)
                 self.dynamic_db.create_collection(self.collection_name)
@@ -45,8 +57,8 @@ class Database:
                            ids_in_static + [self.SERIAL_COMBINATION_ID]]
                 self.dynamic_db[self.collection_name].delete_many({'_id': {'$in': old_ids}})
                 del ids_in_static, ids_in_dynamic, old_ids
-                self.dynamic_db[self.collection_name].delete_one({'_id': Combination.COMPAR_COMBINATION_ID})
-                self.dynamic_db[self.collection_name].delete_one({'_id': Combination.FINAL_RESULTS_COMBINATION_ID})
+                self.dynamic_db[self.collection_name].delete_one({'_id': Database.COMPAR_COMBINATION_ID})
+                self.dynamic_db[self.collection_name].delete_one({'_id': Database.FINAL_RESULTS_COMBINATION_ID})
         except Exception as e:
             raise DatabaseError(str(e) + "\nFailed to initialize DB!")
 
@@ -84,7 +96,7 @@ class Database:
                     continue
                 yield combination
         except Exception:
-            logger.info_error(f"Execption at {Database.__name__}: get_next_combination")
+            logger.info_error(f"Exception at {Database.__name__}: get_next_combination")
             raise
 
     def insert_new_combination_results(self, combination_result):
@@ -160,7 +172,7 @@ class Database:
         if combination_id == self.SERIAL_COMBINATION_ID:
             return {
                 "_id": Database.SERIAL_COMBINATION_ID,
-                "compiler_name": Database.SERIAL_COMPILER_NAME,
+                "compiler_name": Database.SERIAL_COMBINATION_ID,
                 "parameters": {
                     "omp_rtl_params": [],
                     "omp_directives_params": [],
@@ -203,18 +215,3 @@ class Database:
             self.static_db.drop_collection(self.collection_name)
         if self.collection_name in self.dynamic_db.list_collection_names():
             self.dynamic_db.drop_collection(self.collection_name)
-
-    @staticmethod
-    def generate_combination_id(combination):
-        fields = [f'compiler_name:{combination["compiler_name"]}']
-        omp_rtl_params = combination['parameters']['omp_rtl_params']
-        for omp_rtl_param in omp_rtl_params:
-            fields.append(f'omp_rtl_params:{omp_rtl_param}')
-        omp_directives_params = combination['parameters']['omp_directives_params']
-        for omp_directives_param in omp_directives_params:
-            fields.append(f'omp_directives_params:{omp_directives_param}')
-        compilation_params = combination['parameters']['compilation_params']
-        for compilation_param in compilation_params:
-            fields.append(f'compilation_params:{compilation_param}')
-        fields.sort()
-        return hashlib.sha3_384(str(fields).encode()).hexdigest()
