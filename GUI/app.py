@@ -239,6 +239,7 @@ def makefile_submit():
         session['extra_files_paths'] = form.extra_files_paths.data
         session['save_combinations'] = form.save_combinations.data
         session['clear_database'] = form.clear_database.data
+        session['with_markers'] = form.with_markers.data
         session['main_file_parameters'] = form.main_file_parameters.data
         session['slurm_parameters'] = form.slurm_parameters.data
         session['slurm_partition'] = form.slurm_partition.data
