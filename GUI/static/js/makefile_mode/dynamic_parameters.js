@@ -4,6 +4,7 @@ var mainFileParamList = new Map();
 var makefileCommands = new Map();
 var ignoreFoldersList = new Map();
 var includeFoldersList = new Map();
+var extraFilesPathsList = new Map();
 
 var mapDictionary = {
     'binaryCompilerFlags': binaryCompilerFlags,
@@ -11,7 +12,8 @@ var mapDictionary = {
     'mainFileParamList': mainFileParamList,
     'makefileCommands': makefileCommands,
     'ignoreFoldersList': ignoreFoldersList,
-    'includeFoldersList': includeFoldersList
+    'includeFoldersList': includeFoldersList,
+    'extraFilesPathsList': extraFilesPathsList
 }
 
 function addItem(mapName, inputName, divName){

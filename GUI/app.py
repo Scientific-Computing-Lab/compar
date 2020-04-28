@@ -99,6 +99,7 @@ class MakefileForm(FlaskForm):
     executable_file_name = StringField('executable_file_name', validators=[InputRequired()])
     ignore_folder_paths = StringField('ignore_folder_paths')
     include_folder_paths = StringField('include_folder_paths')
+    extra_files_paths = StringField('extra_files_paths')
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
@@ -235,6 +236,7 @@ def makefile_submit():
         session['executable_file_name'] = form.executable_file_name.data
         session['ignore_folder_paths'] = form.ignore_folder_paths.data
         session['include_folder_paths'] = form.include_folder_paths.data
+        session['extra_files_paths'] = form.extra_files_paths.data
         session['save_combinations'] = form.save_combinations.data
         session['clear_database'] = form.clear_database.data
         session['main_file_parameters'] = form.main_file_parameters.data
@@ -396,6 +398,9 @@ def generate_compar_command_with_makefile():
     # folders to include
     if session['include_folder_paths']:
         command += [f"-include {session['include_folder_paths']}"]
+    # extra files to include (mainly used by Par4all)
+    if session['extra_files_paths']:
+        command += [f"-extra {session['extra_files_paths']}"]
     # save combinations
     if session['save_combinations']:
         command += [f"-save_folders"]

@@ -26,6 +26,7 @@
     <form method="POST" action="/makefile"  enctype="multipart/form-data" id="form" novalidate>
         {{ form.ignore_folder_paths(id="ignoreFoldersList", style="display:none") }}
         {{ form.include_folder_paths(id="includeFoldersList", style="display:none") }}
+        {{ form.extra_files_paths(id="extraFilesPathsList", style="display:none") }}
         {{ form.makefile_commands(id="makefileCommands", style="display:none") }}
         {{ form.slurm_parameters(id="slurmParametersList", style="display:none") }}
         {{ form.main_file_parameters(id="mainFileParamList", style="display:none") }}
@@ -111,6 +112,18 @@
                                     <button type="button" onclick="addItem('includeFoldersList','include_folders', 'include-folders-list')" class="mybutton positive">+</button>
                                 </div>
                                 <div id="include-folders-list"></div>
+                                <div class="horizontal-separator"></div>
+                                <div class="flex-row-spaced">
+                                    <div class="form-title">Extra files:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Extra files paths that need to be added for parallelization process. Mainly used by Par4all. (Relative to input directory)</span>
+                                    </div>
+                                </div>
+                                <div style="align-items: center" class="flex-row">
+                                    <input type="text" id="extra_files"/>
+                                    <button type="button" onclick="addItem('extraFilesPathsList','extra_files', 'extra-files-list')" class="mybutton positive">+</button>
+                                </div>
+                                <div id="extra-files-list"></div>
                                 <div class="horizontal-separator"></div>
                                  <div class="form-title">Slurm partition:</div>
                                 {{ form.slurm_partition(id="slurm_part") }}
