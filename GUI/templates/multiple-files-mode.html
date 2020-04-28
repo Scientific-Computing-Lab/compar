@@ -91,6 +91,11 @@
                                     {{ form.clear_database(style='margin-left: 30px')}}
                                 </div>
                                 <div class="horizontal-separator"></div>
+                                 <div style="align-items: center" class="flex-row">
+                                    <div class="form-title">The source code is Compar output:</div>
+                                    {{ form.with_markers(style='margin-left: 30px')}}
+                                </div>
+                                <div class="horizontal-separator"></div>
                                 <div class="form-title">Slurm parameters:</div>
                                 <div class="flex-row-centered">
                                  <input type="text" id="slurm-params"/>

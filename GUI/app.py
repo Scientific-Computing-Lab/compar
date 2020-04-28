@@ -48,6 +48,7 @@ class SingleFileForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
+    with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
                                        validators=[InputRequired()], default=4)
@@ -73,6 +74,7 @@ class MultipleFilesForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
+    with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
                                        validators=[InputRequired()], default=4)
@@ -98,6 +100,7 @@ class MakefileForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
+    with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
                                        validators=[InputRequired()], default=4)
@@ -165,6 +168,7 @@ def single_file_submit():
                 session['compiler'] = form.compiler.data
                 session['save_combinations'] = form.save_combinations.data
                 session['clear_database'] = form.clear_database.data
+                session['with_markers'] = form.with_markers.data
                 session['main_file_parameters'] = form.main_file_parameters.data
                 session['compiler_flags'] = form.compiler_flags.data
                 session['compiler_version'] = form.compiler_version.data
@@ -195,6 +199,7 @@ def multiple_files_submit():
         session['compiler'] = form.compiler.data
         session['save_combinations'] = form.save_combinations.data
         session['clear_database'] = form.clear_database.data
+        session['with_markers'] = form.with_markers.data
         session['main_file_parameters'] = form.main_file_parameters.data
         session['compiler_flags'] = form.compiler_flags.data
         session['compiler_version'] = form.compiler_version.data
@@ -356,6 +361,9 @@ def generate_compar_command_without_makefile():
     # clear database
     if session['clear_database']:
         command += [f"-clear_db"]
+    # with markers
+    if session['with_markers']:
+        command += [f"-with_markers"]
     return ' '.join(command)
 
 
@@ -411,6 +419,9 @@ def generate_compar_command_with_makefile():
     # clear database
     if session['clear_database']:
         command += [f"-clear_db"]
+    # with markers
+    if session['with_markers']:
+        command += [f"-with_markers"]
     return ' '.join(command)
 
 
