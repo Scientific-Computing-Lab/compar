@@ -388,6 +388,7 @@ def generate_compar_command_with_makefile():
     # main file rel path
     command += [f"-main_file_r_p {session['main_file_rel_path']}"]
     # makefile commands
+    command += [f"-make"]
     command += [f"-make_c {session['makefile_commands']}"]
     # executable path
     command += [f"-make_op {session['executable_path']}"]
