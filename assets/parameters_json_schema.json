@@ -1,0 +1,157 @@
+{
+  "compilation": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "compiler": {
+          "type": "string"
+        },
+        "essential_params": {
+          "$ref": "#/definitions/parameters"
+        },
+        "optional_params": {
+          "$ref": "#/definitions/parameters"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["compiler", "essential_params", "optional_params"]
+    },
+    "definitions": {
+      "numbers_array": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "strings_array": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "valued": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "param": {
+                  "type": "string"
+                },
+                "values": {
+                  "$ref": "#/definitions/numbers_array"
+                },
+                "annotation": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false,
+              "required": ["param", "values", "annotation"]
+            }
+          },
+          "toggle": {
+            "$ref": "#/definitions/strings_array"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["valued", "toggle"]
+      }
+    }
+  },
+  "omp_rtl": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "param": {
+          "type": "string"
+        },
+        "vals": {
+          "$ref": "#/definitions/numbers_array"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "param",
+        "vals"
+      ]
+    },
+    "definitions": {
+      "numbers_array": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "omp_directives": {
+    "type": "object",
+    "properties": {
+      "parallel": {
+        "$ref": "#/definitions/parameters"
+      },
+      "for": {
+        "$ref": "#/definitions/parameters"
+      }
+    },
+    "additionalProperties": false,
+    "required": ["parallel", "for"],
+    "definitions": {
+      "numbers_array": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "strings_array": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "valued": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "pragma": {
+                  "type": "string"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "val": {
+                        "type": "string"
+                      },
+                      "related": {
+                        "$ref": "#/definitions/numbers_array"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": ["val", "related"]
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": ["pragma", "values"]
+            }
+          },
+          "toggle": {
+            "$ref": "#/definitions/strings_array"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["valued", "toggle"]
+      }
+    }
+  }
+}

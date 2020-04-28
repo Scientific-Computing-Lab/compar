@@ -22,6 +22,7 @@ import traceback
 import logger
 from unit_test import UnitTest
 from assets.parallelizers_mapper import parallelizers
+import combinator
 
 
 class ComparMode(enum.IntEnum):
@@ -112,7 +113,7 @@ class Compar:
         for file_path in file_paths_list:
             with open(file_path, 'r+') as fp:
                 file_content = fp.read()
-                re.sub(regex_pattern, '', file_content)
+                file_content = re.sub(regex_pattern, '', file_content)
                 fp.seek(0)
                 fp.write(file_content)
                 fp.truncate()
@@ -139,21 +140,6 @@ class Compar:
         with open(destination_path, "w") as input_file:
             input_file.write(destination_file_string)
 
-    @staticmethod
-    def create_c_code_to_inject(parameters, option):
-        if option == "omp_directives":
-            params = parameters.get_omp_directives_params()
-        elif option == "omp_rtl":
-            params = parameters.get_omp_rtl_params()
-        else:
-            raise UserInputError(f'The input {option} is not supported')
-
-        c_code = ""
-        for param in params:
-            if option == "omp_rtl":
-                c_code += param + "\n"
-        return c_code
-
     def __init__(self,
                  working_directory,
                  input_dir,
@@ -175,9 +161,11 @@ class Compar:
                  slurm_partition='grid',
                  test_file_path='',
                  mode=MODES[DEFAULT_MODE],
-                 code_with_markers=False):
+                 code_with_markers=False,
+                 clear_db=False):
 
         e.assert_folder_exist(input_dir)
+        e.assert_user_json_structure()
 
         if not is_make_file:
             e.assert_only_files(input_dir)
@@ -212,6 +200,7 @@ class Compar:
         self.parallel_jobs_pool_executor = JobExecutor(Compar.NUM_OF_THREADS)
         self.mode = mode
         self.code_with_markers = code_with_markers
+        self.clear_db = clear_db
 
         # Unit test
         self.test_file_path = test_file_path
@@ -261,6 +250,88 @@ class Compar:
         if not is_make_file:
             self.__initialize_binary_compiler()
         self.db = Database(self.__extract_working_directory_name(), mode=self.mode)
+
+    def clear_related_collections(self):
+        if self.db:
+            self.db.delete_all_related_collections()
+
+    def inject_rtl_params_to_loop(self, file_dict: dict, omp_rtl_params: list):
+        c_file_path = file_dict['file_full_path']
+        e.assert_file_exist(c_file_path)
+        with open(c_file_path, 'r') as input_file:
+            c_code = input_file.read()
+        e.assert_file_is_empty(c_code)
+        for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):
+            start_loop_marker = f'{Fragmentator.get_start_label()}{loop_id}'
+            end_loop_marker = f'{Fragmentator.get_end_label()}{loop_id}'
+            start_marker_pattern = rf'{start_loop_marker}[ \t]*\n'
+            loop_pattern = rf'{start_marker_pattern}.*{end_loop_marker}[ \t]*\n'
+            loop_before_changes = re.search(loop_pattern, c_code, re.DOTALL).group()
+            loop_prefix_pattern = rf'{start_marker_pattern}.*?(?=[\t ]*for[ \t]*\()'
+            loop_prefix = re.search(loop_prefix_pattern, loop_before_changes, re.DOTALL).group()
+            loop_body_and_suffix = re.sub(re.escape(loop_prefix), '', loop_before_changes)
+            params_code = f'{start_loop_marker}\n'
+            for param in omp_rtl_params:
+                omp_function_name = re.search(r'.+(?=\(.*\))', param).group()
+                if omp_function_name in loop_prefix:
+                    loop_prefix = re.sub(rf'{omp_function_name}[^;]*;[^\n]*\n', '', loop_prefix, re.DOTALL)
+                params_code += f'{param}\n'
+            loop_prefix = re.sub(rf'{start_marker_pattern}', params_code, loop_prefix)
+            new_loop = f'{loop_prefix}{loop_body_and_suffix}'
+            c_code = c_code.replace(loop_before_changes, new_loop)
+        try:
+            with open(c_file_path, 'w') as output_file:
+                output_file.write(c_code)
+        except OSError as err:
+            raise e.FileError(str(err))
+
+    def inject_directive_params_to_loop(self, file_dict: dict, omp_directive_params: list):
+        if not omp_directive_params:
+            return
+        c_file_path = file_dict['file_full_path']
+        e.assert_file_exist(c_file_path)
+        format_c_code([c_file_path, ])  # mainly to arrange directives in a single line
+        with open(c_file_path, 'r') as input_file:
+            c_code = input_file.read()
+        e.assert_file_is_empty(c_code)
+        for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):
+            start_loop_marker = f'{Fragmentator.get_start_label()}{loop_id}'
+            end_loop_marker = f'{Fragmentator.get_end_label()}{loop_id}'
+            start_marker_pattern = rf'{start_loop_marker}[ \t]*\n'
+            loop_pattern = rf'{start_marker_pattern}.*{end_loop_marker}[ \t]*\n'
+            loop_before_changes = re.search(loop_pattern, c_code, re.DOTALL).group()
+            loop_prefix_pattern = rf'{start_marker_pattern}.*?(?=[\t ]*for[ \t]*\()'
+            loop_prefix = re.search(loop_prefix_pattern, loop_before_changes, re.DOTALL).group()
+            loop_body_and_suffix = re.sub(re.escape(loop_prefix), '', loop_before_changes)
+            pragma_pattern = r'#pragma omp[^\n]+\n'
+            pragma = re.search(rf'{pragma_pattern}', loop_prefix)
+            if pragma:
+                pragma = pragma.group().replace('\n', '')
+                new_directives = ''
+                for directive in omp_directive_params:
+                    pragma_type, directive = directive.split('_', 1)
+                    pragma_name = re.search(r'[^(]+', directive).group()
+                    if not re.search(rf' {pragma_type} ?', pragma):
+                        if pragma_type == combinator.PARALLEL_DIRECTIVE_PREFIX:
+                            pragma = re.sub(r'pragma omp', f'pragma omp {pragma_type}', pragma)
+                        if pragma_type == combinator.FOR_DIRECTIVE_PREFIX:
+                            if re.search(rf' {combinator.PARALLEL_DIRECTIVE_PREFIX} ?', pragma):
+                                pragma = re.sub(rf'pragma omp {combinator.PARALLEL_DIRECTIVE_PREFIX} ?',
+                                                f'pragma omp {combinator.PARALLEL_DIRECTIVE_PREFIX} {pragma_type} ',
+                                                pragma)
+                            else:
+                                pragma = re.sub(r'pragma omp', f'pragma omp {pragma_type}', pragma)
+                    if pragma_name in pragma:
+                        pragma = re.sub(rf'{"pragma_name"}(?:\([^)]+\))? ?', '', pragma)
+                    new_directives += f' {directive}'
+                new_pragma = f'{pragma} {new_directives}\n'
+                new_prefix = re.sub(rf'{pragma_pattern}', new_pragma, loop_prefix)
+                c_code = c_code.replace(loop_before_changes, f'{new_prefix}{loop_body_and_suffix}')
+        try:
+            with open(c_file_path, 'w') as output_file:
+                output_file.write(c_code)
+        except OSError as err:
+            raise e.FileError(str(err))
 
     def generate_optimal_code(self):
         logger.info('Start to combine the Compar combination')
@@ -375,6 +446,8 @@ class Compar:
         self.format_c_files([file_dict['file_full_path'] for file_dict in
                              self.make_absolute_file_list(final_folder_path)])
         self.db.remove_unused_data(Combination.COMPAR_COMBINATION_ID)
+        if self.clear_db:
+            self.clear_related_collections()
         self.db.close_connection()
 
     def __extract_working_directory_name(self):
@@ -416,11 +489,11 @@ class Compar:
         parallel_compiler.compile()
         post_processing_args = {'files_loop_dict': self.files_loop_dict}
         parallel_compiler.post_processing(**post_processing_args)
-        omp_rtl_code = self.create_c_code_to_inject(combination_obj.get_parameters(), 'omp_rtl')
+        omp_rtl_params = combination_obj.get_parameters().get_omp_rtl_params()
+        omp_directive_params = combination_obj.get_parameters().get_omp_directives_params()
         for file_dict in self.make_absolute_file_list(combination_folder_path):
-            for loop_id in range(1, self.files_loop_dict[file_dict['file_id_by_rel_path']][0] + 1):
-                loop_start_label = Fragmentator.get_start_label() + str(loop_id)
-                self.inject_c_code_to_loop(file_dict['file_full_path'], loop_start_label, omp_rtl_code)
+            self.inject_rtl_params_to_loop(file_dict, omp_rtl_params)
+            self.inject_directive_params_to_loop(file_dict, omp_directive_params)
 
     def compile_combination_to_binary(self, combination_folder_path, extra_flags_list=None, inject=True):
         if inject:

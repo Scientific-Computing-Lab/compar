@@ -1,7 +1,9 @@
 import os
-
+import json
 import compar
 from unit_test import UnitTest
+import combinator
+import jsonschema
 
 
 class FileError(Exception):
@@ -110,3 +112,31 @@ def assert_original_files_folder_exists(working_directory):
 def assert_folder_exist(folder_path):
     if not os.path.exists(folder_path):
         raise FolderError(f'Folder {folder_path} not exist')
+
+
+def assert_allowed_directive_type(directive_type: str):
+    allowed_types = (combinator.PARALLEL_DIRECTIVE_PREFIX, combinator.FOR_DIRECTIVE_PREFIX)
+    if directive_type not in allowed_types:
+        raise UserInputError(f'omp directives prefix of {directive_type} is incorrect!')
+
+
+def assert_user_json_structure():
+    with open('assets/parameters_json_schema.json', 'r') as fp:
+        json_schema = json.load(fp)
+    args_for_validation_func = (
+        (json_schema['compilation'], combinator.COMPILATION_PARAMS_FILE_PATH),
+        (json_schema['omp_rtl'], combinator.OMP_RTL_PARAMS_FILE_PATH),
+        (json_schema['omp_directives'], combinator.OMP_DIRECTIVES_FILE_PATH)
+    )
+    for args in args_for_validation_func:
+        assert_params_json_is_valid(*args)
+
+
+def assert_params_json_is_valid(json_schema, json_path):
+    assert_file_exist(json_path)
+    with open(json_path, 'r') as fp:
+        params_json = json.load(fp)
+    try:
+        jsonschema.validate(params_json, json_schema)
+    except jsonschema.exceptions.ValidationError:
+        raise UserInputError(f'{json_path} must conform to scheme!')

@@ -67,7 +67,7 @@ class Fragmentator:
         return self.__fragments
 
     def __get_file_content(self):
-        format_c_code([self.__file_path, ])
+        format_c_code([self.__file_path, ], column_limit=False)
         try:
             with open(self.__file_path, 'r') as input_file:
                 self.__file_content = input_file.read()
@@ -177,16 +177,24 @@ class Fragmentator:
             }
             self.__fragments.append(loop_with_markers)
 
+    def remove_spaces_before_marker(self):
+        regex_start = re.compile(rf'[ \t]*{self.__START_LOOP_LABEL_MARKER}')
+        regex_end = re.compile(rf'[ \t]*{self.__END_LOOP_LABEL_MARKER}')
+        self.__file_content = regex_start.sub(f'{self.__START_LOOP_LABEL_MARKER}', self.__file_content)
+        self.__file_content = regex_end.sub(f'{self.__END_LOOP_LABEL_MARKER}', self.__file_content)
+        self.__write_to_file(self.__file_content)
+
     def __search_markers(self):
-        regex = re.compile(rf'{self.__START_MARKER}(?P<loop_id>\d+).*{self.__END_MARKER}(?P=loop_id)', re.DOTALL)
+        self.remove_spaces_before_marker()
+        regex = re.compile(rf'{self.__START_MARKER}(?P<loop_id>\d+).*{self.__END_MARKER}(?P=loop_id)[ ]*\n', re.DOTALL)
         loops_with_markers = [loop.group() for loop in regex.finditer(self.__file_content)]
+        start_marker_pattern = rf'{self.__START_MARKER}\d+'
+        end_marker_pattern = rf'{self.__END_MARKER}\d+'
         for loop in loops_with_markers:
-            start_marker_pattern = rf'{self.__START_MARKER}\d+'
-            end_marker_pattern = rf'{self.__END_MARKER}\d+'
-            start_marker = re.search(start_marker_pattern, loop).group()
-            end_marker = re.search(end_marker_pattern, loop).group()
-            just_loop = re.sub(rf'{start_marker_pattern}[^\n]\n', '', loop)
-            just_loop = re.sub(rf'\n.+{start_marker_pattern}', '', just_loop)
+            start_marker = f'// {re.search(start_marker_pattern, loop).group()}'
+            end_marker = f'// {re.search(end_marker_pattern, loop).group()}'
+            just_loop = re.sub(rf'{start_marker_pattern}[^\n]*\n', '', loop)
+            just_loop = re.sub(rf'\n.+{end_marker_pattern}[ ]*\n', '', just_loop)
             loop_and_markers = {
                 'start_label': start_marker,
                 'loop': just_loop,
@@ -197,6 +205,17 @@ class Fragmentator:
         if num_of_loops != len(loops_with_markers):
             raise UserInputError(f'Error in {self.__file_path}: the file must contains #{num_of_loops} loop markers!')
         return self.__fragments
+
+    def move_omp_directives_into_marker(self):
+        for i, loop_fragment in enumerate(self.__fragments, 1):
+            pragma_pattern = rf'[\t ]*#pragma omp[^\n]+\n(?=[\n\t ]*{self.__START_LOOP_LABEL_MARKER}{i}[ \t]*\n)'
+            pragma = re.search(pragma_pattern, self.__file_content)
+            if pragma:
+                pragma = pragma.group()
+                self.__file_content = re.sub(rf'{pragma_pattern}[\n\t ]*{self.__START_LOOP_LABEL_MARKER}{i}[ \t]*\n',
+                                             f'{self.__START_LOOP_LABEL_MARKER}{i}\n{pragma}', self.__file_content)
+                loop_fragment['loop'] = f'{pragma}{loop_fragment["loop"]}'
+        self.__write_to_file(self.__file_content)
 
     def fragment_code(self):
         self.__get_file_content()
@@ -220,4 +239,6 @@ class Fragmentator:
         new_content += rest_of_the_content
         self.__file_content = new_content
         self.__write_to_file(self.__file_content)
+        if not self.code_with_markers:
+            self.move_omp_directives_into_marker()
         return self.get_fragments()

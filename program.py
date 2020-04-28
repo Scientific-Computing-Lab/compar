@@ -7,6 +7,17 @@ from exceptions import assert_rel_path_starts_without_sep, assert_original_files
 import logger
 
 
+def positive_int_validation(value):
+    exception = argparse.ArgumentTypeError(f'{value} must be a positive integer value')
+    try:
+        int_value = int(value)
+    except ValueError:
+        raise exception
+    if int_value <= 0:
+        raise exception
+    return int_value
+
+
 def main():
     num_of_jobs_at_once = 4
     parser = argparse.ArgumentParser(description='Compar')
@@ -43,11 +54,12 @@ def main():
                         const=logger.DEBUG, default=logger.BASIC)
     parser.add_argument('-test_file', '--test_file_path', help="Unit test file path", default="")
     parser.add_argument('-jobs_quantity', '--jobs_quantity_at_once', help='The number of jobs to be executed at once',
-                        default=num_of_jobs_at_once)
+                        default=num_of_jobs_at_once, type=positive_int_validation)
     parser.add_argument('-mode', '--mode', help=f'Compar working mode {Compar.MODES.keys()}.',
                         default=Compar.DEFAULT_MODE, choices=Compar.MODES.keys())
     parser.add_argument('-with_markers', '--code_with_markers', action='store_true',
                         help='Mark that the code was parallelized with Compar before')
+    parser.add_argument('-clear_db', '--clear_db', action='store_true', help='Delete the results from database.')
     args = parser.parse_args()
     args.mode = Compar.MODES[args.mode]
 
@@ -93,13 +105,19 @@ def main():
         slurm_partition=args.slurm_partition,
         test_file_path=args.test_file_path,
         mode=args.mode,
-        code_with_markers=args.code_with_markers
+        code_with_markers=args.code_with_markers,
+        clear_db=args.clear_db
     )
-    compar_obj.fragment_and_add_timers()
-    compar_obj.run_serial()
-    compar_obj.run_parallel_combinations()
-    compar_obj.generate_optimal_code()
-    logger.info('Finish Compar execution')
+    try:
+        compar_obj.fragment_and_add_timers()
+        compar_obj.run_serial()
+        compar_obj.run_parallel_combinations()
+        compar_obj.generate_optimal_code()
+        logger.info('Finish Compar execution')
+    except Exception:
+        if args.clear_db:
+            compar_obj.clear_related_collections()
+        raise
 
 
 if __name__ == "__main__":
