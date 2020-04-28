@@ -7,12 +7,16 @@ COMMENT_PREFIX = '//____compar____'
 
 
 def format_c_code(c_files_path_list, column_limit=True):
-    style_arguments = '\"{AccessModifierOffset: -4, IndentWidth: 4'
+    style_arguments = '\"{AccessModifierOffset: -4, IndentWidth: 4, AllowShortIfStatementsOnASingleLine: false'
+    style_arguments += ', AllowShortBlocksOnASingleLine: false, AllowShortFunctionsOnASingleLine: false'
+    style_arguments += ', AllowShortLoopsOnASingleLine: false'
     if column_limit:
         style_arguments += ', ColumnLimit: 0'
     style_arguments += '}\"'
     try:
-        format_command = ['clang-format', '-i'] + c_files_path_list + ['-style', style_arguments]
+        format_command = ['source',  'scl_source', 'enable',  'llvm-toolset-7', '&&']
+        format_command += ['clang-format', '-i'] + c_files_path_list + ['-style', style_arguments]
+
         run_subprocess(format_command)
         directives_handler(c_files_path_list)
         run_subprocess(format_command)
