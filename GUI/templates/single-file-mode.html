@@ -38,7 +38,6 @@
                     <div class="title">Compar Parameters</div>
                     <div class="form-area">
                         {{ form.csrf_token }}
-
                         <div style="align-items: center" class="flex-row">
                             <div class="form-title">Binary Compiler:</div>
                             {{ form.compiler(style='margin-left: 30px') }}
@@ -131,6 +130,14 @@
                             <div style="align-items: center" class="flex-row">
                             <div class="form-title">Log level:</div>
                             {{ form.log_level(style='margin-left: 30px') }}
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">Compar mode:</div>
+                                {{ form.compar_mode(style='margin-left: 30px') }}
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Override - remove any existing data. New - create a new project if it exists. Continue - in case that project exist, continue from last point.</span>
+                                </div>
                             </div>
                             <div class="horizontal-separator"></div>
                             <div class="flex-row-spaced">

@@ -154,6 +154,14 @@
                                 </div>
                                 <div class="horizontal-separator"></div>
                                 <div class="flex-row-spaced">
+                                    <div class="form-title">Compar mode:</div>
+                                    {{ form.compar_mode(style='margin-left: 30px') }}
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Override - remove any existing data. New - create a new project if it exists. Continue - in case that project exist, continue from last point.</span>
+                                    </div>
+                                </div>
+                                <div class="horizontal-separator"></div>
+                                <div class="flex-row-spaced">
                                    <div class="form-title">Validation file path:</div>
                                     <div class="tooltip informationButton">i
                                         <span class="tooltiptext">Absolute path to python file named “test_output.py” with test function “test_output”. This file will validate the output of every combination.</span>

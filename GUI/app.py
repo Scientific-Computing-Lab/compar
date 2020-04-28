@@ -63,6 +63,7 @@ class SingleFileForm(FlaskForm):
     result_file_area = TextAreaField('result_file_area')
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
+    compar_mode = SelectField('mode', choices=[('override', 'Override'), ('new', 'New'), ('continue', 'Continue')])
 
 
 class MultipleFilesForm(FlaskForm):
@@ -86,6 +87,7 @@ class MultipleFilesForm(FlaskForm):
     compiler = SelectField('compiler', choices=[('gcc', 'GCC'), ('icc', 'ICC')])
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
+    compar_mode = SelectField('mode', choices=[('override', 'Override'), ('new', 'New'), ('continue', 'Continue')])
 
 
 class MakefileForm(FlaskForm):
@@ -111,6 +113,7 @@ class MakefileForm(FlaskForm):
     main_file_parameters = StringField('main_file_parameters')
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
+    compar_mode = SelectField('mode', choices=[('override', 'Override'), ('new', 'New'), ('continue', 'Continue')])
 
 
 @app.route("/")
@@ -179,6 +182,7 @@ def single_file_submit():
                 session['test_path'] = form.test_path.data
                 session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                           form.minutes_field.data, form.seconds_field.data)
+                session['compar_mode'] = form.compar_mode.data
         else:
             return jsonify(errors=form.errors)
         return jsonify(data={'message': 'The form is valid.'})
@@ -210,6 +214,7 @@ def multiple_files_submit():
         session['test_path'] = form.test_path.data
         session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                   form.minutes_field.data, form.seconds_field.data)
+        session['compar_mode'] = form.compar_mode.data
         return jsonify(data={'message': 'The form is valid.'})
     return jsonify(errors=form.errors)
 
@@ -240,6 +245,7 @@ def makefile_submit():
         session['test_path'] = form.test_path.data
         session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                   form.minutes_field.data, form.seconds_field.data)
+        session['compar_mode'] = form.compar_mode.data
         return jsonify(data={'message': 'The form is valid.'})
     return jsonify(errors=form.errors)
 
@@ -364,6 +370,9 @@ def generate_compar_command_without_makefile():
     # with markers
     if session['with_markers']:
         command += [f"-with_markers"]
+    # compar_mode
+    if session['compar_mode']:
+        command += [f"-mode {session['compar_mode']}"]
     return ' '.join(command)
 
 
@@ -422,6 +431,9 @@ def generate_compar_command_with_makefile():
     # with markers
     if session['with_markers']:
         command += [f"-with_markers"]
+    # compar_mode
+    if session['compar_mode']:
+        command += [f"-mode {session['compar_mode']}"]
     return ' '.join(command)
 
 
