@@ -13,8 +13,8 @@ from globals import ExecuteJobConfig, MakefileConfig, GlobalsConfig, TimerConfig
 
 class ExecuteJob:
 
-    def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list,
-                 slurm_partition, test_file_path, time_limit=None):
+    def __init__(self, job, num_of_loops_in_files: dict, db, db_lock, serial_run_time: dict, relative_c_file_list: list,
+                 slurm_partition: str, test_file_path: str, time_limit=None):
         self.job = job
         self.num_of_loops_in_files = num_of_loops_in_files
         self.db = db
@@ -38,7 +38,7 @@ class ExecuteJob:
         self.db.insert_new_combination_results(job_result_dict)
         self.db_lock.release()
 
-    def save_combination_as_failure(self, error_msg):
+    def save_combination_as_failure(self, error_msg: str):
         combination_dict = {
             '_id': self.job.combination.combination_id,
             'error': error_msg
@@ -71,7 +71,7 @@ class ExecuteJob:
                             error_msg = file_dict['missing_data'] + f'\n{error_msg}'
                         file_dict['missing_data'] = error_msg
 
-    def run(self, user_slurm_parameters):
+    def run(self, user_slurm_parameters: list):
         try:
             self.__run_with_sbatch(user_slurm_parameters)
             self.__analyze_job_exit_code()
@@ -79,7 +79,7 @@ class ExecuteJob:
             self.update_dead_code_files()
             self.save_successful_job()
             if not CombinationValidator.run_unit_test(self.test_file_path, self.get_job().get_directory_path(),
-                                          f"{self.get_job().get_directory_name()}.log"):
+                                                      f"{self.get_job().get_directory_name()}.log"):
                 self.db.set_error_in_combination(self.job.combination.combination_id, "Unit test failed.")
         except Exception as ex:
             if self.job.get_job_results()['run_time_results']:
@@ -95,7 +95,7 @@ class ExecuteJob:
             if file_id not in results_file_ids:
                 job_results.append({'file_id_by_rel_path': file_id, 'dead_code_file': True})
 
-    def __run_with_sbatch(self, user_slurm_parameters):
+    def __run_with_sbatch(self, user_slurm_parameters: list):
         logger.info(f'Start running combination #{self.get_job().get_combination().get_combination_id()}')
         slurm_parameters = user_slurm_parameters
         dir_path = self.get_job().get_directory_path()
@@ -164,7 +164,7 @@ class ExecuteJob:
                 time.sleep(ExecuteJobConfig.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
         logger.info(f'Job {self.get_job().get_job_id()} status is COMPLETE')
 
-    def __make_sbatch_script_file(self, job_name=''):
+    def __make_sbatch_script_file(self, job_name: str = ''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
         batch_file = open(batch_file_path, 'w')
         command = '#!/bin/bash\n'

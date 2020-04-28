@@ -59,7 +59,7 @@ class Timer:
         return suffix_loop_code
 
     @staticmethod
-    def remove_declaration_code(content):
+    def remove_declaration_code(content: str):
         run_time_vars_regex = rf'double[ ]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
         file_pointer_vars_regex = rf'FILE[ ]*\*[ ]*{Timer.COMPAR_VAR_PREFIX}[^;]+;'
         struct_regex_version_1 = r'typedef struct ' + Timer.COMPAR_VAR_PREFIX + r'[^\}]*\}[^;]*;'
@@ -77,7 +77,7 @@ class Timer:
         return content
 
     @staticmethod
-    def remove_run_time_calculation_code_code(content):
+    def remove_run_time_calculation_code_code(content: str):
         content = re.sub(rf'{Timer.GLOBAL_TIMER_VAR_NAME}[^;]+omp_get_wtime[^;]+;', '', content)
         content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}[^;]+=[ ]*\(?[ ]*omp[^;]*;', '', content, flags=re.DOTALL)
         content = re.sub(rf'{Timer.COMPAR_VAR_PREFIX}struct[ ]+extern[^;]+;', '', content, flags=re.DOTALL)
@@ -85,7 +85,7 @@ class Timer:
         return re.sub(rf'{Timer.COMPAR_VAR_PREFIX}arr[^;]+;', '', content, flags=re.DOTALL)
 
     @staticmethod
-    def remove_writing_to_file_code(content):
+    def remove_writing_to_file_code(content: str):
         fopen_regex = rf'{Timer.COMPAR_VAR_PREFIX}[^;]+fopen[^;]+{re.escape(Timer.get_file_name_prefix_token())}?[^;]+;'
         fprintf_regex = rf'fprintf[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
         fclose_regex = rf'fclose[^;]+{Timer.COMPAR_VAR_PREFIX}[^;]+;'
@@ -99,7 +99,7 @@ class Timer:
         return content
 
     @staticmethod
-    def remove_timer_code(absolute_file_paths_list):
+    def remove_timer_code(absolute_file_paths_list: list):
         for c_file_dict in absolute_file_paths_list:
             try:
                 with open(c_file_dict['file_full_path'], 'r') as f:
@@ -112,7 +112,7 @@ class Timer:
             except Exception as ex:
                 raise e.FileError(f'exception in Compar.remove_timer_code: {c_file_dict["file_full_path"]}: {str(ex)}')
 
-    def __init__(self, file_path, code_with_markers=False):
+    def __init__(self, file_path: str, code_with_markers: bool = False):
         e.assert_file_exist(file_path)
         self.__input_file_path = file_path
         c_file_name = str(os.path.basename(file_path).split('.')[0])
@@ -133,7 +133,7 @@ class Timer:
     def get_number_of_loops(self):
         return self.__number_of_loops
 
-    def set_input_file_path(self, file_path):
+    def set_input_file_path(self, file_path: str):
         e.assert_file_exist(file_path)
         self.__input_file_path = file_path
 
@@ -155,7 +155,7 @@ class Timer:
         self.set_number_of_loops(len(fragments))
         return input_file_text, fragments
 
-    def inject_timers(self, array_var_index, main_file_path):
+    def inject_timers(self, array_var_index: int, main_file_path: str):
         name_of_global_array = f'{self.COMPAR_VAR_PREFIX}arr{str(array_var_index)}'
         input_file_text, fragments = self.calculate_num_of_loops()
 
@@ -189,7 +189,7 @@ class Timer:
             raise e.FileError(str(err))
 
     @staticmethod
-    def inject_timer_to_compar_mixed_file(file_path, working_dir_path):
+    def inject_timer_to_compar_mixed_file(file_path: str, working_dir_path: str):
         with open(file_path, 'r') as input_file:
             input_file_text = Timer.DECL_GLOBAL_TIMER_VAR_CODE + "\n"
             input_file_text += input_file.read()
@@ -218,7 +218,7 @@ class Timer:
                 output_file.write(c_code)
 
     @staticmethod
-    def inject_declarations_to_main_file(file_path, declaration_code_to_inject):
+    def inject_declarations_to_main_file(file_path: str, declaration_code_to_inject: str):
         with open(file_path, 'r') as input_file:
             input_file_text = Timer.DECL_GLOBAL_STRUCT_CODE
             input_file_text += Timer.DECL_GLOBAL_TIMER_VAR_CODE + "\n"
@@ -228,7 +228,7 @@ class Timer:
                 output_file.write(input_file_text)
 
     @staticmethod
-    def inject_atexit_code_to_main_file(main_file_path, files_loop_dict, working_dir_path):
+    def inject_atexit_code_to_main_file(main_file_path: str, files_loop_dict: dict, working_dir_path: str):
         with open(main_file_path, 'r') as input_file:
             input_file_text = input_file.read()
 
@@ -248,14 +248,14 @@ class Timer:
                 output_file.write(c_code)
 
     @staticmethod
-    def inject_global_declaration(input_file_text, num_of_loops, name_of_global_array):
+    def inject_global_declaration(input_file_text: str, num_of_loops: int, name_of_global_array: str):
         new_code = Timer.DECL_GLOBAL_STRUCT_CODE
         new_code += f"{Timer.COMPAR_VAR_PREFIX}struct extern {name_of_global_array}[{num_of_loops}];\n"
         new_code += input_file_text
         return new_code
 
     @staticmethod
-    def generate_at_exit_function_code(files_loop_dict, working_dir_path):
+    def generate_at_exit_function_code(files_loop_dict: dict, working_dir_path: str):
         code = 'void ' + Timer.COMPAR_VAR_PREFIX + 'atExit() {\n'
         total_runtime_file_path = os.path.join(working_dir_path, Timer.TOTAL_RUNTIME_FILENAME)
         code += f'{Timer.STOP_GLOBAL_TIMER_VAR_CODE}'

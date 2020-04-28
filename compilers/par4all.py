@@ -13,8 +13,8 @@ from globals import Par4allConfig, GlobalsConfig
 class Par4all(ParallelCompiler):
     NAME = 'par4all'
 
-    def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
-                 include_dirs_list=None, extra_files=None, **kwargs):
+    def __init__(self, version: str, compilation_flags: list = None, input_file_directory: str = None,
+                 file_list: list = None, include_dirs_list: list = None, extra_files: list = None, **kwargs):
         super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list, **kwargs)
         self.extra_files = [] if not extra_files else extra_files
         self.files_to_compile = []
@@ -27,7 +27,7 @@ class Par4all(ParallelCompiler):
         return os.path.join(destination_folder_path, Par4allConfig.PIPS_STUBS_NAME)
 
     @staticmethod
-    def remove_code_from_file(file_path, code_to_be_removed):
+    def remove_code_from_file(file_path: str, code_to_be_removed: str):
         try:
             with open(file_path, 'r+') as f:
                 file_content = f.read()
@@ -39,7 +39,7 @@ class Par4all(ParallelCompiler):
             raise FileError(str(e))
 
     @staticmethod
-    def inject_code_at_the_top(file_path, code_to_be_injected):
+    def inject_code_at_the_top(file_path: str, code_to_be_injected: str):
         try:
             with open(file_path, 'r+') as f:
                 file_content = f.read()
@@ -51,7 +51,7 @@ class Par4all(ParallelCompiler):
             raise FileError(str(e))
 
     @staticmethod
-    def __remove_bswap_function(file_path):
+    def __remove_bswap_function(file_path: str):
         bswap_regex = re.compile(r'static __uint64_t __bswap_64[^\}]*\}', flags=re.DOTALL)
         try:
             with open(file_path, 'r+') as f:
@@ -65,7 +65,7 @@ class Par4all(ParallelCompiler):
             logger.info_error(f'Exception at {Par4all.__name__}: {e}')
             logger.debug_error(f'{traceback.format_exc()}')
 
-    def initiate_for_new_task(self, compilation_flags, input_file_directory, file_list):
+    def initiate_for_new_task(self, compilation_flags: list, input_file_directory: str, file_list: list):
         super().initiate_for_new_task(compilation_flags, input_file_directory, file_list)
         self.files_to_compile = []
 

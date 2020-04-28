@@ -16,7 +16,7 @@ class Database:
     FINAL_RESULTS_COMBINATION_ID = DatabaseConfig.FINAL_RESULTS_COMBINATION_ID
 
     @staticmethod
-    def generate_combination_id(combination):
+    def generate_combination_id(combination: dict):
         fields = [f'compiler_name:{combination["compiler_name"]}']
         omp_rtl_params = combination['parameters']['omp_rtl_params']
         for omp_rtl_param in omp_rtl_params:
@@ -30,7 +30,7 @@ class Database:
         fields.sort()
         return hashlib.sha3_384(str(fields).encode()).hexdigest()
 
-    def __init__(self, collection_name, mode):
+    def __init__(self, collection_name: str, mode):
         collection_name = f"{getpass.getuser()}_{collection_name}"
         logger.info(f'Initializing {collection_name} databases')
         self.mode = mode
@@ -86,7 +86,7 @@ class Database:
     def close_connection(self):
         self.connection.close()
 
-    def combination_has_results(self, combination_id):
+    def combination_has_results(self, combination_id: str):
         return self.get_combination_results(combination_id) is not None
 
     def combinations_iterator(self):
@@ -99,7 +99,7 @@ class Database:
             logger.info_error(f"Exception at {Database.__name__}: get_next_combination")
             raise
 
-    def insert_new_combination_results(self, combination_result):
+    def insert_new_combination_results(self, combination_result: dict):
         try:
             self.dynamic_db[self.collection_name].insert_one(combination_result)
             return True
@@ -108,7 +108,7 @@ class Database:
             logger.debug_error(f'{traceback.format_exc()}')
             return False
 
-    def delete_combination(self, combination_id):
+    def delete_combination(self, combination_id: str):
         try:
             self.dynamic_db[self.collection_name].delete_one({"_id": combination_id})
             return True
@@ -117,7 +117,7 @@ class Database:
             logger.debug_error(f'{traceback.format_exc()}')
             return False
 
-    def find_optimal_loop_combination(self, file_id_by_rel_path, loop_label):
+    def find_optimal_loop_combination(self, file_id_by_rel_path: str, loop_label: str):
         best_speedup = 1
         best_combination_id = self.SERIAL_COMBINATION_ID
         best_loop = None
@@ -157,7 +157,7 @@ class Database:
             raise MissingDataError(f'Cannot find any loop in db, loop: {loop_label}, file: {file_id_by_rel_path}')
         return best_combination_id, best_loop
 
-    def get_combination_results(self, combination_id):
+    def get_combination_results(self, combination_id: str):
         combination = None
         try:
             combination = self.dynamic_db[self.collection_name].find_one({"_id": combination_id})
@@ -167,7 +167,7 @@ class Database:
         finally:
             return combination
 
-    def get_combination_from_static_db(self, combination_id):
+    def get_combination_from_static_db(self, combination_id: str):
         combination = None
         if combination_id == self.SERIAL_COMBINATION_ID:
             return {
@@ -195,10 +195,10 @@ class Database:
             raise NoOptimalCombinationError("All Compar combinations finished with error.")
         return best_combination["_id"]
 
-    def remove_unused_data(self, combination_id):
+    def remove_unused_data(self, combination_id: str):
         self.dynamic_db[self.collection_name].update({"_id": combination_id}, {'$unset': {'run_time_results': ""}})
 
-    def set_error_in_combination(self, combination_id, error):
+    def set_error_in_combination(self, combination_id: str, error: str):
         self.dynamic_db[self.collection_name].update_one(
             filter={
                 '_id': combination_id,

@@ -10,7 +10,7 @@ from globals import MakefileConfig
 class Makefile:
     NAME = 'Makefile'
 
-    def __init__(self, working_directory, exe_folder_relative_path, exe_file_name, commands):
+    def __init__(self, working_directory: str, exe_folder_relative_path: str, exe_file_name: str, commands: list):
         if not os.path.exists(working_directory):
             raise MakefileError(f'{working_directory} is not exist!')
         if len(commands) < 1:

@@ -12,11 +12,11 @@ class Fragmentator:
     __END_LOOP_LABEL_MARKER = FragmentatorConfig.END_LOOP_LABEL_MARKER
 
     @staticmethod
-    def set_start_label(new_start_label):
+    def set_start_label(new_start_label: str):
         Fragmentator.__START_LOOP_LABEL_MARKER = new_start_label
 
     @staticmethod
-    def set_end_label(new_end_label):
+    def set_end_label(new_end_label: str):
         Fragmentator.__END_LOOP_LABEL_MARKER = new_end_label
 
     @staticmethod
@@ -28,7 +28,7 @@ class Fragmentator:
         return Fragmentator.__END_LOOP_LABEL_MARKER
 
     @staticmethod
-    def count_loops_in_prepared_file(file_path):
+    def count_loops_in_prepared_file(file_path: str):
         with open(file_path, 'r') as fp:
             content = fp.read()
         all_markers = re.findall(rf'.*{FragmentatorConfig.LOOP_LABEL_MARKER}\d+', content)
@@ -38,7 +38,7 @@ class Fragmentator:
             raise UserInputError(f'Error in {file_path}: the file must contains #{num_of_loops} loop markers!')
         return num_of_loops
 
-    def __init__(self, file_path, code_with_markers=False):
+    def __init__(self, file_path: str, code_with_markers: bool = False):
         assert_file_exist(file_path)
         self.__file_path = file_path
         self.__file_content = ''
@@ -56,7 +56,7 @@ class Fragmentator:
     def get_file_path(self):
         return self.__file_path
 
-    def set_file_path(self, new_file_path):
+    def set_file_path(self, new_file_path: str):
         assert_file_exist(new_file_path)
         self.__file_path = new_file_path
         self.__reset_data()
@@ -159,7 +159,7 @@ class Fragmentator:
                         if not re.search(end_with_bracket_pattern, line):
                             current_loop['with_brackets'] = False
 
-    def __write_to_file(self, content):
+    def __write_to_file(self, content: str):
         try:
             with open(self.__file_path, 'w') as output_file:
                 output_file.write(content)

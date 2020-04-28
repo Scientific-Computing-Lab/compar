@@ -10,8 +10,8 @@ from globals import AutoParConfig
 class Autopar(ParallelCompiler):
     NAME = 'autopar'
 
-    def __init__(self, version, compilation_flags=None, input_file_directory=None, file_list=None,
-                 include_dirs_list=None, **kwargs):
+    def __init__(self, version: str, compilation_flags: list = None, input_file_directory: str = None,
+                 file_list: list = None, include_dirs_list: list = None, **kwargs):
         super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list, **kwargs)
 
     def compile(self):
@@ -29,7 +29,7 @@ class Autopar(ParallelCompiler):
             raise CompilationError(str(e) + " files in directory " + self.get_input_file_directory() +
                                    " failed to be parallel!")
 
-    def run_autopar(self, file_name, file_full_path, options):
+    def run_autopar(self, file_name: str, file_full_path: str, options: list):
         logger.info(f'{Autopar.__name__} start to parallelizing {file_name}')
         command = 'autoPar'
         if self.include_dirs_list:

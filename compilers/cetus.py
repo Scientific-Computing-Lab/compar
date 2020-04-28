@@ -14,7 +14,7 @@ class Cetus(ParallelCompiler):
     NAME = 'cetus'
 
     @staticmethod
-    def replace_labels(file_path, num_of_loops):
+    def replace_labels(file_path: str, num_of_loops: int):
         with open(file_path, 'r+') as f:
             content = f.read()
             for loop_id in range(1, num_of_loops + 1):
@@ -28,8 +28,8 @@ class Cetus(ParallelCompiler):
             f.write(content)
             f.truncate()
 
-    def __init__(self, version, input_file_directory=None, compilation_flags=None, file_list=None,
-                 include_dirs_list=None, **kwargs):
+    def __init__(self, version: str, input_file_directory: str = None, compilation_flags: list = None,
+                 file_list: list = None, include_dirs_list: list = None, **kwargs):
         super().__init__(version, compilation_flags, input_file_directory, file_list, include_dirs_list, **kwargs)
 
     def compile(self):
@@ -65,7 +65,7 @@ class Cetus(ParallelCompiler):
                                    " failed to be parallel!")
 
     @staticmethod
-    def replace_line_in_code(file_full_path, old_line, new_line):
+    def replace_line_in_code(file_full_path: str, old_line: str, new_line: str):
         with open(file_full_path, 'r') as input_file:
             c_code = input_file.read()
         e.assert_file_is_empty(c_code)
@@ -77,7 +77,7 @@ class Cetus(ParallelCompiler):
             raise e.FileError(str(err))
 
     @staticmethod
-    def inject_line_in_code(file_full_path, new_line):
+    def inject_line_in_code(file_full_path: str, new_line: str):
         with open(file_full_path, 'r') as input_file:
             c_code = input_file.read()
         e.assert_file_is_empty(c_code)
@@ -88,14 +88,14 @@ class Cetus(ParallelCompiler):
         except OSError as err:
             raise e.FileError(str(err))
 
-    def copy_headers(self, target_dir):
+    def copy_headers(self, target_dir_path: str):
         for rel_path in self.include_dirs_list:
             full_path = os.path.join(self._input_file_directory, rel_path)
             for path, dirs, files in os.walk(full_path):
                 for file in files:
                     if file.endswith('.h'):
                         try:
-                            shutil.copyfile(os.path.join(path, file), os.path.join(target_dir, file))
+                            shutil.copyfile(os.path.join(path, file), os.path.join(target_dir_path, file))
                         except shutil.SameFileError:
                             pass
 

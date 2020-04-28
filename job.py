@@ -24,9 +24,9 @@ class Job:
                                          }
     """
 
-    RUNTIME_ERROR = -1
+    RUNTIME_ERROR = -1.0
 
-    def __init__(self, directory, combination, exec_file_args=""):
+    def __init__(self, directory: str, combination, exec_file_args=""):
         self.directory = directory
         self.exec_file_args = exec_file_args
         self.combination = combination
@@ -40,21 +40,21 @@ class Job:
             'total_run_time': Job.RUNTIME_ERROR
         }
 
-    def set_job_id(self, job_id):
+    def set_job_id(self, job_id: str):
         self.job_id = job_id
         self.job_results["job_id"] = str(job_id)
 
     def get_job_id(self):
         return self.job_id
 
-    def set_total_run_time(self, total_run_time):
+    def set_total_run_time(self, total_run_time: float):
         self.total_run_time = total_run_time
         self.job_results['total_run_time'] = total_run_time
 
     def get_total_run_time(self):
         return self.total_run_time
 
-    def set_directory_path(self, new_path):
+    def set_directory_path(self, new_path: str):
         self.directory = new_path
 
     def get_directory_path(self):
@@ -75,7 +75,7 @@ class Job:
     def get_combination(self):
         return self.combination
 
-    def set_job_results(self, job_id, combination_id, run_time_results):
+    def set_job_results(self, job_id, combination_id, run_time_results: list):
         self.job_results = {
             'job_id': str(job_id),
             '_id': str(combination_id),
@@ -84,33 +84,33 @@ class Job:
     def get_job_results(self):
         return self.job_results
 
-    def set_file_results(self, file_id_by_rel_path):
+    def set_file_results(self, file_id_by_rel_path: str):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 file['loops'] = []
                 return
         self.job_results['run_time_results'].append({'file_id_by_rel_path': file_id_by_rel_path, 'loops': []})
 
-    def get_file_results(self, file_id_by_rel_path):
+    def get_file_results(self, file_id_by_rel_path: str):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 return file
         raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def set_file_results_loops(self, file_id_by_rel_path, loops):
+    def set_file_results_loops(self, file_id_by_rel_path: str, loops):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 file['loops'] = loops
                 return
         self.job_results['run_time_results'].append({'file_id_by_rel_path': file_id_by_rel_path, 'loops': loops})
 
-    def get_file_results_loops(self, file_id_by_rel_path):
+    def get_file_results_loops(self, file_id_by_rel_path: str):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 return file['loops']
         raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def set_loop_in_file_results(self, file_id_by_rel_path, loop_label, run_time, dead_code=False, speedup=0):
+    def set_loop_in_file_results(self, file_id_by_rel_path: str, loop_label, run_time, dead_code=False, speedup=0):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 if dead_code:
@@ -128,7 +128,7 @@ class Job:
                 return
         raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def get_loop_in_file_results(self, file_id_by_rel_path, loop_label):
+    def get_loop_in_file_results(self, file_id_by_rel_path: str, loop_label):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:
@@ -136,7 +136,7 @@ class Job:
                         return loop
         raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def set_loop_speedup_in_file_results(self, file_id_by_rel_path, loop_label, speedup):
+    def set_loop_speedup_in_file_results(self, file_id_by_rel_path: str, loop_label, speedup):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:
@@ -146,7 +146,7 @@ class Job:
                 raise Exception("Loop label: " + str(loop_label) + " does not exist.")
         raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def get_loop_speedup_in_file_results(self, file_id_by_rel_path, loop_label):
+    def get_loop_speedup_in_file_results(self, file_id_by_rel_path: str, loop_label):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:
@@ -155,7 +155,7 @@ class Job:
                 raise Exception("Loop label: " + str(loop_label) + " does not exist.")
         raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def set_loop_run_time_in_file_results(self, file_id_by_rel_path, loop_label, run_time):
+    def set_loop_run_time_in_file_results(self, file_id_by_rel_path: str, loop_label, run_time):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:
@@ -165,7 +165,7 @@ class Job:
                 raise Exception("Loop label: " + str(loop_label) + " does not exist.")
         raise Exception("File in path: " + str(file_id_by_rel_path) + " does not exist.")
 
-    def get_loop_run_time_in_file_results(self, file_id_by_rel_path, loop_label):
+    def get_loop_run_time_in_file_results(self, file_id_by_rel_path: str, loop_label):
         for file in self.job_results['run_time_results']:
             if file['file_id_by_rel_path'] == file_id_by_rel_path:
                 for loop in file['loops']:

@@ -12,7 +12,8 @@ class CombinationValidator:
     UNIT_TEST_NAME = CombinationValidatorConfig.UNIT_TEST_NAME
 
     @staticmethod
-    def trigger_test_output_test(test_file_path, working_dir="", output_file_name="", check_for_existence=False):
+    def trigger_test_output_test(test_file_path: str, working_dir: str = "", output_file_name: str = "",
+                                 check_for_existence: bool = False):
         command = ["pytest"]
         command += [f"{test_file_path}::{CombinationValidator.UNIT_TEST_NAME}"]
         if working_dir:
@@ -44,12 +45,12 @@ class CombinationValidator:
         return exit_code
 
     @staticmethod
-    def run_unit_test(test_file_path, working_dir="", output_file_name=""):
+    def run_unit_test(test_file_path: str, working_dir: str = "", output_file_name: str = ""):
         return CombinationValidator.trigger_test_output_test(
             test_file_path, working_dir, output_file_name) == ExitCode.OK
 
     @staticmethod
-    def check_if_test_exists(test_file_path):
+    def check_if_test_exists(test_file_path: str):
         logger.verbose(f"{CombinationValidator.__name__}: Checking the existence of test: '"
                        f"{CombinationValidator.UNIT_TEST_NAME}'.")
         return CombinationValidator.trigger_test_output_test(

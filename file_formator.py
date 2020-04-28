@@ -5,7 +5,7 @@ import re
 from globals import FileFormatorConfig
 
 
-def format_c_code(c_files_path_list, column_limit=True):
+def format_c_code(c_files_path_list: list, column_limit: bool = True):
     style_arguments = ', '.join(FileFormatorConfig.STYLE_ARGUMENTS)
     if column_limit:
         style_arguments += f', {FileFormatorConfig.COLUMN_LIMIT_STYLE_ARGUMENT}'
@@ -24,7 +24,7 @@ def format_c_code(c_files_path_list, column_limit=True):
         raise FileError(e)
 
 
-def directives_handler(file_paths_list, back=False):
+def directives_handler(file_paths_list: list, back: bool = False):
     for file_path in file_paths_list:
         with open(file_path, 'r+') as fp:
             content = fp.read()
@@ -37,7 +37,7 @@ def directives_handler(file_paths_list, back=False):
             fp.truncate()
 
 
-def comment_directives(text):
+def comment_directives(text: str):
     lines = text.split('\n')
     new_lines = []
     for line in lines:
@@ -45,7 +45,7 @@ def comment_directives(text):
     return '\n'.join(new_lines)
 
 
-def uncomment_directives(text):
+def uncomment_directives(text: str):
     lines = text.split('\n')
     new_lines = []
     for line in lines:

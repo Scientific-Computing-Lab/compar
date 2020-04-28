@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 class JobExecutor:
 
-    def __init__(self, number_of_threads=1):
+    def __init__(self, number_of_threads: int = 1):
         self.number_of_threads = number_of_threads
         self.db_lock = RLock()
         self.pool = None
