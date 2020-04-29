@@ -454,6 +454,7 @@ class Compar:
         self.format_c_files([file_dict['file_full_path'] for file_dict in
                              self.make_absolute_file_list(final_folder_path)])
         self.db.remove_unused_data(Database.COMPAR_COMBINATION_ID)
+        self.db.remove_unused_data(Database.FINAL_RESULTS_COMBINATION_ID)
         if self.clear_db:
             self.clear_related_collections()
         self.db.close_connection()
