@@ -2,23 +2,19 @@ import os
 import re
 import subprocess
 import time
-
-from database import Database
 from exceptions import FileError
 from subprocess_handler import run_subprocess
 from timer import Timer
 import traceback
 import logger
-from unit_test import UnitTest
+from combination_validator import CombinationValidator
+from globals import ExecuteJobConfig, MakefileConfig, GlobalsConfig, TimerConfig
 
 
 class ExecuteJob:
 
-    CHECK_SQUEUE_SECOND_TIME = 30
-    TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME = 300
-
-    def __init__(self, job, num_of_loops_in_files, db, db_lock, serial_run_time, relative_c_file_list,
-                 slurm_partition, test_file_path, time_limit=None):
+    def __init__(self, job, num_of_loops_in_files: dict, db, db_lock, serial_run_time: dict, relative_c_file_list: list,
+                 slurm_partition: str, test_file_path: str, time_limit=None):
         self.job = job
         self.num_of_loops_in_files = num_of_loops_in_files
         self.db = db
@@ -42,7 +38,7 @@ class ExecuteJob:
         self.db.insert_new_combination_results(job_result_dict)
         self.db_lock.release()
 
-    def save_combination_as_failure(self, error_msg):
+    def save_combination_as_failure(self, error_msg: str):
         combination_dict = {
             '_id': self.job.combination.combination_id,
             'error': error_msg
@@ -59,7 +55,7 @@ class ExecuteJob:
                     try:
                         if 'dead_code' not in loop_dict.keys():
                             if not self.serial_run_time_dict:  # it is serial running
-                                loop_dict['speedup'] = 1.0
+                                loop_dict['speedup'] = ExecuteJobConfig.SERIAL_SPEEDUP
                             else:
                                 serial_run_time_key = (file_dict['file_id_by_rel_path'], loop_dict['loop_label'])
                                 serial_run_time = float(self.serial_run_time_dict[serial_run_time_key])
@@ -75,15 +71,15 @@ class ExecuteJob:
                             error_msg = file_dict['missing_data'] + f'\n{error_msg}'
                         file_dict['missing_data'] = error_msg
 
-    def run(self, user_slurm_parameters):
+    def run(self, user_slurm_parameters: list):
         try:
             self.__run_with_sbatch(user_slurm_parameters)
             self.__analyze_job_exit_code()
             self.__analysis_output_file()
             self.update_dead_code_files()
             self.save_successful_job()
-            if not UnitTest.run_unit_test(self.test_file_path, self.get_job().get_directory_path(),
-                                          f"{self.get_job().get_directory_name()}.log"):
+            if not CombinationValidator.run_unit_test(self.test_file_path, self.get_job().get_directory_path(),
+                                                      f"{self.get_job().get_directory_name()}.log"):
                 self.db.set_error_in_combination(self.job.combination.combination_id, "Unit test failed.")
         except Exception as ex:
             if self.job.get_job_results()['run_time_results']:
@@ -99,15 +95,15 @@ class ExecuteJob:
             if file_id not in results_file_ids:
                 job_results.append({'file_id_by_rel_path': file_id, 'dead_code_file': True})
 
-    def __run_with_sbatch(self, user_slurm_parameters):
+    def __run_with_sbatch(self, user_slurm_parameters: list):
         logger.info(f'Start running combination #{self.get_job().get_combination().get_combination_id()}')
         slurm_parameters = user_slurm_parameters
         dir_path = self.get_job().get_directory_path()
         dir_name = os.path.basename(dir_path)
-        x_file = dir_name + ".x"
+        x_file = dir_name + MakefileConfig.EXE_FILE_EXTENSION
         sbatch_script_file = self.__make_sbatch_script_file(x_file)
 
-        log_file = dir_name + ".log"
+        log_file = dir_name + GlobalsConfig.LOG_EXTENSION
         x_file_path = os.path.join(dir_path, x_file)
         log_file_path = os.path.join(dir_path, log_file)
         slurm_parameters = " ".join(slurm_parameters)
@@ -117,8 +113,6 @@ class ExecuteJob:
         stdout = ""
         batch_job_sent = False
         while not batch_job_sent:
-            # TODO: add timeout instead of batch_job_sent var
-            stderr = ''
             try:
                 stdout, stderr, ret_code = run_subprocess(cmd)
                 batch_job_sent = True
@@ -126,7 +120,7 @@ class ExecuteJob:
                 logger.info_error(f'Exception at {ExecuteJob.__name__}: {ex}\n{ex.output}\n{ex.stderr}')
                 logger.debug_error(f'{traceback.format_exc()}')
                 logger.info_error('sbatch command not responding (slurm is down?)')
-                time.sleep(ExecuteJob.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
+                time.sleep(ExecuteJobConfig.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
         result = stdout
         # set job id
         result = re.findall('[0-9]', str(result))
@@ -153,24 +147,24 @@ class ExecuteJob:
                 except IndexError:
                     if not is_finish:
                         logger.info_error(f'Warning: check the squeue command output: {stdout} {stderr}')
-                        time.sleep(ExecuteJob.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
+                        time.sleep(ExecuteJobConfig.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
                         continue
                 if current_status != last_status and current_status != '':
                     logger.info(f'Job {self.get_job().get_job_id()} status is {current_status}')
                     last_status = current_status
                 if not is_finish and not is_first_time:
                     # not is_first_time - some times the job go to COMPLETE immediately (fast running)
-                    time.sleep(ExecuteJob.CHECK_SQUEUE_SECOND_TIME)
+                    time.sleep(ExecuteJobConfig.CHECK_SQUEUE_SECOND_TIME)
                 if is_first_time:
                     is_first_time = False
             except subprocess.CalledProcessError as ex:  # squeue command not responding (slurm is down?)
                 logger.info_error(f'Exception at {ExecuteJob.__name__}: {ex}\n{ex.stdout}\n{ex.stderr}')
                 logger.debug_error(f'{traceback.format_exc()}')
                 logger.info_error('squeue command not responding (slurm is down?)')
-                time.sleep(ExecuteJob.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
+                time.sleep(ExecuteJobConfig.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
         logger.info(f'Job {self.get_job().get_job_id()} status is COMPLETE')
 
-    def __make_sbatch_script_file(self, job_name=''):
+    def __make_sbatch_script_file(self, job_name: str = ''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')
         batch_file = open(batch_file_path, 'w')
         command = '#!/bin/bash\n'
@@ -195,17 +189,19 @@ class ExecuteJob:
                     with open(total_runtime_file_path, 'r') as f:
                         self.get_job().set_total_run_time(float(f.read()))
                 # loops runtime analysis
-                if re.search("_run_time_result.txt$", file):
+                if re.search(f"{TimerConfig.LOOPS_RUNTIME_RESULTS_SUFFIX}$", file):
                     loops_dict = {}
                     file_full_path = os.path.join(root, file)
                     file_id_by_rel_path = os.path.relpath(file_full_path, self.job.directory)
-                    file_id_by_rel_path = file_id_by_rel_path.replace("_run_time_result.txt", ".c")
+                    file_id_by_rel_path = file_id_by_rel_path.replace(
+                        f"{TimerConfig.LOOPS_RUNTIME_RESULTS_SUFFIX}", ".c")
                     self.get_job().set_file_results(file_id_by_rel_path)
                     try:
                         with open(file_full_path, 'r') as input_file:
                             for line in input_file:
-                                if ":" in line:
-                                    loop_label, loop_runtime = line.replace('\n', '').split(':')
+                                if TimerConfig.LOOPS_RUNTIME_SEPARATOR in line:
+                                    loop_label, loop_runtime = line.replace('\n', '').split(
+                                        TimerConfig.LOOPS_RUNTIME_SEPARATOR)
                                     loop_runtime = float(loop_runtime)
                                     loops_dict[loop_label] = loop_runtime
                         ran_loops = list(loops_dict.keys())

@@ -3,7 +3,7 @@ import os
 import logger
 
 
-def run_subprocess(command, cwd=os.curdir):
+def run_subprocess(command: list or str, cwd: str = os.curdir):
     if isinstance(command, list):
         command = " ".join(command)
     logger.verbose(f'Running {command} command')

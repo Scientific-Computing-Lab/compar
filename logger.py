@@ -18,7 +18,7 @@ def get_log_level():
     return _log_level
 
 
-def initialize(log_level, output_folder_path):
+def initialize(log_level: int, output_folder_path: str):
     global _log_level, _output_folder_path
     _log_level = log_level
     if os.path.exists(output_folder_path):
@@ -30,7 +30,7 @@ def initialize(log_level, output_folder_path):
     logging.debug('-' * 50)
 
 
-def info(message):
+def info(message: str):
     logging.debug(message)
     if _log_level != NO_OUTPUT:
         print_lock.acquire()
@@ -38,7 +38,7 @@ def info(message):
         print_lock.release()
 
 
-def verbose(message):
+def verbose(message: str):
     logging.debug(message)
     if _log_level in (VERBOSE, DEBUG):
         print_lock.acquire()
@@ -46,7 +46,7 @@ def verbose(message):
         print_lock.release()
 
 
-def debug(message):
+def debug(message: str):
     logging.debug(message)
     if _log_level == DEBUG:
         print_lock.acquire()
@@ -54,7 +54,7 @@ def debug(message):
         print_lock.release()
 
 
-def info_error(message):
+def info_error(message: str):
     logging.debug(message)
     if _log_level != NO_OUTPUT:
         print_lock.acquire()
@@ -62,7 +62,7 @@ def info_error(message):
         print_lock.release()
 
 
-def verbose_error(message):
+def verbose_error(message: str):
     logging.debug(message)
     if _log_level in (VERBOSE, DEBUG):
         print_lock.acquire()
@@ -70,7 +70,7 @@ def verbose_error(message):
         print_lock.release()
 
 
-def debug_error(message):
+def debug_error(message: str):
     logging.debug(message)
     if _log_level == DEBUG:
         print_lock.acquire()
@@ -78,7 +78,7 @@ def debug_error(message):
         print_lock.release()
 
 
-def log_to_file(message, file_path, append=False):
+def log_to_file(message: str, file_path: str, append: bool = False):
     mode = 'a' if append else 'w'
     try:
         print_lock.acquire()

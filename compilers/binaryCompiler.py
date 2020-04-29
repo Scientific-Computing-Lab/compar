@@ -9,25 +9,26 @@ import logger
 class BinaryCompiler(Compiler):
     NAME = ''
 
-    def __init__(self, compiler_name, version, compilation_flags=None, input_file_directory=None, main_c_file=None):
+    def __init__(self, compiler_name: str, version: str, compilation_flags: list = None,
+                 input_file_directory: str = None, main_c_file: str = None):
         super().__init__(version, compilation_flags, input_file_directory)
         self._compiler_name = compiler_name
         self._main_c_file = main_c_file
 
-    def initiate_for_new_task(self, compilation_flags, input_file_directory, main_c_file):
+    def initiate_for_new_task(self, compilation_flags: list, input_file_directory: str, main_c_file: str):
         super().initiate_for_new_task(compilation_flags, input_file_directory)
         self.set_main_c_file(main_c_file)
 
     def get_compiler_name(self):
         return self._compiler_name
 
-    def set_compiler_name(self, compiler_name):
+    def set_compiler_name(self, compiler_name: str):
         self._compiler_name = compiler_name
 
     def get_main_c_file(self):
         return self._main_c_file
 
-    def set_main_c_file(self, main_c_file):
+    def set_main_c_file(self, main_c_file: str):
         self._main_c_file = main_c_file
 
     def compile(self):

@@ -2,7 +2,7 @@
 class Parameters:
 
     @staticmethod
-    def json_to_obj(parameters_json):
+    def json_to_obj(parameters_json: dict):
         return Parameters(omp_directives_params=parameters_json['omp_directives_params'],
                           omp_rtl_params=parameters_json['omp_rtl_params'],
                           compilation_params=parameters_json['compilation_params'])

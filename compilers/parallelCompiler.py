@@ -6,22 +6,23 @@ import subprocess
 import logger
 import json
 import os
+from globals import GlobalsConfig, ParallelCompilerConfig
 
 
 class ParallelCompiler(Compiler, ABC):
     NAME = ''
 
-    def __init__(self, version, input_file_directory=None, compilation_flags=None, file_list=None,
-                 include_dirs_list=None, **kwargs):
-        super().__init__(version, input_file_directory, compilation_flags)
+    def __init__(self, version: str, compilation_flags: list = None, input_file_directory: str = None,
+                 file_list: list = None, include_dirs_list: list = None, **kwargs):
+        super().__init__(version, compilation_flags, input_file_directory)
         self._file_list = file_list
         self.include_dirs_list = include_dirs_list
 
-    def initiate_for_new_task(self, compilation_flags, input_file_directory, file_list):
+    def initiate_for_new_task(self, compilation_flags: list, input_file_directory: str, file_list: list):
         super().initiate_for_new_task(compilation_flags, input_file_directory)
         self.set_file_list(file_list)
 
-    def set_file_list(self, file_list):
+    def set_file_list(self, file_list: list):
         self._file_list = file_list
 
     def get_file_list(self):
@@ -33,8 +34,8 @@ class ParallelCompiler(Compiler, ABC):
         if not self.get_input_file_directory():
             raise CompilationError("Missing working directory!")
 
-    def __run_user_script(self, script_name):
-        json_script_file_path = os.path.join('assets', script_name)
+    def __run_user_script(self, script_name: str):
+        json_script_file_path = os.path.join(GlobalsConfig.ASSETS_DIR_PATH, script_name)
         if os.path.exists(json_script_file_path):
             with open(json_script_file_path, 'r') as f:
                 json_content = json.load(f)
@@ -52,7 +53,7 @@ class ParallelCompiler(Compiler, ABC):
                         logger.info_error(e.stderr)
 
     def pre_processing(self, **kwargs):
-        self.__run_user_script('pre_processing.json')
+        self.__run_user_script(ParallelCompilerConfig.PRE_PROCESSING_FILE_NAME)
 
     def post_processing(self, **kwargs):
-        self.__run_user_script('post_processing.json')
+        self.__run_user_script(ParallelCompilerConfig.POST_PROCESSING_FILE_NAME)

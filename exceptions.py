@@ -1,9 +1,10 @@
 import os
 import json
 import compar
-from unit_test import UnitTest
+from combination_validator import CombinationValidator
 import combinator
 import jsonschema
+from globals import ExceptionConfig, GlobalsConfig
 
 
 class FileError(Exception):
@@ -58,58 +59,58 @@ class DeadCodeFile(Exception):
     pass
 
 
-def assert_file_exist(file_path):
+def assert_file_exist(file_path: str):
     if not os.path.exists(file_path):
         raise FileError(f'File {file_path} not exist')
 
 
-def assert_file_from_format(file_path, _format):
+def assert_file_from_format(file_path: str, _format: str):
     if not os.path.basename(file_path).split('.')[1].endswith(_format):
         raise FileError(f'File {file_path} should be in {_format} format')
 
 
-def assert_file_is_empty(file):
+def assert_file_is_empty(file: str):
     if not file:
         raise FileError(f'File {file} is empty')
 
 
-def assert_only_files(folder_path):
+def assert_only_files(folder_path: str):
     folder_content = os.listdir(folder_path)
     if len(folder_content) != len(list(filter(os.path.isfile,
                                               [os.path.join(folder_path, file) for file in folder_content]))):
         raise UserInputError('Input dir must contain only files!')
 
 
-def assert_rel_path_starts_without_sep(path):
+def assert_rel_path_starts_without_sep(path: str):
     if path.startswith(os.sep):
         raise UserInputError('Relative path should not start with separator!')
 
 
-def assert_forbidden_characters(path):
+def assert_forbidden_characters(path: str):
     forbidden_characters = ["{", "}"]
     for char in forbidden_characters:
         if char in path:
             raise UserInputError(f'Path cannot contain any char from: {forbidden_characters}')
 
 
-def assert_test_file_name(test_file_name):
-    if test_file_name != UnitTest.UNIT_TEST_FILE_NAME:
-        raise UserInputError(f'Unit test file must be named as: {UnitTest.UNIT_TEST_FILE_NAME}!')
+def assert_test_file_name(test_file_name: str):
+    if test_file_name != CombinationValidator.UNIT_TEST_FILE_NAME:
+        raise UserInputError(f'Unit test file must be named as: {CombinationValidator.UNIT_TEST_FILE_NAME}!')
 
 
-def assert_test_file_function_name(test_file_path):
-    if not UnitTest.check_if_test_exists(test_file_path):
-        raise UserInputError(f'Unit test file must contain test named: "{UnitTest.UNIT_TEST_NAME}"!')
+def assert_test_file_function_name(test_file_path: str):
+    if not CombinationValidator.check_if_test_exists(test_file_path):
+        raise UserInputError(f'Unit test file must contain test named: "{CombinationValidator.UNIT_TEST_NAME}"!')
 
 
-def assert_original_files_folder_exists(working_directory):
+def assert_original_files_folder_exists(working_directory: str):
     original_files_path = os.path.join(working_directory, compar.Compar.ORIGINAL_FILES_FOLDER_NAME)
     if not os.path.exists(original_files_path):
         raise UserInputError(f'Original files folder from the last Compar operation must be exist in'
                              f' {working_directory}')
 
 
-def assert_folder_exist(folder_path):
+def assert_folder_exist(folder_path: str):
     if not os.path.exists(folder_path):
         raise FolderError(f'Folder {folder_path} not exist')
 
@@ -121,7 +122,8 @@ def assert_allowed_directive_type(directive_type: str):
 
 
 def assert_user_json_structure():
-    with open('assets/parameters_json_schema.json', 'r') as fp:
+    schema_file_path = os.path.join(GlobalsConfig.ASSETS_DIR_PATH, ExceptionConfig.PARAMETERS_SCHEMA_FILE_NAME)
+    with open(schema_file_path, 'r') as fp:
         json_schema = json.load(fp)
     args_for_validation_func = (
         (json_schema['compilation'], combinator.COMPILATION_PARAMS_FILE_PATH),
@@ -132,7 +134,7 @@ def assert_user_json_structure():
         assert_params_json_is_valid(*args)
 
 
-def assert_params_json_is_valid(json_schema, json_path):
+def assert_params_json_is_valid(json_schema: dict, json_path: str):
     assert_file_exist(json_path)
     with open(json_path, 'r') as fp:
         params_json = json.load(fp)

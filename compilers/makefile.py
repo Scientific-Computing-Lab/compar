@@ -4,10 +4,13 @@ import shutil
 from exceptions import MakefileError, CombinationFailure, CompilationError
 from subprocess_handler import run_subprocess
 import logger
+from globals import MakefileConfig
 
 
 class Makefile:
-    def __init__(self, working_directory, exe_folder_relative_path, exe_file_name, commands):
+    NAME = 'Makefile'
+
+    def __init__(self, working_directory: str, exe_folder_relative_path: str, exe_file_name: str, commands: list):
         if not os.path.exists(working_directory):
             raise MakefileError(f'{working_directory} is not exist!')
         if len(commands) < 1:
@@ -46,7 +49,7 @@ class Makefile:
         if not os.path.exists(exe_path):
             raise MakefileError(f'{exe_path} is not exist!')
         working_dir_name = os.path.basename(os.path.dirname(self.working_directory + os.path.sep))
-        exe_new_name = f'{working_dir_name}.x'
+        exe_new_name = f'{working_dir_name}{MakefileConfig.EXE_FILE_EXTENSION}'
         exe_type_x_path = os.path.join(exe_folder_full_path, exe_new_name)
         exe_new_path = os.path.join(self.working_directory, exe_new_name)
         os.rename(exe_path, exe_type_x_path)

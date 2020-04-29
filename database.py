@@ -5,28 +5,40 @@ import logger
 import traceback
 import hashlib
 import getpass
-import compar
-from combination import Combination
 from combinator import generate_combinations
+from globals import ComparMode, DatabaseConfig
 
 
 class Database:
 
-    STATIC_DB_NAME = "compar_combinations"
-    DYNAMIC_DB_NAME = "compar_results"
-    DB = "mongodb://10.10.10.120:27017"
-    SERIAL_COMBINATION_ID = 'serial'
-    SERIAL_COMPILER_NAME = 'serial'
+    SERIAL_COMBINATION_ID = DatabaseConfig.SERIAL_COMBINATION_ID
+    COMPAR_COMBINATION_ID = DatabaseConfig.COMPAR_COMBINATION_ID
+    FINAL_RESULTS_COMBINATION_ID = DatabaseConfig.FINAL_RESULTS_COMBINATION_ID
 
-    def __init__(self, collection_name, mode):
+    @staticmethod
+    def generate_combination_id(combination: dict):
+        fields = [f'compiler_name:{combination["compiler_name"]}']
+        omp_rtl_params = combination['parameters']['omp_rtl_params']
+        for omp_rtl_param in omp_rtl_params:
+            fields.append(f'omp_rtl_params:{omp_rtl_param}')
+        omp_directives_params = combination['parameters']['omp_directives_params']
+        for omp_directives_param in omp_directives_params:
+            fields.append(f'omp_directives_params:{omp_directives_param}')
+        compilation_params = combination['parameters']['compilation_params']
+        for compilation_param in compilation_params:
+            fields.append(f'compilation_params:{compilation_param}')
+        fields.sort()
+        return hashlib.sha3_384(str(fields).encode()).hexdigest()
+
+    def __init__(self, collection_name: str, mode):
         collection_name = f"{getpass.getuser()}_{collection_name}"
         logger.info(f'Initializing {collection_name} databases')
         self.mode = mode
         try:
             self.collection_name = collection_name
-            self.connection = pymongo.MongoClient(self.DB)
-            self.static_db = self.connection[self.STATIC_DB_NAME]
-            self.dynamic_db = self.connection[self.DYNAMIC_DB_NAME]
+            self.connection = pymongo.MongoClient(DatabaseConfig.SERVER_ADDRESS)
+            self.static_db = self.connection[DatabaseConfig.STATIC_DB_NAME]
+            self.dynamic_db = self.connection[DatabaseConfig.DYNAMIC_DB_NAME]
 
             if self.collection_name in self.static_db.list_collection_names():
                 self.static_db.drop_collection(self.collection_name)
@@ -34,7 +46,7 @@ class Database:
             self.static_db.create_collection(self.collection_name)
             self.initialize_static_db()
 
-            if self.mode != compar.ComparMode.CONTINUE:
+            if self.mode != ComparMode.CONTINUE:
                 if self.collection_name in self.dynamic_db.list_collection_names():
                     self.dynamic_db.drop_collection(self.collection_name)
                 self.dynamic_db.create_collection(self.collection_name)
@@ -45,8 +57,8 @@ class Database:
                            ids_in_static + [self.SERIAL_COMBINATION_ID]]
                 self.dynamic_db[self.collection_name].delete_many({'_id': {'$in': old_ids}})
                 del ids_in_static, ids_in_dynamic, old_ids
-                self.dynamic_db[self.collection_name].delete_one({'_id': Combination.COMPAR_COMBINATION_ID})
-                self.dynamic_db[self.collection_name].delete_one({'_id': Combination.FINAL_RESULTS_COMBINATION_ID})
+                self.dynamic_db[self.collection_name].delete_one({'_id': Database.COMPAR_COMBINATION_ID})
+                self.dynamic_db[self.collection_name].delete_one({'_id': Database.FINAL_RESULTS_COMBINATION_ID})
         except Exception as e:
             raise DatabaseError(str(e) + "\nFailed to initialize DB!")
 
@@ -74,7 +86,7 @@ class Database:
     def close_connection(self):
         self.connection.close()
 
-    def combination_has_results(self, combination_id):
+    def combination_has_results(self, combination_id: str):
         return self.get_combination_results(combination_id) is not None
 
     def combinations_iterator(self):
@@ -84,10 +96,10 @@ class Database:
                     continue
                 yield combination
         except Exception:
-            logger.info_error(f"Execption at {Database.__name__}: get_next_combination")
+            logger.info_error(f"Exception at {Database.__name__}: get_next_combination")
             raise
 
-    def insert_new_combination_results(self, combination_result):
+    def insert_new_combination_results(self, combination_result: dict):
         try:
             self.dynamic_db[self.collection_name].insert_one(combination_result)
             return True
@@ -96,7 +108,7 @@ class Database:
             logger.debug_error(f'{traceback.format_exc()}')
             return False
 
-    def delete_combination(self, combination_id):
+    def delete_combination(self, combination_id: str):
         try:
             self.dynamic_db[self.collection_name].delete_one({"_id": combination_id})
             return True
@@ -105,7 +117,7 @@ class Database:
             logger.debug_error(f'{traceback.format_exc()}')
             return False
 
-    def find_optimal_loop_combination(self, file_id_by_rel_path, loop_label):
+    def find_optimal_loop_combination(self, file_id_by_rel_path: str, loop_label: str):
         best_speedup = 1
         best_combination_id = self.SERIAL_COMBINATION_ID
         best_loop = None
@@ -145,7 +157,7 @@ class Database:
             raise MissingDataError(f'Cannot find any loop in db, loop: {loop_label}, file: {file_id_by_rel_path}')
         return best_combination_id, best_loop
 
-    def get_combination_results(self, combination_id):
+    def get_combination_results(self, combination_id: str):
         combination = None
         try:
             combination = self.dynamic_db[self.collection_name].find_one({"_id": combination_id})
@@ -155,12 +167,12 @@ class Database:
         finally:
             return combination
 
-    def get_combination_from_static_db(self, combination_id):
+    def get_combination_from_static_db(self, combination_id: str):
         combination = None
         if combination_id == self.SERIAL_COMBINATION_ID:
             return {
                 "_id": Database.SERIAL_COMBINATION_ID,
-                "compiler_name": Database.SERIAL_COMPILER_NAME,
+                "compiler_name": Database.SERIAL_COMBINATION_ID,
                 "parameters": {
                     "omp_rtl_params": [],
                     "omp_directives_params": [],
@@ -183,10 +195,10 @@ class Database:
             raise NoOptimalCombinationError("All Compar combinations finished with error.")
         return best_combination["_id"]
 
-    def remove_unused_data(self, combination_id):
+    def remove_unused_data(self, combination_id: str):
         self.dynamic_db[self.collection_name].update({"_id": combination_id}, {'$unset': {'run_time_results': ""}})
 
-    def set_error_in_combination(self, combination_id, error):
+    def set_error_in_combination(self, combination_id: str, error: str):
         self.dynamic_db[self.collection_name].update_one(
             filter={
                 '_id': combination_id,
@@ -203,18 +215,3 @@ class Database:
             self.static_db.drop_collection(self.collection_name)
         if self.collection_name in self.dynamic_db.list_collection_names():
             self.dynamic_db.drop_collection(self.collection_name)
-
-    @staticmethod
-    def generate_combination_id(combination):
-        fields = [f'compiler_name:{combination["compiler_name"]}']
-        omp_rtl_params = combination['parameters']['omp_rtl_params']
-        for omp_rtl_param in omp_rtl_params:
-            fields.append(f'omp_rtl_params:{omp_rtl_param}')
-        omp_directives_params = combination['parameters']['omp_directives_params']
-        for omp_directives_param in omp_directives_params:
-            fields.append(f'omp_directives_params:{omp_directives_param}')
-        compilation_params = combination['parameters']['compilation_params']
-        for compilation_param in compilation_params:
-            fields.append(f'compilation_params:{compilation_param}')
-        fields.sort()
-        return hashlib.sha3_384(str(fields).encode()).hexdigest()
