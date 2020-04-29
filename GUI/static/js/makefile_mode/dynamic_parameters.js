@@ -77,7 +77,7 @@ function appendChilds(mapName, divName){
 
 function updateItem(mapName){
     mapValuesArray = Array.from(mapDictionary[mapName].values())
-    if mapsWithApostrophes.includes(mapName){
+    if (mapsWithApostrophes.includes(mapName)){
         mapValuesArray = mapValuesArray.map(x => "'" + x + "'")
     }
     arrayAsText = Array.from(mapValuesArray).join(' ');
