@@ -312,14 +312,14 @@ def download_result_file():
 
 @app.route('/showFilesStructure', methods=['get'])
 def show_files_structure():
-    result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
+    result_file_path = os.path.join(session['working_dir'], 'final_results')
     return_code = session.get('return_code')
     if return_code is None:
         return_code = 0
     if return_code != 0 or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(
             result_file_path):
         return jsonify({"text": "Compar failed. Check the output log for more information."})
-    return jsonify({"text": result_file_path})
+    return jsonify({"text": f"Compar successfully finished. You can find Compar results here: {result_file_path}"})
 
 
 def generate_compar_command_without_makefile():
