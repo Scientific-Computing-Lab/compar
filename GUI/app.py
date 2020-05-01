@@ -318,8 +318,8 @@ def show_files_structure():
         return_code = 0
     if return_code != 0 or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(
             result_file_path):
-        return jsonify({"text": "Compar failed. Check the output log for more information."})
-    return jsonify({"text": f"Compar successfully finished. You can find Compar results here: {result_file_path}"})
+        return jsonify({"success": 0, "text": "Compar failed.\nCheck the output log for more information."})
+    return jsonify({"success": 1, "text": f"Compar successfully finished.\nResults can be found at the following directory:", "path": result_file_path})
 
 
 def generate_compar_command_without_makefile():

@@ -71,7 +71,7 @@ div {
 .output-log {
     background: #282a36;
     border: 2px solid gray;
-    height: 50%;
+    height: 70%;
     width: 100%;
     margin-top: 8px;
 }
@@ -79,8 +79,9 @@ div {
 .output-folder {
     background: #282a36;
     border: 2px solid gray;
-    height: 50%;
+    height: 30%;
     width: 100%;
+    white-space: pre-wrap;
 }
 
 
@@ -365,4 +366,21 @@ nav {
     font-weight: bold;
     font-size: 24px;
     padding: 0px 4px;
+}
+
+.success {
+    color: green;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.fail {
+    color: red;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.result-path {
+    font-weight: bold;
+    font-size: 19px;
 }
