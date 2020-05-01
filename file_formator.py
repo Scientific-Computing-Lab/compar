@@ -30,11 +30,16 @@ def directives_handler(file_paths_list: list, back: bool = False):
             content = fp.read()
             if back:
                 content = uncomment_directives(content)
+                content = fix_colon_in_pragma(content)
             else:
                 content = comment_directives(content)
             fp.seek(0)
             fp.write(content)
             fp.truncate()
+
+
+def fix_colon_in_pragma(text):
+    return re.sub(r'[ \t]*\\[ \t]*\n[ \t]*:[ \t]*', ':', text)
 
 
 def comment_directives(text: str):
