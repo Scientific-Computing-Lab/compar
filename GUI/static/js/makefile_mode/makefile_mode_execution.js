@@ -56,7 +56,50 @@ async function run() {
         return response.json();
       })
       .then((data) => {
-        document.getElementById("outputFolder").innerHTML = data['text'];
+          if(data['success'] === 1)
+          {
+              var message = document.createElement('div');
+              message.innerHTML += data['text'];
+              message.classList.add('success');
+
+              var result = document.createElement('div');
+              result.classList.add('flex-row');
+              result.style.marginTop= '12px';
+              result.style.alignItems = 'center';
+
+              var directoryImage = document.createElement('img');
+              directoryImage.setAttribute('src', "/static/assets/directory.png");
+              directoryImage.setAttribute('alt', 'NA');
+              directoryImage.height = '35';
+              directoryImage.width = '35';
+
+              var path = document.createElement('div');
+              path.innerHTML += data['path'];
+              path.classList.add('result-path');
+              path.style.marginLeft = '12px';
+
+              result.appendChild(directoryImage);
+              result.appendChild(path);
+
+              document.getElementById("outputFolder").appendChild(message);
+              document.getElementById("outputFolder").appendChild(result);
+          }
+          else
+          {
+              var message = document.createElement('div');
+              message.innerHTML += data['text'];
+              message.classList.add('fail');
+
+              var directoryImage = document.createElement('img');
+              directoryImage.setAttribute('src', "/static/assets/sad.png");
+              directoryImage.setAttribute('alt', 'NA');
+              directoryImage.height = '35';
+              directoryImage.width = '35';
+
+              document.getElementById("outputFolder").appendChild(message);
+              document.getElementById("outputFolder").appendChild(directoryImage);
+
+          }
       });
 
       comparIsRunning = false;
