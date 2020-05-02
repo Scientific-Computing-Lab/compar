@@ -319,7 +319,9 @@ def show_files_structure():
     if return_code != 0 or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(
             result_file_path):
         return jsonify({"success": 0, "text": "Compar failed.\nCheck the output log for more information."})
-    return jsonify({"success": 1, "text": f"Compar successfully finished.\nResults can be found at the following directory:", "path": result_file_path})
+    return jsonify({"success": 1,
+                    "text": f"Compar successfully finished.\nResults can be found at the following directory:",
+                    "path": result_file_path})
 
 
 @app.route('/favicon.ico')

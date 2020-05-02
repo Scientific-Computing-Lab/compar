@@ -37,8 +37,8 @@ function handleErrors(errors){
     else{
         document.getElementById('slurmPartitionAlert').innerHTML = "";
     }
-    if( error && erros.executable_path){
-        document.getElementById('executablePathAlert').innerHTML = errors.slurm_partition;
+    if( errors && errors.executable_path){
+        document.getElementById('executablePathAlert').innerHTML = errors.executable_path;
     }
     else {
         document.getElementById('executablePathAlert').innerHTML = "";
