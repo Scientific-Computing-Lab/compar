@@ -25,7 +25,7 @@
         <div class="navtitle">Compar</div>
         <div class="separator"></div>
         <a href="/singlefile" id="singlemod" class="ref">Single File Mode</a>
-        <a href="/multiplefiles" class="seperate ref">Multiple files Mode</a>
+        <a href="/multiplefiles" class="seperate ref">Multiple Files Mode</a>
         <a href="/makefile" class="seperate ref">Makefile Mode</a>
     </nav>
     <form method="POST" action="/singlefile"  enctype="multipart/form-data" id="form" novalidate>
@@ -53,12 +53,12 @@
                             <div id="compiler-flags-list"></div>
                             <div class="horizontal-separator"></div>
                             <div class="form-title">Binary compiler version:</div>
-                                <div style="color: red;" id="compilerVersionAlert">{{ error }}</div>
+                                <div style="color: red;" id="compilerVersionAlert"></div>
                             {{ form.compiler_version }}
                             <div class="horizontal-separator"></div>
                             <div class="form-title">Slurm partition:</div>
                             {{ form.slurm_partition(id="slurm_part") }}
-                            <div style="color: red;" id="slurmPartitionAlert">{{ error }}</div>
+                            <div style="color: red;" id="slurmPartitionAlert"></div>
                             <div class="horizontal-separator"></div>
                             <div style="align-items: center" class="flex-row">
                                 <div class="form-title">Save combination folders:</div>
@@ -94,7 +94,7 @@
                                 </div>
                             </div>
                             {{ form.jobs_count }}
-                            <div style="color: red;" id="jobsCountAlert">{{ error }}</div>
+                            <div style="color: red;" id="jobsCountAlert"></div>
                             <div class="horizontal-separator"></div>
                             <div class="flex-row-spaced">
                                 <div class="form-title">Execution time limit:</div>

@@ -20,7 +20,7 @@
         <div class="navtitle">Compar</div>
         <div class="separator"></div>
         <a href="/singlefile" class="ref">Single File Mode</a>
-        <a href="/multiplefiles" class="seperate ref">Multiple files Mode</a>
+        <a href="/multiplefiles" class="seperate ref">Multiple Files Mode</a>
         <a href="/makefile" id="makefilemode" class="seperate ref">Makefile Mode</a>
     </nav>
     <form method="POST" action="/makefile"  enctype="multipart/form-data" id="form" novalidate>
@@ -43,7 +43,7 @@
                             </div>
                         </div>
                         {{ form.input_directory }}
-                        <div style="color: red;" id="inputDirectoryAlert">{{ error }}</div>
+                        <div style="color: red;" id="inputDirectoryAlert"></div>
                         <div class="horizontal-separator"></div>
                         <div class="flex-row-spaced">
                             <div class="form-title">Output directory:</div>
@@ -52,7 +52,7 @@
                             </div>
                         </div>
                         {{ form.output_directory }}
-                        <div style="color: red;" id="outputDirectoryAlert">{{ error }}</div>
+                        <div style="color: red;" id="outputDirectoryAlert"></div>
                         <div class="horizontal-separator"></div>
                         <div class="flex-row-spaced">
                             <div class="form-title">Main c file:</div>
@@ -61,7 +61,7 @@
                             </div>
                         </div>
                         {{ form.main_file_path }}
-                        <div style="color: red;" id="mainFileAlert">{{ error }}</div>
+                        <div style="color: red;" id="mainFileAlert"></div>
                         <div class="horizontal-separator"></div>
                         <div class="form-title">Makefile commands:</div>
                         <div style="align-items: center" class="flex-row">
@@ -69,7 +69,7 @@
                             <button type="button" onclick="addItem('makefileCommands','makefile_commands', 'makefile_commands_list')" class="mybutton positive">+</button>
                         </div>
                         <div id="makefile_commands_list"></div>
-                        <div style="color: red;" id="makefileCommandsAlert">{{ error }}</div>
+                        <div style="color: red;" id="makefileCommandsAlert"></div>
                         <div class="horizontal-separator"></div>
                         <div class="flex-row-spaced">
                             <div class="form-title">Executable relative path:</div>
@@ -78,7 +78,7 @@
                             </div>
                         </div>
                         {{ form.executable_path }}
-                        <div style="color: red;" id="executablePathAlert">{{ error }}</div>
+                        <div style="color: red;" id="executablePathAlert"></div>
                         <div class="horizontal-separator"></div>
                         <div class="flex-row-spaced">
                             <div class="form-title">Executable file name:</div>
@@ -87,7 +87,7 @@
                             </div>
                         </div>
                         {{ form.executable_file_name }}
-                        <div style="color: red;" id="executableFileName">{{ error }}</div>
+                        <div style="color: red;" id="executableFileName"></div>
                         <div class="horizontal-separator"></div>
                         <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
                             <div id="advanced">
@@ -129,7 +129,7 @@
                                 <div class="horizontal-separator"></div>
                                  <div class="form-title">Slurm partition:</div>
                                 {{ form.slurm_partition(id="slurm_part") }}
-                                <div style="color: red;" id="slurmPartitionAlert">{{ error }}</div>
+                                <div style="color: red;" id="slurmPartitionAlert"></div>
                                 <div class="horizontal-separator"></div>
                                 <div style="align-items: center" class="flex-row">
                                     <div class="form-title">Save combination folders:</div>
@@ -165,7 +165,7 @@
                                     </div>
                                 </div>
                                 {{ form.jobs_count }}
-                                <div style="color: red;" id="jobsCountAlert">{{ error }}</div>
+                                <div style="color: red;" id="jobsCountAlert"></div>
                                 <div class="horizontal-separator"></div>
                                 <div class="flex-row-spaced">
                                     <div class="form-title">Execution time limit:</div>
