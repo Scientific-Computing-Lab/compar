@@ -42,6 +42,7 @@ async function run() {
   if (!comparIsRunning){
       output.innerHTML = "";
       comparIsRunning = true;
+      document.getElementById("outputFolder").innerHTML = "Compar in progress ...";
       startComparButton.disabled = true;
 
       for await (let line of makeTextFileLineIterator("stream_progress")) {
@@ -56,6 +57,7 @@ async function run() {
         return response.json();
       })
       .then((data) => {
+          document.getElementById("outputFolder").innerHTML = "";
           if(data['success'] === 1)
           {
               var message = document.createElement('div');
