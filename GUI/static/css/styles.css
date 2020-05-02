@@ -27,6 +27,7 @@
     background: black;
     box-sizing: border-box;
     padding: 20px 0px;
+    overflow: hidden;
 }
 
 button {
@@ -74,6 +75,7 @@ div {
     height: 70%;
     width: 100%;
     margin-top: 8px;
+    overflow: auto;
 }
 
 .output-folder {
