@@ -398,10 +398,11 @@ def generate_compar_command_with_makefile():
     # makefile commands
     command += [f"-make"]
     command += [f"-make_c {session['makefile_commands']}"]
-    # executable path
-    command += [f"-make_op {session['executable_path']}"]
     # executable file name
     command += [f"-make_on {session['executable_file_name']}"]
+    # executable path
+    if session['executable_path']:
+        command += [f"-make_op {session['executable_path']}"]
     # folders to ignore
     if session['ignore_folder_paths']:
         command += [f"-ignore {session['ignore_folder_paths']}"]
