@@ -155,7 +155,7 @@ def single_file_submit():
                 guid = getpass.getuser() + str(datetime.now())
                 file_hash = f"temp_{hashlib.sha3_256(guid.encode()).hexdigest()}"
                 # create input dir
-                input_dir_path = os.path.join(TEMP_FILES_DIRECTORY, file_hash)
+                input_dir_path = os.path.join(TEMP_FILES_DIRECTORY, f"{file_hash}_src")
                 os.makedirs(input_dir_path, exist_ok=True)
                 current_dir_path = os.path.dirname(os.path.realpath(__file__))
                 session['input_dir'] = os.path.join(current_dir_path, input_dir_path)
@@ -163,7 +163,7 @@ def single_file_submit():
                 source_file_path = os.path.join(input_dir_path, source_file_name)
                 save_source_file(file_path=source_file_path, txt=form.source_file_code.data)
                 # create working dir
-                working_dir_path = os.path.join(TEMP_FILES_DIRECTORY, f"{file_hash}_wd")
+                working_dir_path = os.path.join(TEMP_FILES_DIRECTORY, file_hash)
                 os.makedirs(working_dir_path, exist_ok=True)
                 session['working_dir'] = os.path.join(current_dir_path, working_dir_path)
                 # update main file rel path as filename
