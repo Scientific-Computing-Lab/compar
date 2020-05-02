@@ -50,7 +50,7 @@ function handleErrors(errors){
         document.getElementById('executableFileName').innerHTML = "";
     }
     if ( errors && errors.jobs_count ){
-        document.getElementById('jobsCountAlert').innerHTML = errors.slurm_partition;
+        document.getElementById('jobsCountAlert').innerHTML = errors.jobs_count;
     }
     else {
         document.getElementById('jobsCountAlert').innerHTML = "";
