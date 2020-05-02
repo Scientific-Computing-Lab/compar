@@ -464,7 +464,7 @@ def handle_time_limit(days, hours, minutes, seconds):
 
 def clean_temp_files():
     if os.path.exists(TEMP_FILES_DIRECTORY):
-        shutil.rmtree(TEMP_FILES_DIRECTORY)
+        shutil.rmtree(TEMP_FILES_DIRECTORY, ignore_errors=True)
 
 
 def save_source_file(file_path, txt):
