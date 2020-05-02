@@ -43,8 +43,8 @@ function handleErrors(errors){
     else {
         document.getElementById('executablePathAlert').innerHTML = "";
     }
-    if ( error && error.excecutable_file_name ){
-        document.getElementById('executableFileName').innerHTML = errors.slurm_partition;
+    if ( errors && errors.excecutable_file_name ){
+        document.getElementById('executableFileName').innerHTML = errors.excecutable_file_name;
     }
     else {
         document.getElementById('executableFileName').innerHTML = "";
