@@ -384,3 +384,7 @@ nav {
     font-weight: bold;
     font-size: 19px;
 }
+
+.files_button:active{
+    background: darkgray;
+}

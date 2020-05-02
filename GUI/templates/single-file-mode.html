@@ -163,7 +163,7 @@
                             <div class="flex-row-spaced title">
                                 {{ form.upload_file(id="upload_source_file", style="display:none") }}
                                 <div>Source File</div>
-                                    <button id="browse_button" type="button" name="upload_button"
+                                    <button class="files_button" id="browse_button" type="button" name="upload_button"
                                             onclick="upload_source_file.click()">
                                         Upload
                                     </button>
@@ -175,7 +175,7 @@
                         <div style="margin-left: 20px; direction: rtl; overflow: auto;" class="flex-col resizable">
                             <div style="direction: ltr" class="flex-row-spaced title">
                                 <div>Result File</div>
-                                <button onclick="downloadFile()" type="button">Download</button>
+                                <button class="files_button" onclick="downloadFile()" type="button">Download</button>
                             </div>
                             {{ form.result_file_area(id="result_editor") }}
                         </div>
