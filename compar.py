@@ -140,11 +140,12 @@ class Compar:
                              f" combination gave the best total runtime"])
             writer.writerow([""])
             if best_combination:
-                writer.writerow(["Compiler", "Compilation Params", "OMP RTL flags"])
+                writer.writerow(["Compiler", "Compilation Flags", "OMP RTL Parameters", "OMP Directive Parameters"])
                 writer.writerow([best_combination.get_compiler(),
                                  best_combination.get_parameters().get_compilation_params(),
-                                 best_combination.get_parameters().get_omp_rtl_params()])
-            writer.writerow([""])
+                                 best_combination.get_parameters().get_omp_rtl_params(),
+                                 best_combination.get_parameters().get_omp_directives_params()])
+                writer.writerow([""])
             writer.writerow(['Total run time:', str(total_rum_time)])
 
     def __init__(self,
@@ -454,6 +455,7 @@ class Compar:
         self.format_c_files([file_dict['file_full_path'] for file_dict in
                              self.make_absolute_file_list(final_folder_path)])
         self.db.remove_unused_data(Database.COMPAR_COMBINATION_ID)
+        self.db.remove_unused_data(Database.FINAL_RESULTS_COMBINATION_ID)
         if self.clear_db:
             self.clear_related_collections()
         self.db.close_connection()
@@ -688,8 +690,8 @@ class Compar:
         file_path = os.path.join(dir_path, ComparConfig.SUMMARY_FILE_NAME)
         with open(file_path, 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["File", "Loop", "Combination", "Compiler", "Compilation Params", "OMP RTL flags",
-                             "Runtime", "Speedup"])
+            writer.writerow(["File", "Loop", "Combination", "Compiler", "Compilation Flags", "OMP RTL Parameters",
+                             "OMP Directive Parameters", "Runtime", "Speedup"])
             for curr_file in optimal_data:
                 if 'dead_code_file' in curr_file.keys():
                     writer.writerow([curr_file['file_id_by_rel_path'], "" 'dead code file',
@@ -706,4 +708,5 @@ class Compar:
                                          combination_obj.get_compiler(),
                                          combination_obj.get_parameters().get_compilation_params(),
                                          combination_obj.get_parameters().get_omp_rtl_params(),
+                                         combination_obj.get_parameters().get_omp_directives_params(),
                                          loop['run_time'], loop['speedup']])

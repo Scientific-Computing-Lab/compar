@@ -71,7 +71,10 @@ def main():
         if args.mode == ComparMode.OVERRIDE:
             shutil.rmtree(args.working_directory)
         elif args.mode == ComparMode.NEW:
-            args.working_directory = f"{args.working_directory}_1"
+            i = 1
+            while os.path.exists(f"{args.working_directory}_{i}"):
+                i = i + 1
+            args.working_directory = f"{args.working_directory}_{i}"
     os.makedirs(args.working_directory, exist_ok=True)
 
     logger.initialize(args.log_level, args.working_directory)

@@ -56,7 +56,7 @@ class ComparConfig:
     SUMMARY_FILE_NAME = 'summary.csv'
     NUM_OF_THREADS = 4
     MODES = dict((mode.name.lower(), mode) for mode in ComparMode)
-    DEFAULT_MODE = ComparMode.OVERRIDE.name.lower()
+    DEFAULT_MODE = ComparMode.NEW.name.lower()
     COMBINATION_ID_C_COMMENT = '// COMBINATION_ID: '
     COMPILER_NAME_C_COMMENT = '// COMPILER_NAME: '
     DEFAULT_SLURM_PARTITION = 'grid'
