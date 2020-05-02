@@ -16,6 +16,7 @@ var mapDictionary = {
 function addItem(mapName, inputName, divName){
     var input = document.getElementById(inputName);
     value = input.value;
+    input.value = "";
     if(value !== "")
     {
         var itemId = Date.now();

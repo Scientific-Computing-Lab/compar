@@ -10,7 +10,7 @@ from flask_bootstrap import Bootstrap
 from wtforms.fields import html5 as h5fields
 from wtforms.widgets import html5 as h5widgets
 import subprocess
-from flask import request, jsonify, Response, session, stream_with_context
+from flask import request, jsonify, Response, session, stream_with_context, send_from_directory
 from flask import Flask, render_template
 from datetime import datetime
 import hashlib
@@ -320,6 +320,12 @@ def show_files_structure():
             result_file_path):
         return jsonify({"success": 0, "text": "Compar failed.\nCheck the output log for more information."})
     return jsonify({"success": 1, "text": f"Compar successfully finished.\nResults can be found at the following directory:", "path": result_file_path})
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static', 'assets'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
 def generate_compar_command_without_makefile():
