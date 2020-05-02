@@ -95,7 +95,7 @@ class MakefileForm(FlaskForm):
     output_directory = StringField('output_directory', validators=[InputRequired()])
     main_file_path = StringField('main_file_path', validators=[relative_path_validator, InputRequired()])
     makefile_commands = StringField('makefile_commands', validators=[InputRequired()])
-    executable_path = StringField('executable_path', validators=[relative_path_validator, InputRequired()])
+    executable_path = StringField('executable_path', validators=[relative_path_validator])
     executable_file_name = StringField('executable_file_name', validators=[InputRequired()])
     ignore_folder_paths = StringField('ignore_folder_paths')
     include_folder_paths = StringField('include_folder_paths')

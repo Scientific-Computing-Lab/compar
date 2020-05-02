@@ -31,6 +31,12 @@ function handleErrors(errors){
     else{
         document.getElementById('slurmPartitionAlert').innerHTML = "";
     }
+    if ( errors && errors.jobs_count){
+        document.getElementById('jobsCountAlert').innerHTML = errors.slurm_partition;
+    }
+    else {
+        document.getElementById('jobsCountAlert').innerHTML = "";
+    }
 }
 
 $(document).ready(function() {

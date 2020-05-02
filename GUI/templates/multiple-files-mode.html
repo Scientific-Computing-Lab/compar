@@ -54,7 +54,7 @@
                         <div class="flex-row-spaced">
                             <div class="form-title">Main c file:</div>
                             <div class="tooltip informationButton">i
-                                <span class="tooltiptext">Relative path to the directory containing the main c file</span>
+                                <span class="tooltiptext">Relative path to the main c file</span>
                             </div>
                         </div>
                         {{ form.main_file_path }}
@@ -115,8 +115,8 @@
                                         <span class="tooltiptext">Maximum number of jobs running simultaneously</span>
                                     </div>
                                 </div>
-                                <div style="color: red;" id="jobCount">{{ error }}</div>
                                 {{ form.jobs_count }}
+                                <div style="color: red;" id="jobsCountAlert">{{ error }}</div>
                                 <div class="horizontal-separator"></div>
                                 <div class="flex-row-spaced">
                                     <div class="form-title">Execution time limit:</div>

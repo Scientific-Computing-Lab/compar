@@ -37,6 +37,24 @@ function handleErrors(errors){
     else{
         document.getElementById('slurmPartitionAlert').innerHTML = "";
     }
+    if( error && erros.executable_path){
+        document.getElementById('executablePathAlert').innerHTML = errors.slurm_partition;
+    }
+    else {
+        document.getElementById('executablePathAlert').innerHTML = "";
+    }
+    if ( error && error.excecutable_file_name ){
+        document.getElementById('executableFileName').innerHTML = errors.slurm_partition;
+    }
+    else {
+        document.getElementById('executableFileName').innerHTML = "";
+    }
+    if ( errors && errors.jobs_count ){
+        document.getElementById('jobsCountAlert').innerHTML = errors.slurm_partition;
+    }
+    else {
+        document.getElementById('jobsCountAlert').innerHTML = "";
+    }
 }
 
 $(document).ready(function() {
