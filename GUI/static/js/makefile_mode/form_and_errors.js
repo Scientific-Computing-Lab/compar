@@ -1,6 +1,4 @@
 function handleErrors(errors){
-    console.log("handling errors");
-    console.log(errors);
     if(errors && errors.makefile_commands){
         document.getElementById('makefileCommandsAlert').innerHTML = errors.makefile_commands;
     }
@@ -43,11 +41,11 @@ function handleErrors(errors){
     else {
         document.getElementById('executablePathAlert').innerHTML = "";
     }
-    if ( errors && errors.excecutable_file_name ){
-        document.getElementById('executableFileName').innerHTML = errors.excecutable_file_name;
+    if ( errors && errors.executable_file_name ){
+        document.getElementById('executableFileNameAlert').innerHTML = errors.executable_file_name;
     }
     else {
-        document.getElementById('executableFileName').innerHTML = "";
+        document.getElementById('executableFileNameAlert').innerHTML = "";
     }
     if ( errors && errors.jobs_count){
         document.getElementById('jobsCountAlert').innerHTML = errors.jobs_count;
@@ -68,7 +66,6 @@ $(document).ready(function() {
 });
 
 function submitForm(url){
-console.log($('form').serialize());
 var formData = new FormData($('#form')[0]);
 $.ajax({
             type: "POST",
@@ -77,12 +74,10 @@ $.ajax({
             processData: false,
             data: formData, // serializes the form's elements.
             success: function (data) {
-                console.log("received: ")
-                console.log(data)  // display the returned data in the console.
+
             },
             error: function(error){
-                console.log("received errors: ")
-                console.log(error)
+
             }
         })
         .done(function(data) {

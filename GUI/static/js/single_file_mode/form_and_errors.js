@@ -1,6 +1,4 @@
 function handleErrors(errors){
-    console.log("handling errors");
-    console.log(errors);
     if (errors && errors.test_path){
         document.getElementById('validationPathAlert').innerHTML = errors.test_path;
     }
@@ -33,7 +31,6 @@ $(document).ready(function() {
 });
 
 function submitForm(url){
-console.log($('form').serialize());
 var formData = new FormData($('#form')[0]);
 $.ajax({
             type: "POST",
@@ -42,12 +39,8 @@ $.ajax({
             processData: false,
             data: formData, // serializes the form's elements.
             success: function (data) {
-                console.log("received: ")
-                console.log(data)  // display the returned data in the console.
             },
             error: function(error){
-                console.log("received errors: ")
-                console.log(error)
             }
         })
         .done(function(data) {
