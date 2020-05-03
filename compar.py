@@ -257,7 +257,7 @@ class Compar:
         # Initialization
         if not is_make_file:
             self.__initialize_binary_compiler()
-        self.db = Database(self.__extract_working_directory_name(), mode=self.mode)
+        self.db = Database(self.__get_database_name(), mode=self.mode)
 
     def clear_related_collections(self):
         if self.db:
@@ -460,13 +460,15 @@ class Compar:
             self.clear_related_collections()
         self.db.close_connection()
 
-    def __extract_working_directory_name(self):
-        working_directory_name = self.working_directory
-        if not os.path.isdir(working_directory_name):
-            raise UserInputError('The given directory is not a directory')
-        if working_directory_name.endswith(os.path.sep):
-            working_directory_name = os.path.split(working_directory_name)[0]  # remove the suffix separator
-        return os.path.basename(working_directory_name)
+    def __get_database_name(self):
+        database_name = self.working_directory
+        if not os.path.isdir(database_name):
+            raise UserInputError(f'{database_name} is not a directory')
+        if database_name.endswith(os.path.sep):
+            database_name = os.path.split(database_name)[0]  # remove the suffix separator
+        if database_name.startswith(os.path.sep):
+            database_name = database_name[1:]
+        return database_name.replace(os.path.sep, '_')
 
     def __get_parallel_compiler_by_name(self, compiler_name: str):
         return self.parallelizers[compiler_name.lower()]

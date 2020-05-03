@@ -4,7 +4,6 @@ from job import Job
 import logger
 import traceback
 import hashlib
-import getpass
 from combinator import generate_combinations
 from globals import ComparMode, DatabaseConfig
 
@@ -31,7 +30,6 @@ class Database:
         return hashlib.sha3_384(str(fields).encode()).hexdigest()
 
     def __init__(self, collection_name: str, mode):
-        collection_name = f"{getpass.getuser()}_{collection_name}"
         logger.info(f'Initializing {collection_name} databases')
         self.mode = mode
         try:
