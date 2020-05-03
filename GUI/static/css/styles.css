@@ -302,6 +302,7 @@ select:focus{
     resize: vertical;
     z-index: 1000;
     min-width: 200px;
+    min-height: 100px;
 }
 
 .informationButton {
