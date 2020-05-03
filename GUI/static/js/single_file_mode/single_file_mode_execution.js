@@ -48,6 +48,8 @@ async function run() {
       codeMirrorResultEditor.setValue("Compar in progress ...");
       codeMirrorResultEditor.refresh();
       startComparButton.disabled = true;
+      browse_button.disabled = true;
+      download_button.disabled = true;
 
       for await (let line of makeTextFileLineIterator("stream_progress")) {
                 var item = document.createElement('li');
@@ -69,6 +71,7 @@ async function run() {
       comparIsRunning = false;
       codeMirrorSourceEditor.setOption("readOnly", false)
       startComparButton.disabled = false;
-      // call here to show result file
+      browse_button.disabled = false;
+      download_button.disabled = false;
   }
 }
