@@ -1,10 +1,8 @@
 import os
 import json
-import compar
 from combination_validator import CombinationValidator
-import combinator
 import jsonschema
-from globals import ExceptionConfig, GlobalsConfig
+from globals import ExceptionConfig, GlobalsConfig, ComparConfig, CombinatorConfig
 
 
 class FileError(Exception):
@@ -104,7 +102,7 @@ def assert_test_file_function_name(test_file_path: str):
 
 
 def assert_original_files_folder_exists(working_directory: str):
-    original_files_path = os.path.join(working_directory, compar.Compar.ORIGINAL_FILES_FOLDER_NAME)
+    original_files_path = os.path.join(working_directory, ComparConfig.ORIGINAL_FILES_FOLDER_NAME)
     if not os.path.exists(original_files_path):
         raise UserInputError(f'Original files folder from the last Compar operation must be exist in'
                              f' {working_directory}')
@@ -116,7 +114,7 @@ def assert_folder_exist(folder_path: str):
 
 
 def assert_allowed_directive_type(directive_type: str):
-    allowed_types = (combinator.PARALLEL_DIRECTIVE_PREFIX, combinator.FOR_DIRECTIVE_PREFIX)
+    allowed_types = (CombinatorConfig.PARALLEL_DIRECTIVE_PREFIX, CombinatorConfig.FOR_DIRECTIVE_PREFIX)
     if directive_type not in allowed_types:
         raise UserInputError(f'omp directives prefix of {directive_type} is incorrect!')
 
@@ -126,9 +124,9 @@ def assert_user_json_structure():
     with open(schema_file_path, 'r') as fp:
         json_schema = json.load(fp)
     args_for_validation_func = (
-        (json_schema['compilation'], combinator.COMPILATION_PARAMS_FILE_PATH),
-        (json_schema['omp_rtl'], combinator.OMP_RTL_PARAMS_FILE_PATH),
-        (json_schema['omp_directives'], combinator.OMP_DIRECTIVES_FILE_PATH)
+        (json_schema['compilation'], CombinatorConfig.COMPILATION_PARAMS_FILE_PATH),
+        (json_schema['omp_rtl'], CombinatorConfig.OMP_RTL_PARAMS_FILE_PATH),
+        (json_schema['omp_directives'], CombinatorConfig.OMP_DIRECTIVES_FILE_PATH)
     )
     for args in args_for_validation_func:
         assert_params_json_is_valid(*args)

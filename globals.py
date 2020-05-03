@@ -1,3 +1,4 @@
+import os
 import enum
 
 
@@ -38,6 +39,9 @@ class CombinatorConfig:
     COMPILATION_PARAMS_FILE_NAME = 'compilation_params.json'
     OMP_RTL_PARAMS_FILE_NAME = 'omp_rtl_params.json'
     OMP_DIRECTIVES_FILE_NAME = 'omp_directives_params.json'
+    COMPILATION_PARAMS_FILE_PATH = os.path.join(GlobalsConfig.ASSETS_DIR_PATH, COMPILATION_PARAMS_FILE_NAME)
+    OMP_RTL_PARAMS_FILE_PATH = os.path.join(GlobalsConfig.ASSETS_DIR_PATH, OMP_RTL_PARAMS_FILE_NAME)
+    OMP_DIRECTIVES_FILE_PATH = os.path.join(GlobalsConfig.ASSETS_DIR_PATH, OMP_DIRECTIVES_FILE_NAME)
     PARAMS_SEPARATOR = '____compar____params____separator____'
     PARALLEL_DIRECTIVE_PREFIX = 'parallel'
     FOR_DIRECTIVE_PREFIX = 'for'
@@ -119,3 +123,7 @@ class CombinationValidatorConfig:
     UNIT_TEST_FILE_NAME = 'test_output.py'
     UNIT_TEST_DEFAULT_DIR_PATH = GlobalsConfig.ASSETS_DIR_PATH
     UNIT_TEST_NAME = 'test_output'
+
+
+class JobConfig:
+    RUNTIME_ERROR = -1.0

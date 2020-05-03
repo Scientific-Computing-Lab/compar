@@ -4,7 +4,6 @@ import subprocess
 import time
 from exceptions import FileError
 from subprocess_handler import run_subprocess
-from timer import Timer
 import traceback
 import logger
 from combination_validator import CombinationValidator
@@ -184,7 +183,7 @@ class ExecuteJob:
         for root, dirs, files in os.walk(self.get_job().get_directory_path()):
             for file in files:
                 # total run time analysis
-                if re.search(rf"{Timer.TOTAL_RUNTIME_FILENAME}$", file):
+                if re.search(rf"{TimerConfig.TOTAL_RUNTIME_FILENAME}$", file):
                     total_runtime_file_path = os.path.join(root, file)
                     with open(total_runtime_file_path, 'r') as f:
                         self.get_job().set_total_run_time(float(f.read()))

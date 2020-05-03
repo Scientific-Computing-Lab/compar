@@ -21,12 +21,10 @@ import traceback
 import logger
 from combination_validator import CombinationValidator
 from assets.parallelizers_mapper import parallelizers
-import combinator
-from globals import ComparMode, ComparConfig
+from globals import ComparMode, ComparConfig, CombinatorConfig
 
 
 class Compar:
-    ORIGINAL_FILES_FOLDER_NAME = ComparConfig.ORIGINAL_FILES_FOLDER_NAME
     COMPAR_COMBINATION_FOLDER_NAME = Database.COMPAR_COMBINATION_ID
     FINAL_RESULTS_FOLDER_NAME = Database.FINAL_RESULTS_COMBINATION_ID
     NUM_OF_THREADS = ComparConfig.NUM_OF_THREADS
@@ -220,7 +218,7 @@ class Compar:
         e.assert_forbidden_characters(working_directory)
         self.working_directory = working_directory
         self.backup_files_dir = os.path.join(working_directory, ComparConfig.BACKUP_FOLDER_NAME)
-        self.original_files_dir = os.path.join(working_directory, Compar.ORIGINAL_FILES_FOLDER_NAME)
+        self.original_files_dir = os.path.join(working_directory, ComparConfig.ORIGINAL_FILES_FOLDER_NAME)
         if self.mode == ComparMode.CONTINUE:
             e.assert_folder_exist(self.original_files_dir)
             self.__delete_combination_folder(os.path.join(working_directory, self.COMPAR_COMBINATION_FOLDER_NAME))
@@ -320,12 +318,13 @@ class Compar:
                     pragma_type, directive = directive.split('_', 1)
                     pragma_name = re.search(r'[^(]+', directive).group()
                     if not re.search(rf' {pragma_type} ?', pragma):
-                        if pragma_type == combinator.PARALLEL_DIRECTIVE_PREFIX:
+                        if pragma_type == CombinatorConfig.PARALLEL_DIRECTIVE_PREFIX:
                             pragma = re.sub(r'pragma omp', f'pragma omp {pragma_type}', pragma)
-                        if pragma_type == combinator.FOR_DIRECTIVE_PREFIX:
-                            if re.search(rf' {combinator.PARALLEL_DIRECTIVE_PREFIX} ?', pragma):
-                                pragma = re.sub(rf'pragma omp {combinator.PARALLEL_DIRECTIVE_PREFIX} ?',
-                                                f'pragma omp {combinator.PARALLEL_DIRECTIVE_PREFIX} {pragma_type} ',
+                        if pragma_type == CombinatorConfig.FOR_DIRECTIVE_PREFIX:
+                            if re.search(rf' {CombinatorConfig.PARALLEL_DIRECTIVE_PREFIX} ?', pragma):
+                                new_text = f'pragma omp {CombinatorConfig.PARALLEL_DIRECTIVE_PREFIX} {pragma_type} '
+                                pragma = re.sub(rf'pragma omp {CombinatorConfig.PARALLEL_DIRECTIVE_PREFIX} ?',
+                                                new_text,
                                                 pragma)
                             else:
                                 pragma = re.sub(r'pragma omp', f'pragma omp {pragma_type}', pragma)

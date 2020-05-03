@@ -4,10 +4,9 @@ import subprocess
 import shutil
 import os
 import exceptions as e
-from fragmentator import Fragmentator
 from subprocess_handler import run_subprocess
 import logger
-from globals import CetusConfig, GlobalsConfig
+from globals import CetusConfig, GlobalsConfig, FragmentatorConfig
 
 
 class Cetus(ParallelCompiler):
@@ -18,10 +17,10 @@ class Cetus(ParallelCompiler):
         with open(file_path, 'r+') as f:
             content = f.read()
             for loop_id in range(1, num_of_loops + 1):
-                old_start_label = '/* ' + Fragmentator.get_start_label()[3:] + str(loop_id) + ' */'
-                new_start_label = Fragmentator.get_start_label() + str(loop_id)
-                old_end_label = '/* ' + Fragmentator.get_end_label()[3:] + str(loop_id) + ' */'
-                new_end_label = Fragmentator.get_end_label() + str(loop_id)
+                old_start_label = '/* ' + FragmentatorConfig.START_LOOP_LABEL_MARKER[3:] + str(loop_id) + ' */'
+                new_start_label = FragmentatorConfig.START_LOOP_LABEL_MARKER + str(loop_id)
+                old_end_label = '/* ' + FragmentatorConfig.END_LOOP_LABEL_MARKER[3:] + str(loop_id) + ' */'
+                new_end_label = FragmentatorConfig.END_LOOP_LABEL_MARKER + str(loop_id)
                 content = content.replace(old_start_label, new_start_label)
                 content = content.replace(old_end_label, new_end_label)
             f.seek(0)

@@ -1,11 +1,10 @@
 import pymongo
 from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile, NoOptimalCombinationError
-from job import Job
 import logger
 import traceback
 import hashlib
 from combinator import generate_combinations
-from globals import ComparMode, DatabaseConfig
+from globals import ComparMode, DatabaseConfig, JobConfig
 
 
 class Database:
@@ -187,7 +186,7 @@ class Database:
 
     def get_total_runtime_best_combination(self):
         best_combination = self.dynamic_db[self.collection_name].find_one(
-            {"$and": [{"error": {"$exists": False}}, {"total_run_time": {"$ne": Job.RUNTIME_ERROR}}]},
+            {"$and": [{"error": {"$exists": False}}, {"total_run_time": {"$ne": JobConfig.RUNTIME_ERROR}}]},
             sort=[("total_run_time", 1)])
         if not best_combination:
             raise NoOptimalCombinationError("All Compar combinations finished with error.")

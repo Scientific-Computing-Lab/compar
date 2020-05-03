@@ -1,20 +1,12 @@
 import itertools
 import json
-from os.path import join as path_join
-from globals import CombinatorConfig, GlobalsConfig
-
-
-COMPILATION_PARAMS_FILE_PATH = path_join(GlobalsConfig.ASSETS_DIR_PATH, CombinatorConfig.COMPILATION_PARAMS_FILE_NAME)
-OMP_RTL_PARAMS_FILE_PATH = path_join(GlobalsConfig.ASSETS_DIR_PATH, CombinatorConfig.OMP_RTL_PARAMS_FILE_NAME)
-OMP_DIRECTIVES_FILE_PATH = path_join(GlobalsConfig.ASSETS_DIR_PATH, CombinatorConfig.OMP_DIRECTIVES_FILE_NAME)
-PARALLEL_DIRECTIVE_PREFIX = CombinatorConfig.PARALLEL_DIRECTIVE_PREFIX
-FOR_DIRECTIVE_PREFIX = CombinatorConfig.FOR_DIRECTIVE_PREFIX
+from globals import CombinatorConfig
 
 
 def generate_combinations():
     omp_rtl_params = []
     combinations = []
-    with open(OMP_RTL_PARAMS_FILE_PATH, 'r') as fp:
+    with open(CombinatorConfig.OMP_RTL_PARAMS_FILE_PATH, 'r') as fp:
         omp_rtl_array = json.load(fp)
     for param in omp_rtl_array:
         omp_rtl_params.append(generate_omp_rtl_params(param))
@@ -22,7 +14,7 @@ def generate_combinations():
 
     omp_directives_params = generate_omp_directive_params()
 
-    with open(COMPILATION_PARAMS_FILE_PATH, 'r') as fp:
+    with open(CombinatorConfig.COMPILATION_PARAMS_FILE_PATH, 'r') as fp:
         compilation_flags_array = json.load(fp)
     for comb in compilation_flags_array:
         compiler = comb["compiler"]
@@ -68,14 +60,15 @@ def generate_combinations():
 
 
 def generate_omp_directive_params():
-    with open(OMP_DIRECTIVES_FILE_PATH, 'r') as fp:
+    with open(CombinatorConfig.OMP_DIRECTIVES_FILE_PATH, 'r') as fp:
         json_omp_directives = json.load(fp)
     parallel_directive_params = json_omp_directives['parallel']
     for_directive_params = json_omp_directives['for']
     omp_directives_params = []
     omp_directives_params.extend(generate_directive_list_from_json(parallel_directive_params,
-                                                                   PARALLEL_DIRECTIVE_PREFIX))
-    omp_directives_params.extend(generate_directive_list_from_json(for_directive_params, FOR_DIRECTIVE_PREFIX))
+                                                                   CombinatorConfig.PARALLEL_DIRECTIVE_PREFIX))
+    omp_directives_params.extend(generate_directive_list_from_json(for_directive_params,
+                                                                   CombinatorConfig.FOR_DIRECTIVE_PREFIX))
     return mult_lists(omp_directives_params)
 
 
