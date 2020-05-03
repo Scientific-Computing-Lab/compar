@@ -30,6 +30,7 @@ GUI_DIR_NAME = 'GUI'
 SINGLE_FILE_MODE = 'single-file-mode'
 MULTIPLE_FILES_MODE = 'multiple-files-mode'
 MAKEFILE_MODE = 'makefile-mode'
+COMPAR_APPLICATION_PATH = os.path.dirname(os.getcwd())
 
 
 def path_validator(form, field):
@@ -143,47 +144,38 @@ def single_file_submit():
     print(form.errors)
     if form.validate_on_submit():
         if form.source_file_code.data:
-            try:
-                if request.files and request.files['upload_file'].filename != "":
-                    # special handling for uploaded files will be here
-                    print("file test: ", request.files['upload_file'].filename)
-                else:
-                    pass
-            except Exception as e:
-                pass
-            finally:
-                guid = getpass.getuser() + str(datetime.now())
-                file_hash = f"temp_{hashlib.sha3_256(guid.encode()).hexdigest()}"
-                # create input dir
-                input_dir_path = os.path.join(TEMP_FILES_DIRECTORY, f"{file_hash}_src")
-                os.makedirs(input_dir_path, exist_ok=True)
-                current_dir_path = os.path.dirname(os.path.realpath(__file__))
-                session['input_dir'] = os.path.join(current_dir_path, input_dir_path)
-                source_file_name = f"{file_hash}.c"
-                source_file_path = os.path.join(input_dir_path, source_file_name)
-                save_source_file(file_path=source_file_path, txt=form.source_file_code.data)
-                # create working dir
-                working_dir_path = os.path.join(TEMP_FILES_DIRECTORY, file_hash)
-                os.makedirs(working_dir_path, exist_ok=True)
-                session['working_dir'] = os.path.join(current_dir_path, working_dir_path)
-                # update main file rel path as filename
-                session['main_file_rel_path'] = source_file_name
-                # other fields
-                session['compiler'] = form.compiler.data
-                session['save_combinations'] = form.save_combinations.data
-                session['clear_database'] = form.clear_database.data
-                session['with_markers'] = form.with_markers.data
-                session['main_file_parameters'] = form.main_file_parameters.data
-                session['compiler_flags'] = form.compiler_flags.data
-                session['compiler_version'] = form.compiler_version.data
-                session['slurm_parameters'] = form.slurm_parameters.data
-                session['slurm_partition'] = form.slurm_partition.data
-                session['job_count'] = form.jobs_count.data
-                session['log_level'] = form.log_level.data
-                session['test_path'] = form.test_path.data
-                session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
-                                                          form.minutes_field.data, form.seconds_field.data)
-                session['compar_mode'] = form.compar_mode.data
+            guid = getpass.getuser() + str(datetime.now())
+            file_hash = f"temp_{hashlib.sha3_256(guid.encode()).hexdigest()}"
+            # create input dir
+            input_dir_path = os.path.join(app.root_path, TEMP_FILES_DIRECTORY, f"{file_hash}_src")
+            os.makedirs(input_dir_path, exist_ok=True)
+            current_dir_path = os.path.dirname(os.path.realpath(__file__))
+            session['input_dir'] = os.path.join(current_dir_path, input_dir_path)
+            source_file_name = f"{file_hash}.c"
+            source_file_path = os.path.join(input_dir_path, source_file_name)
+            save_source_file(file_path=source_file_path, txt=form.source_file_code.data)
+            # create working dir
+            working_dir_path = os.path.join(TEMP_FILES_DIRECTORY, file_hash)
+            os.makedirs(working_dir_path, exist_ok=True)
+            session['working_dir'] = os.path.join(current_dir_path, working_dir_path)
+            # update main file rel path as filename
+            session['main_file_rel_path'] = source_file_name
+            # other fields
+            session['compiler'] = form.compiler.data
+            session['save_combinations'] = form.save_combinations.data
+            session['clear_database'] = form.clear_database.data
+            session['with_markers'] = form.with_markers.data
+            session['main_file_parameters'] = form.main_file_parameters.data
+            session['compiler_flags'] = form.compiler_flags.data
+            session['compiler_version'] = form.compiler_version.data
+            session['slurm_parameters'] = form.slurm_parameters.data
+            session['slurm_partition'] = form.slurm_partition.data
+            session['job_count'] = form.jobs_count.data
+            session['log_level'] = form.log_level.data
+            session['test_path'] = form.test_path.data
+            session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
+                                                      form.minutes_field.data, form.seconds_field.data)
+            session['compar_mode'] = form.compar_mode.data
         else:
             return jsonify(errors=form.errors)
         return jsonify(data={'message': 'The form is valid.'})
@@ -275,7 +267,7 @@ def stream():
         command = [interpreter, '-u', compar_file, compar_command]
         print(command)
         proc = subprocess.Popen(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                cwd='../')
+                                cwd=COMPAR_APPLICATION_PATH)
         for line in proc.stdout:
             yield line.rstrip() + b'\n'
         proc.communicate()[0]
