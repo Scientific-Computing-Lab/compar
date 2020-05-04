@@ -1,10 +1,13 @@
 import pymongo
 from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile, NoOptimalCombinationError
+from exceptions import UserInputError
 import logger
 import traceback
 import hashlib
 from combinator import generate_combinations
 from globals import ComparMode, DatabaseConfig, JobConfig
+import os
+import getpass
 
 
 class Database:
@@ -28,7 +31,26 @@ class Database:
         fields.sort()
         return hashlib.sha3_384(str(fields).encode()).hexdigest()
 
-    def __init__(self, collection_name: str, mode):
+    @staticmethod
+    def __get_collection_name(working_directory):
+        collection_name = working_directory
+        if not os.path.isdir(collection_name):
+            raise UserInputError(f'{collection_name} is not a directory')
+        if collection_name.endswith(os.path.sep):
+            collection_name = os.path.split(collection_name)[0]  # remove the suffix separator
+        collection_name = f"{getpass.getuser()}_{os.path.basename(collection_name)}"
+        static_namespace = f'{DatabaseConfig.STATIC_DB_NAME}.{collection_name}'
+        dynamic_namespace = f'{DatabaseConfig.DYNAMIC_DB_NAME}.{collection_name}'
+        longer_namespace = max((static_namespace, dynamic_namespace), key=len)
+        if len(longer_namespace) > DatabaseConfig.NAMESPACE_LENGTH_LIMIT:
+            new_name = longer_namespace[:DatabaseConfig.NAMESPACE_LENGTH_LIMIT].split('.')[1]
+            logger.info_error(f'DB namespace is too long! (max is {DatabaseConfig.NAMESPACE_LENGTH_LIMIT} characters)')
+            logger.info_error(f'The name was changed from {collection_name} to {new_name}')
+            collection_name = new_name
+        return collection_name
+
+    def __init__(self, working_directory: str, mode):
+        collection_name = Database.__get_collection_name(working_directory)
         logger.info(f'Initializing {collection_name} databases')
         self.mode = mode
         try:

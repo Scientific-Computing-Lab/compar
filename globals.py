@@ -76,7 +76,7 @@ class DatabaseConfig:
     SERIAL_COMBINATION_ID = 'serial'
     COMPAR_COMBINATION_ID = 'compar_combination'
     FINAL_RESULTS_COMBINATION_ID = 'final_results'
-    DATABASE_NAME_LENGTH_LIMIT = 120
+    NAMESPACE_LENGTH_LIMIT = 120
 
 
 class ExceptionConfig:
