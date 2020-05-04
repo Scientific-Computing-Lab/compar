@@ -21,7 +21,8 @@ import traceback
 import logger
 from combination_validator import CombinationValidator
 from assets.parallelizers_mapper import parallelizers
-from globals import ComparMode, ComparConfig, CombinatorConfig
+from globals import ComparMode, ComparConfig, CombinatorConfig, DatabaseConfig
+import getpass
 
 
 class Compar:
@@ -465,9 +466,13 @@ class Compar:
             raise UserInputError(f'{database_name} is not a directory')
         if database_name.endswith(os.path.sep):
             database_name = os.path.split(database_name)[0]  # remove the suffix separator
-        if database_name.startswith(os.path.sep):
-            database_name = database_name[1:]
-        return database_name.replace(os.path.sep, '_')
+        database_name = f"{getpass.getuser()}_{os.path.basename(database_name)}"
+        if len(database_name) > DatabaseConfig.DATABASE_NAME_LENGTH_LIMIT:
+            new_name = database_name[:DatabaseConfig.DATABASE_NAME_LENGTH_LIMIT]
+            logger.info_error(f'DB name is too long! (max is {DatabaseConfig.DATABASE_NAME_LENGTH_LIMIT} characters)')
+            logger.info_error(f'The name was changed from {database_name} to {new_name}')
+            database_name = new_name
+        return database_name
 
     def __get_parallel_compiler_by_name(self, compiler_name: str):
         return self.parallelizers[compiler_name.lower()]
