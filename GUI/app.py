@@ -16,7 +16,7 @@ from datetime import datetime
 import hashlib
 import getpass
 import shutil
-
+from .config import func
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -276,6 +276,20 @@ def stream():
     return Response(stream_with_context(generate()))
 
 
+@app.route('/checkComparStatus', methods=['get'])
+def check_compar_status():
+    working_dir = session.get('working_dir')
+    if working_dir:
+        result_file_path = os.path.join(working_dir, 'final_results')
+    return_code = session.get('return_code')
+    if return_code is None:
+        return_code = 0
+    if return_code != 0 or not working_dir or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(
+            result_file_path):
+        return jsonify({"success": 0})
+    return jsonify({"success": 1})
+
+
 @app.route('/result_file', methods=['get'])
 def result_file():
     result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
@@ -285,6 +299,8 @@ def result_file():
     if return_code != 0 or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(
             result_file_path):
         return jsonify({"text": "Compar failed. Check the output log for more information."})
+    if not os.path.exists(result_file_path):
+        return abort(400, "Cannot find result file.")
     with open(result_file_path) as fp:
         result_file_code = fp.read()
     return jsonify({"text": result_file_code})
@@ -293,6 +309,8 @@ def result_file():
 @app.route('/downloadResultFile', methods=['get'])
 def download_result_file():
     result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
+    if not os.path.exists(result_file_path):
+        return abort(400, "Cannot find result file.")
     with open(result_file_path, 'r') as fp:
         result_code = fp.read()
     return Response(
