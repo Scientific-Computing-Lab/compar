@@ -16,7 +16,6 @@ from datetime import datetime
 import hashlib
 import getpass
 import shutil
-from .config import func
 
 app = Flask(__name__)
 app.config.from_object(__name__)
