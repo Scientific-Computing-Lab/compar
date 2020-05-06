@@ -29,7 +29,7 @@ GUI_DIR_NAME = 'GUI'
 SINGLE_FILE_MODE = 'single-file-mode'
 MULTIPLE_FILES_MODE = 'multiple-files-mode'
 MAKEFILE_MODE = 'makefile-mode'
-COMPAR_APPLICATION_PATH = os.path.dirname(os.getcwd())
+COMPAR_APPLICATION_PATH = os.path.dirname(app.root_path)
 
 
 def path_validator(form, field):
