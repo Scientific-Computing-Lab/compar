@@ -17,6 +17,12 @@ function handleErrors(errors){
     else {
         document.getElementById('jobsCountAlert').innerHTML = "";
     }
+    if ( errors && errors.multiple_combinations){
+        document.getElementById('multipleCombinationsAlert').innerHTML = errors.multiple_combinations;
+    }
+    else {
+        document.getElementById('multipleCombinationsAlert').innerHTML = "";
+    }
 }
 
 $(document).ready(function() {

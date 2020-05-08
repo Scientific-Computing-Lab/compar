@@ -41,6 +41,9 @@ def relative_path_validator(form, field):
     if not form.input_directory.data or not os.path.exists(os.path.join(form.input_directory.data, field.data)):
         raise ValidationError('Relative path is invalid')
 
+def positive_number_validator(form, field):
+    if int(field.data) < 0:
+        raise ValidationError('Positive numbers only')
 
 class SingleFileForm(FlaskForm):
     compiler_flags = StringField('compiler_flags')
@@ -48,11 +51,12 @@ class SingleFileForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
-    
+    multiple_combinations = h5fields.IntegerField('multiple_combinations', widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                       validators=[InputRequired(), positive_number_validator], default=1)
     with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
-                                       validators=[InputRequired()], default=4)
+                                       validators=[InputRequired(), positive_number_validator], default=4)
     days_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=100, step=1), default=0)
     hours_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=23, step=1), default=0)
     minutes_field = h5fields.IntegerField(widget=h5widgets.NumberInput(min=0, max=59, step=1), default=0)
@@ -76,6 +80,8 @@ class MultipleFilesForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
+    multiple_combinations = h5fields.IntegerField('multiple_combinations', widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                       validators=[InputRequired(), positive_number_validator], default=1)
     with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
@@ -104,6 +110,8 @@ class MakefileForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
+    multiple_combinations = h5fields.IntegerField('multiple_combinations', widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                       validators=[InputRequired(), positive_number_validator], default=1)
     with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),

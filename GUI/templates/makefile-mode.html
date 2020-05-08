@@ -153,6 +153,15 @@
                                 </div>
                                 <div class="horizontal-separator"></div>
                                 <div class="flex-row-spaced">
+                                    <div class="form-title">Multiply combinations:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Each combination will run multiple times and their average runtime will be calculated</span>
+                                    </div>
+                                </div>
+                                {{ form.multiple_combinations }}
+                                <div style="color: red;" id="multipleCombinationsAlert"></div>
+                                <div class="horizontal-separator"></div>
+                                <div class="flex-row-spaced">
                                     <div style="align-items: center" class="flex-row">
                                         <div class="form-title">Clear database data:</div>
                                         {{ form.clear_database(checked=True, style='margin-left: 30px')}}
