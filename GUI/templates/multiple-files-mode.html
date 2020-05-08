@@ -2,7 +2,7 @@
 {% import "bootstrap/wtf.html" as wtf %}
 <html lang="en">
 <head>
-    <title>Compar - Multiple files mode</title>
+    <title>ComPar - Multiple files mode</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" />
@@ -17,7 +17,7 @@
 
 <body onLoad="init()">
     <nav>
-        <div class="navtitle">Compar</div>
+        <div class="navtitle">ComPar</div>
         <div class="separator"></div>
         <a href="/singlefile" class="ref">Single File Mode</a>
         <a href="/multiplefiles" id="multiplemod" class="seperate ref">Multiple Files Mode</a>
@@ -30,7 +30,7 @@
         <div class="page-layout">
             <div class="mycontainer">
                 <div class="form-container form">
-                    <div class="title">Compar Parameters</div>
+                    <div class="title">ComPar Parameters</div>
                     <div class="form-area">
                         {{ form.csrf_token }}
                         <div class="flex-row-spaced">
@@ -66,116 +66,155 @@
                         </div>
                         <div class="horizontal-separator"></div>
                         <div class="advanced" onclick="showAdvancedOptions()">Advanced options >></div>
-                            <div id="advanced">
+                        <div id="advanced">
+                            <div class="flex-row-spaced">
                                 <div class="form-title">Binary compiler flags:</div>
-                                <div style="align-items: center" class="flex-row">
-                                    <input type="text" id="compiler-flags"/>
-                                    <button type="button" onclick="addItem('binaryCompilerFlags','compiler-flags', 'compiler-flags-list')" class="mybutton positive">+</button>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Flags that are passed to the binary compiler (e.g. -c -o)</span>
                                 </div>
-                                <div id="compiler-flags-list"></div>
-                                <div class="horizontal-separator"></div>
+                            </div>
+                            <div style="align-items: center" class="flex-row">
+                                <input type="text" id="compiler-flags"/>
+                                <button type="button" onclick="addItem('binaryCompilerFlags','compiler-flags', 'compiler-flags-list')" class="mybutton positive">+</button>
+                            </div>
+                            <div id="compiler-flags-list"></div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
                                 <div class="form-title">Binary compiler version:</div>
-                                    <div style="color: red;" id="compilerVersionAlert"></div>
-                                {{ form.compiler_version }}
-                                <div class="horizontal-separator"></div>
-                                <div class="form-title">Slurm partition:</div>
-                                {{ form.slurm_partition(id="slurm_part") }}
-                                <div style="color: red;" id="slurmPartitionAlert"></div>
-                                <div class="horizontal-separator"></div>
-                                <div style="align-items: center" class="flex-row">
-                                    <div class="form-title">Save combination folders:</div>
-                                    {{ form.save_combinations(style='margin-left: 30px')}}
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">GCC/ICC version (e.g. 10.1)</span>
                                 </div>
-                                <div class="horizontal-separator"></div>
+                            </div>
+                            {{ form.compiler_version }}
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">Slurm partition:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Slurm partition (e.g. )</span>
+                                </div>
+                            </div>
+                            {{ form.slurm_partition(id="slurm_part") }}
+                            <div style="color: red;" id="slurmPartitionAlert"></div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div style="align-items: center" class="flex-row">
+                                    <div class="form-title">Save combinations folders:</div>
+                                    {{ form.save_combinations(style='margin-left: 20px')}}
+                                 </div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Mark as "Yes" if you want to preserve all combinations folders</span>
+                                </div>
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
                                 <div style="align-items: center" class="flex-row">
                                     <div class="form-title">Clear database data:</div>
-                                    {{ form.clear_database(style='margin-left: 30px')}}
+                                    {{ form.clear_database(checked=True, style='margin-left: 30px')}}
                                 </div>
-                                <div class="horizontal-separator"></div>
-                                <div class="flex-row" style="align-items: center;">
-                                     <div style="align-items: center" class="flex-row">
-                                        <div class="form-title">Using Compar output:</div>
-                                        {{ form.with_markers(style='margin-left: 30px')}}
-                                     </div>
-                                     <div class="tooltip informationButton">i
-                                        <span class="tooltiptext">Mark as "Yes" when the source code is a product of Compar</span>
-                                     </div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Mark as "Yes" if you want to clear the database after ComPar ends</span>
                                 </div>
-                                <div class="horizontal-separator"></div>
-                                <div class="form-title">Slurm parameters:</div>
-                                <div class="flex-row-centered">
-                                 <input type="text" id="slurm-params"/>
-                                 <button type="button" onclick="addItem('slurmParametersList','slurm-params', 'slurm-parameters-list')" class="mybutton positive">+</button>
-                                </div>
-                                <div id="slurm-parameters-list"></div>
-                                <div class="horizontal-separator"></div>
-                                <div class="flex-row-spaced">
-                                    <div class="form-title">Maximum job count:</div>
-                                    <div class="tooltip informationButton">i
-                                        <span class="tooltiptext">Maximum number of jobs running simultaneously</span>
-                                    </div>
-                                </div>
-                                {{ form.jobs_count }}
-                                <div style="color: red;" id="jobsCountAlert"></div>
-                                <div class="horizontal-separator"></div>
-                                <div class="flex-row-spaced">
-                                    <div class="form-title">Execution time limit:</div>
-                                    <div class="tooltip informationButton">i
-                                        <span class="tooltiptext">Time limit for each combination</span>
-                                    </div>
-                                </div>
-                                <div style="display: flex; flex-direction: row; align-items: center" id="time-span">
-                                    <div class="flex-col">
-                                        <div>D</div>
-                                        {{ form.days_field(style='width: 50px') }}
-                                    </div>
-
-                                    <div class="flex-col">
-                                        <div>H</div>
-                                        {{ form.hours_field(style='width: 50px') }}
-                                    </div>
-
-                                    <div class="flex-col">
-                                        <div>M</div>
-                                        {{ form.minutes_field(style='width: 50px') }}
-                                    </div>
-
-                                    <div class="flex-col">
-                                        <div>S</div>
-                                        {{ form.seconds_field(style='width: 50px') }}
-                                    </div>
-
-                                </div>
-                                <div class="horizontal-separator"></div>
-                                <div class="form-title">Main file parameters:</div>
-                                <div class="flex-row-centered">
-                                 <input type="text" id="main-file-params"/>
-                                 <button type="button" onclick="addItem('mainFileParamList','main-file-params','main-params-list')" class="mybutton positive">+</button>
-                                </div>
-                                <div id="main-params-list"></div>
-                                <div class="horizontal-separator"></div>
-                                <div style="align-items: center" class="flex-row">
-                                <div class="form-title">Log level:</div>
-                                {{ form.log_level(style='margin-left: 30px') }}
-                                </div>
-                                <div class="horizontal-separator"></div>
-                                <div class="flex-row-spaced">
-                                    <div class="form-title">Compar mode:</div>
-                                    {{ form.compar_mode(style='margin-left: 30px') }}
-                                    <div class="tooltip informationButton">i
-                                        <span class="tooltiptext">Override - remove any existing data. New - create a new project if it exists. Continue - in case that project exist, continue from last point.</span>
-                                    </div>
-                                </div>
-                                <div class="horizontal-separator"></div>
-                                <div class="flex-row-spaced">
-                                   <div class="form-title">Validation file path:</div>
-                                    <div class="tooltip informationButton">i
-                                        <span class="tooltiptext">Absolute path to python file named “test_output.py” with test function “test_output”. This file will validate the output of every combination.</span>
-                                    </div>
-                                </div>
-                                {{ form.test_path }}
-                                <div style="color: red" id="validationPathAlert"></div>
                             </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row" style="align-items: center;">
+                                 <div style="align-items: center" class="flex-row">
+                                    <div class="form-title">Using ComPar output:</div>
+                                    {{ form.with_markers(style='margin-left: 30px')}}
+                                </div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Mark as "Yes" when the source code is a product of ComPar</span>
+                                </div>
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">Slurm parameters:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Flags that are passed to the slurm (e.g. )</span>
+                                </div>
+                            </div>
+                            <div class="flex-row-centered">
+                             <input type="text" id="slurm-params"/>
+                             <button type="button" onclick="addItem('slurmParametersList','slurm-params', 'slurm-parameters-list')" class="mybutton positive">+</button>
+                            </div>
+                            <div id="slurm-parameters-list"></div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">Maximum job count:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Maximum number of jobs running simultaneously</span>
+                                </div>
+                            </div>
+                            {{ form.jobs_count }}
+                            <div style="color: red;" id="jobsCountAlert"></div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">Execution time limit:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Time limit for each combination</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: row; align-items: center" id="time-span">
+                                <div class="flex-col">
+                                    <div>D</div>
+                                    {{ form.days_field(style='width: 50px') }}
+                                </div>
+
+                                <div class="flex-col">
+                                    <div>H</div>
+                                    {{ form.hours_field(style='width: 50px') }}
+                                </div>
+
+                                <div class="flex-col">
+                                    <div>M</div>
+                                    {{ form.minutes_field(style='width: 50px') }}
+                                </div>
+
+                                <div class="flex-col">
+                                    <div>S</div>
+                                    {{ form.seconds_field(style='width: 50px') }}
+                                </div>
+
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">Main file parameters:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Parameters that will be passed to the main file before run</span>
+                                </div>
+                            </div>
+                            <div class="flex-row-centered">
+                             <input type="text" id="main-file-params"/>
+                             <button type="button" onclick="addItem('mainFileParamList','main-file-params','main-params-list')" class="mybutton positive">+</button>
+                            </div>
+                            <div id="main-params-list"></div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div style="align-items: center" class="flex-row">
+                                    <div class="form-title">Log level:</div>
+                                    {{ form.log_level(style='margin-left: 30px') }}
+                                </div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Log information level to be displayed on the output log</span>
+                                </div>
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                                <div class="form-title">ComPar mode:</div>
+                                {{ form.compar_mode(style='margin-left: 30px') }}
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Override - remove any existing data. New - create a new project if one already exists. Continue - in case that project exist, continue from last point.</span>
+                                </div>
+                            </div>
+                            <div class="horizontal-separator"></div>
+                            <div class="flex-row-spaced">
+                               <div class="form-title">Validation file path:</div>
+                                <div class="tooltip informationButton">i
+                                    <span class="tooltiptext">Absolute path to python file named “test_output.py” with test function “test_output”. This file will validate the output of every combination.</span>
+                                </div>
+                            </div>
+                            {{ form.test_path }}
+                            <div style="color: red" id="validationPathAlert"></div>
+                        </div>
                         <button type="submit" value="Submit" id="startComparButton" class="startbtn">START</button>
                         </div>
                     </div>

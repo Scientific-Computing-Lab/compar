@@ -2,7 +2,7 @@
 {% import "bootstrap/wtf.html" as wtf %}
 <html lang="en">
 <head>
-    <title>Compar - Makefile mode</title>
+    <title>ComPar - Makefile mode</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" />
@@ -17,7 +17,7 @@
 
 <body onLoad="init()">
     <nav>
-        <div class="navtitle">Compar</div>
+        <div class="navtitle">ComPar</div>
         <div class="separator"></div>
         <a href="/singlefile" class="ref">Single File Mode</a>
         <a href="/multiplefiles" class="seperate ref">Multiple Files Mode</a>
@@ -33,7 +33,7 @@
         <div class="page-layout">
             <div class="mycontainer">
                 <div class="form-container form">
-                    <div class="title">Compar Parameters</div>
+                    <div class="title">ComPar Parameters</div>
                     <div style="padding: 12px"  class="form-area">
                         {{ form.csrf_token }}
                         <div class="flex-row-spaced">
@@ -63,7 +63,12 @@
                         {{ form.main_file_path }}
                         <div style="color: red;" id="mainFileAlert"></div>
                         <div class="horizontal-separator"></div>
-                        <div class="form-title">Makefile commands:</div>
+                        <div class="flex-row-spaced">
+                            <div class="form-title">Makefile commands:</div>
+                            <div class="tooltip informationButton">i
+                                <span class="tooltiptext">Commands that will be passed to the makefile script</span>
+                            </div>
+                        </div>
                         <div style="align-items: center" class="flex-row">
                             <input type="text" id="makefile_commands"/>
                             <button type="button" onclick="addItem('makefileCommands','makefile_commands', 'makefile_commands_list')" class="mybutton positive">+</button>
@@ -127,18 +132,33 @@
                                 </div>
                                 <div id="extra-files-list"></div>
                                 <div class="horizontal-separator"></div>
-                                 <div class="form-title">Slurm partition:</div>
+                                <div class="flex-row-spaced">
+                                    <div class="form-title">Slurm partition:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Slurm partition (e.g. )</span>
+                                    </div>
+                                </div>
                                 {{ form.slurm_partition(id="slurm_part") }}
                                 <div style="color: red;" id="slurmPartitionAlert"></div>
                                 <div class="horizontal-separator"></div>
-                                <div style="align-items: center" class="flex-row">
-                                    <div class="form-title">Save combination folders:</div>
-                                    {{ form.save_combinations(style='margin-left: 30px')}}
+                                <div class="flex-row-spaced">
+                                    <div style="align-items: center" class="flex-row">
+                                        <div class="form-title">Save combinations folders:</div>
+                                        {{ form.save_combinations(style='margin-left: 20px')}}
+                                     </div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Mark as "Yes" if you want to preserve all combinations folders</span>
+                                    </div>
                                 </div>
                                 <div class="horizontal-separator"></div>
-                                <div style="align-items: center" class="flex-row">
-                                    <div class="form-title">Clear database data:</div>
-                                    {{ form.clear_database(style='margin-left: 30px')}}
+                                <div class="flex-row-spaced">
+                                    <div style="align-items: center" class="flex-row">
+                                        <div class="form-title">Clear database data:</div>
+                                        {{ form.clear_database(checked=True, style='margin-left: 30px')}}
+                                    </div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Mark as "Yes" if you want to clear the database after ComPar ends</span>
+                                    </div>
                                 </div>
                                 <div class="horizontal-separator"></div>
                                 <div class="flex-row" style="align-items: center;">
@@ -151,7 +171,12 @@
                                     </div>
                                 </div>
                                 <div class="horizontal-separator"></div>
-                                <div class="form-title">Slurm parameters:</div>
+                                <div class="flex-row-spaced">
+                                    <div class="form-title">Slurm parameters:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Flags that are passed to the slurm (e.g. )</span>
+                                    </div>
+                                </div>
                                 <div class="flex-row-centered">
                                  <input type="text" id="slurm-params"/>
                                  <button type="button" onclick="addItem('slurmParametersList','slurm-params', 'slurm-parameters-list')" class="mybutton positive">+</button>
@@ -196,16 +221,26 @@
 
                                 </div>
                                 <div class="horizontal-separator"></div>
-                                <div class="form-title">Main file parameters:</div>
+                                <div class="flex-row-spaced">
+                                    <div class="form-title">Main file parameters:</div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Parameters that will be passed to the main file before run</span>
+                                    </div>
+                                </div>
                                 <div class="flex-row-centered">
                                  <input type="text" id="main-file-params"/>
                                  <button type="button" onclick="addItem('mainFileParamList','main-file-params','main-params-list')" class="mybutton positive">+</button>
                                 </div>
                                 <div id="main-params-list"></div>
                                 <div class="horizontal-separator"></div>
-                                <div style="align-items: center" class="flex-row">
-                                <div class="form-title">Log level:</div>
-                                {{ form.log_level(style='margin-left: 30px') }}
+                                <div class="flex-row-spaced">
+                                    <div style="align-items: center" class="flex-row">
+                                        <div class="form-title">Log level:</div>
+                                        {{ form.log_level(style='margin-left: 30px') }}
+                                    </div>
+                                    <div class="tooltip informationButton">i
+                                        <span class="tooltiptext">Log information level to be displayed on the output log</span>
+                                    </div>
                                 </div>
                                 <div class="horizontal-separator"></div>
                                 <div class="flex-row-spaced">
