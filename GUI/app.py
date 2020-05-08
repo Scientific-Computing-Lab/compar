@@ -48,6 +48,7 @@ class SingleFileForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
+    
     with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
