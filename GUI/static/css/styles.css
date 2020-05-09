@@ -401,6 +401,53 @@ nav {
     font-size: 19px;
 }
 
+.burger {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.burger:hover {
+    background: #090E28;
+    transition: 0.3s;
+}
+
+.menu {
+    position: relative;
+    margin-right: 8px;
+}
+
+.menu-icon {
+    width: 20px;
+    height: 3px;
+    background-color: white;
+    margin: 2px 0;
+}
+
+.menu-context {
+    position: absolute;
+    z-index: 100;
+    background: #575757;
+    border: 2px solid black;
+    top: 22px;
+    right: 0px;
+    width: 150px;
+}
+
+.context {
+    color: white;
+    font-size: 14px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.context:hover {
+    background: #2C2C2C;
+}
+
 .files_button{
     display: flex;
     justify-content: center;
