@@ -15,6 +15,7 @@
     <link href="{{ url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
     <script src="{{ url_for('static', filename='js/jquery-3.4.1.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/common/advanced_options.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/common/menu_bar.js')}}"></script>
     <script src="{{ url_for('static', filename='js/single_file_mode/on_load.js')}}"></script>
     <script src="{{ url_for('static', filename='js/single_file_mode/dynamic_parameters.js')}}"></script>
     <script src="{{ url_for('static', filename='js/single_file_mode/form_and_errors.js')}}"></script>
@@ -233,13 +234,13 @@
                         <div class="output-log flex-col">
                             <div style="padding: 6.5px" class="flex-row-spaced title">
                                 <div>Log</div>
-                                <div class="menu">
+                                <div class="menu" onclick="showMenuBar()">
                                     <div style="width: auto" class="burger">
                                         <div class="menu-icon"></div>
                                         <div class="menu-icon"></div>
                                         <div class="menu-icon"></div>
                                     </div>
-                                    <div class="menu-context">
+                                    <div class="menu-context" id="menu">
                                         <div class="context">Download log file</div>
                                         <div style="background: black; margin: 0px" class="horizontal-separator"></div>
                                         <div class="context">Download csv file</div>

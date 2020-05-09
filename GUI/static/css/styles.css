@@ -1,7 +1,6 @@
 .page-layout {
     width: 100vw;
     height: calc(100vh - 42px);
-    background: grey;
 }
 .CodeMirror {
     box-sizing:border-box;
@@ -418,13 +417,15 @@ nav {
 }
 
 .menu-icon {
-    width: 20px;
+    width: 24px;
     height: 3px;
     background-color: white;
     margin: 2px 0;
 }
 
 .menu-context {
+    display: none;
+    flex-direction: column;
     position: absolute;
     z-index: 100;
     background: #575757;
