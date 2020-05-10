@@ -17,13 +17,13 @@ function Upload_file(fileId, textAreaId) {
          }
     }
 
-function downloadFile(){
+async function downloadFile(){
     var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
     resultCode = codeMirrorResultEditor.getValue();
 
     var comparStatusCode = 0;
     var url = "/checkComparStatus"
-      fetch(url)
+      await  fetch(url)
       .then((response) => {
         return response.json();
       })
@@ -35,7 +35,6 @@ function downloadFile(){
             comparStatusCode = 0;
           }
        });
-
 
     if (resultCode && comparStatusCode && !comparIsRunning){
         var anchor=document.createElement('a');

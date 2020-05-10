@@ -16,7 +16,6 @@ from datetime import datetime
 import hashlib
 import getpass
 import shutil
-from .config import func
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -30,7 +29,7 @@ GUI_DIR_NAME = 'GUI'
 SINGLE_FILE_MODE = 'single-file-mode'
 MULTIPLE_FILES_MODE = 'multiple-files-mode'
 MAKEFILE_MODE = 'makefile-mode'
-COMPAR_APPLICATION_PATH = os.path.dirname(os.getcwd())
+COMPAR_APPLICATION_PATH = os.path.dirname(app.root_path)
 
 
 def path_validator(form, field):
@@ -280,12 +279,12 @@ def stream():
 def check_compar_status():
     working_dir = session.get('working_dir')
     if working_dir:
-        result_file_path = os.path.join(working_dir, 'final_results')
+        result_file_path = os.path.join(working_dir, 'final_results', session['main_file_rel_path'])
     return_code = session.get('return_code')
     if return_code is None:
         return_code = 0
-    if return_code != 0 or not working_dir or not os.path.exists(os.path.dirname(result_file_path)) or not os.path.exists(
-            result_file_path):
+    if return_code != 0 or not working_dir or not os.path.exists(os.path.dirname(result_file_path)) or \
+            not os.path.exists(result_file_path):
         return jsonify({"success": 0})
     return jsonify({"success": 1})
 
