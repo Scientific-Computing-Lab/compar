@@ -19,6 +19,7 @@
     <script src="{{ url_for('static', filename='js/single_file_mode/on_load.js')}}"></script>
     <script src="{{ url_for('static', filename='js/single_file_mode/dynamic_parameters.js')}}"></script>
     <script src="{{ url_for('static', filename='js/single_file_mode/form_and_errors.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/common/file_handler.js')}}"></script>
 </head>
 
 <body onLoad="init()">
@@ -225,7 +226,7 @@
                         <div style="margin-left: 20px; direction: rtl; overflow: auto;" class="flex-col resizable">
                             <div style="direction: ltr" class="flex-row-spaced title">
                                 <div>Result File</div>
-                                <button class="files_button" onclick="downloadFile()" id="download_button" type="button">Download</button>
+                                <button class="files_button" onclick="downloadFile('downloadResultFile')" id="download_button" type="button">Download</button>
                             </div>
                             {{ form.result_file_area(id="result_editor") }}
                         </div>

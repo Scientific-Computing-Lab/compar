@@ -25,6 +25,8 @@ Bootstrap(app)
 
 TEMP_FILES_DIRECTORY = 'temp'
 COMPAR_PROGRAM_FILE = 'program.py'
+SUMMARY_FILE_NAME = 'summary.csv'
+LOG_FILE_NAME = 'compar_output.log'
 GUI_DIR_NAME = 'GUI'
 SINGLE_FILE_MODE = 'single-file-mode'
 MULTIPLE_FILES_MODE = 'multiple-files-mode'
@@ -272,10 +274,14 @@ def stream():
     def generate():
         compar_file = COMPAR_PROGRAM_FILE
         interpreter = sys.executable
-        command = [interpreter, '-u', compar_file, compar_command]
+        command = ["exec", interpreter, '-u', compar_file, compar_command]
         print(command)
         proc = subprocess.Popen(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                 cwd=COMPAR_APPLICATION_PATH)
+        pid = proc.pid
+        print(pid)
+        # TODO: write it to file with all sbatch runs and kill it either
+
         for line in proc.stdout:
             yield line.rstrip() + b'\n'
         proc.communicate()[0]
@@ -284,18 +290,31 @@ def stream():
     return Response(stream_with_context(generate()))
 
 
-@app.route('/checkComparStatus', methods=['get'])
+@app.route('/checkComparStatus', methods=['get', 'post'])
 def check_compar_status():
-    working_dir = session.get('working_dir')
-    if working_dir:
-        result_file_path = os.path.join(working_dir, 'final_results', session['main_file_rel_path'])
-    return_code = session.get('return_code')
-    if return_code is None:
-        return_code = 0
-    if return_code != 0 or not working_dir or not os.path.exists(os.path.dirname(result_file_path)) or \
-            not os.path.exists(result_file_path):
-        return jsonify({"success": 0})
-    return jsonify({"success": 1})
+    data = request.get_json()
+    if 'action' not in data.keys():
+        abort(400, "Action must be specified.")
+    else:
+        action = data['action']
+
+    if action == 'downloadLogFile':
+        log_file_path = os.path.join(session['working_dir'], LOG_FILE_NAME)
+        if not os.path.exists(log_file_path):
+            return jsonify({"success": 0})
+        else:
+            return jsonify({"success": 1})
+    else:
+        working_dir = session.get('working_dir')
+        if working_dir:
+            result_file_path = os.path.join(working_dir, 'final_results', session['main_file_rel_path'])
+        return_code = session.get('return_code')
+        if return_code is None:
+            return_code = 0
+        if return_code != 0 or not working_dir or not os.path.exists(os.path.dirname(result_file_path)) or \
+                not os.path.exists(result_file_path):
+            return jsonify({"success": 0})
+        return jsonify({"success": 1})
 
 
 @app.route('/result_file', methods=['get'])
@@ -325,6 +344,34 @@ def download_result_file():
         result_code,
         mimetype="text/plain",
         headers={"Content-disposition": "attachment; filename=Compar_results.c"}
+    )
+
+
+@app.route('/downloadSummaryFile', methods=['get'])
+def download_summary_file():
+    summary_file_path = os.path.join(session['working_dir'], 'final_results', SUMMARY_FILE_NAME)
+    if not os.path.exists(summary_file_path):
+        return abort(400, "Cannot find summary file.")
+    with open(summary_file_path, 'r') as fp:
+        result = fp.read()
+    return Response(
+        result,
+        mimetype="text/plain",
+        headers={"Content-disposition": f"attachment; filename={SUMMARY_FILE_NAME}"}
+    )
+
+
+@app.route('/downloadLogFile', methods=['get'])
+def download_log_file():
+    log_file_path = os.path.join(session['working_dir'], LOG_FILE_NAME)
+    if not os.path.exists(log_file_path):
+        return abort(400, "Cannot find log file.")
+    with open(log_file_path, 'r') as fp:
+        result = fp.read()
+    return Response(
+        result,
+        mimetype="text/plain",
+        headers={"Content-disposition": f"attachment; filename={LOG_FILE_NAME}"}
     )
 
 
@@ -489,6 +536,11 @@ def save_source_file(file_path, txt):
     with open(file_path, "w") as f:
         f.write(txt)
 
+
+def terminate_compar():
+    # kill compar pid
+    # kill all sbatch process
+    pass
 
 if __name__ == "__main__":
     clean_temp_files()
