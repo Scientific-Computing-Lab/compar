@@ -32,3 +32,7 @@ async function downloadFile(action){
         anchor.parentNode.removeChild(anchor);
     }
  }
+
+async function terminateCompar(){
+    fetch('/terminateCompar');
+ }

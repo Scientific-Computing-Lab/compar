@@ -1,3 +1,4 @@
+import errno
 import os
 import sys
 from flask_wtf import FlaskForm
@@ -16,6 +17,7 @@ from datetime import datetime
 import hashlib
 import getpass
 import shutil
+import signal
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -271,17 +273,15 @@ def stream():
     else:
         abort(400, f"Cannot initiate Compar with mode: {compar_mode}.")
 
-    def generate():
-        compar_file = COMPAR_PROGRAM_FILE
-        interpreter = sys.executable
-        command = ["exec", interpreter, '-u', compar_file, compar_command]
-        print(command)
-        proc = subprocess.Popen(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                cwd=COMPAR_APPLICATION_PATH)
-        pid = proc.pid
-        print(pid)
-        # TODO: write it to file with all sbatch runs and kill it either
+    compar_file = COMPAR_PROGRAM_FILE
+    interpreter = sys.executable
+    command = ["exec", interpreter, '-u', compar_file, compar_command]
+    print(command)
+    proc = subprocess.Popen(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            cwd=COMPAR_APPLICATION_PATH)
+    session['pid'] = proc.pid
 
+    def generate():
         for line in proc.stdout:
             yield line.rstrip() + b'\n'
         proc.communicate()[0]
@@ -292,6 +292,7 @@ def stream():
 
 @app.route('/checkComparStatus', methods=['get', 'post'])
 def check_compar_status():
+    print(session.get('pid'))
     working_dir = session.get('working_dir')
     data = request.get_json()
     action = ""
@@ -395,6 +396,25 @@ def show_files_structure():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static', 'assets'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+
+@app.route('/terminateCompar', methods=['get'])
+def terminate_compar():
+    pid = session.get('pid')
+    if pid:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError as err:
+            if err.errno == errno.ESRCH:
+                # ESRCH == No such process
+                pass
+            elif err.errno == errno.EPERM:
+                # EPERM clearly means there's a process to deny access to
+                pass
+        finally:
+            # TODO: kill all sbatch process
+            pass
+    return {"success": 1}
 
 
 def generate_compar_command_without_makefile():
@@ -538,11 +558,6 @@ def save_source_file(file_path, txt):
     with open(file_path, "w") as f:
         f.write(txt)
 
-
-def terminate_compar():
-    # kill compar pid
-    # kill all sbatch process
-    pass
 
 if __name__ == "__main__":
     clean_temp_files()
