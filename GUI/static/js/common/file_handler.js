@@ -34,5 +34,7 @@ async function downloadFile(action){
  }
 
 async function terminateCompar(){
-    fetch('/terminateCompar');
+    if (comparIsRunning){
+        fetch('/terminateCompar');
+    }
  }
