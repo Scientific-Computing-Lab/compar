@@ -292,20 +292,22 @@ def stream():
 
 @app.route('/checkComparStatus', methods=['get', 'post'])
 def check_compar_status():
+    working_dir = session.get('working_dir')
     data = request.get_json()
+    action = ""
     if 'action' not in data.keys():
         abort(400, "Action must be specified.")
     else:
         action = data['action']
-
     if action == 'downloadLogFile':
-        log_file_path = os.path.join(session['working_dir'], LOG_FILE_NAME)
-        if not os.path.exists(log_file_path):
+        if working_dir:
+            log_file_path = os.path.join(session['working_dir'], LOG_FILE_NAME)
+        if not working_dir or not os.path.exists(log_file_path):
             return jsonify({"success": 0})
         else:
             return jsonify({"success": 1})
     else:
-        working_dir = session.get('working_dir')
+
         if working_dir:
             result_file_path = os.path.join(working_dir, 'final_results', session['main_file_rel_path'])
         return_code = session.get('return_code')
