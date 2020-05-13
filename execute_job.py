@@ -125,6 +125,7 @@ class ExecuteJob:
         result = re.findall('[0-9]', str(result))
         result = ''.join(result)
         self.get_job().set_job_id(result)
+        logger.info(f'Job {self.get_job().get_job_id()} sent to slurm system')
         cmd = f"squeue -j {self.get_job().get_job_id()} --format %t"
         last_status = ''
         is_first_time = True
