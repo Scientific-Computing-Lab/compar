@@ -35,6 +35,12 @@ async function downloadFile(action){
 
 async function terminateCompar(){
     if (comparIsRunning){
-        fetch('/terminateCompar');
+     const response = await fetch('/terminateCompar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify ({'jobs': slurmJobs})
+      });
     }
  }

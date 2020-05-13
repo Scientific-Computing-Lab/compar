@@ -45,9 +45,11 @@ def relative_path_validator(form, field):
     if not form.input_directory.data or not os.path.exists(os.path.join(form.input_directory.data, field.data)):
         raise ValidationError('Relative path is invalid')
 
+
 def positive_number_validator(form, field):
     if int(field.data) < 0:
         raise ValidationError('Positive numbers only')
+
 
 class SingleFileForm(FlaskForm):
     compiler_flags = StringField('compiler_flags')
@@ -398,9 +400,13 @@ def favicon():
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
-@app.route('/terminateCompar', methods=['get'])
+@app.route('/terminateCompar', methods=['post'])
 def terminate_compar():
+    data = request.get_json()
     pid = session.get('pid')
+    jobs = ""
+    if 'jobs' in data.keys():
+        jobs = data['jobs']
     if pid:
         try:
             os.kill(pid, signal.SIGTERM)
@@ -411,9 +417,13 @@ def terminate_compar():
             elif err.errno == errno.EPERM:
                 # EPERM clearly means there's a process to deny access to
                 pass
-        finally:
-            # TODO: kill all sbatch process
-            pass
+    if jobs:
+        for job in jobs:
+            try:
+                subprocess.Popen(f"scancel {job}", stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                 cwd=COMPAR_APPLICATION_PATH, shell=True, env=os.environ, universal_newlines=True)
+            except Exception as e:
+                pass
     return {"success": 1}
 
 
