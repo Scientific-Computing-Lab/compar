@@ -40,7 +40,7 @@ async function terminateCompar(){
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify ({'jobs': slurmJobs})
+      body: JSON.stringify ({'jobs': Array.from(slurmJobs)})
       });
     }
  }
