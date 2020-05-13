@@ -234,3 +234,8 @@ class Database:
             self.static_db.drop_collection(self.collection_name)
         if self.collection_name in self.dynamic_db.list_collection_names():
             self.dynamic_db.drop_collection(self.collection_name)
+
+    def get_final_result_speedup(self):
+        serial_results = self.get_combination_results(Database.SERIAL_COMBINATION_ID)
+        final_results = self.get_combination_results(Database.FINAL_RESULTS_COMBINATION_ID)
+        return float(serial_results['total_run_time']) / float(final_results['total_run_time'])
