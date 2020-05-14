@@ -527,7 +527,7 @@ class Compar:
         try:
             job_obj = self.execute_job(job_obj, self.serial_run_time)
         except Exception as ex:
-            logger.info_error(f'Exception at {Compar.__name__}:: {ex}')
+            logger.info_error(f'Exception at {Compar.__name__}: {ex}')
             logger.debug_error(f'{traceback.format_exc()}')
         finally:
             if not self.save_combinations_folders:
@@ -554,7 +554,7 @@ class Compar:
                 self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
                 self.compile_combination_to_binary(combination_folder_path)
             except Exception as ex:
-                logger.info_error(f'Exception at {Compar.__name__}:: {ex}')
+                logger.info_error(f'Exception at {Compar.__name__}: {ex}')
                 logger.debug_error(f'{traceback.format_exc()}')
                 self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
                 continue

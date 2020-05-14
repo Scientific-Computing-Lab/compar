@@ -62,7 +62,7 @@ class Par4all(ParallelCompiler):
                     f.write(content)
                     f.truncate()
         except Exception as e:
-            logger.info_error(f'Exception at {Par4all.__name__}:: {e}')
+            logger.info_error(f'Exception at {Par4all.__name__}: {e}')
             logger.debug_error(f'{traceback.format_exc()}')
 
     def initiate_for_new_task(self, compilation_flags: list, input_file_directory: str, file_list: list):
