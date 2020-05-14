@@ -46,8 +46,9 @@ async function run() {
   if (!comparIsRunning){
       output.innerHTML = "";
       comparIsRunning = true;
-      totalJobs = 0;
-      ranJobs = 0;
+      totalCombinationsToRun = 0;
+      ranCombination = 0;
+      speedup = 0;
       slurmJobs = new Set();
       var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
       var codeMirrorSourceEditor = $('.CodeMirror')[0].CodeMirror;

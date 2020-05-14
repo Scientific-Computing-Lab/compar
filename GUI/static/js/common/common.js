@@ -64,7 +64,7 @@ async function parseLine(line){
     }
     else if (found_job_finished_from_slurm){
         var job_id = found_job_finished_from_slurm[0].replace(/[^0-9]/g,'');
-        console.log("job sent to slurm:", job_id);
+        console.log("job finished from slurm:", job_id);
         slurmJobs.delete(job_id);
     }
     else if (found_new_combination){
