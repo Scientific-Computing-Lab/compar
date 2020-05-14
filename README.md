@@ -89,7 +89,7 @@ You can see an example for such a file in *compilation_params.json* under *asset
 | Cetus (optional)  | <ul><li>**-parallelize-loops:** annotate loops with parallelization decisions, such as which level of loops will be parallelized</li><li>**-reduction:** perform reduction variable analysis</li><li>**-privatize:** perform scalar/array privatization analysis</li><li>**-alias:** specify level of alias analysis</li></ul>|
 | AutoPar (essential)  | <ul><li>**--keep_going:** auto parallelization will keep going even if errors occur</li></ul>|
 | AutoPar (optional)  | <ul><li>**--enable_modeling:** enabling cost modeling of loops to guide parallelization</li><li>**--no_aliasing:** assume no pointer aliasing exists</li><li>**--unique_indirect_index:** assuming all arrays used as indirect indices have unique elements (no overlapping)</li></ul>|
-| Par4All (essential)  | <ul><li>-O: </li></ul>|
+| Par4All (essential)  | <ul><li>**-O:** parallelize with OpenMP output </li></ul>|
 | Par4All (optional)  | <ul><li>**--fine-grain:** use a fine-grain parallelization algorithm instead of a coarse-grain parallelization.</li><li>**--com-optimization:** enable memory transfert optimizations (one should not use this flag on a code with pointer aliasing).</li><li>**--no-pointer-aliasing:** assume there is no pointer aliasing.</li></ul>|
 
 
@@ -107,7 +107,7 @@ The table below presented currently supported OpenMP runtime libraries routines.
 
 | RTL  | Supported Options |
 | ------------- | ------------- |
-| omp_set_num_threads  | <ul> <li>[2, 4, 8, 16, 32]</li> </ul> |
+| omp_set_num_threads  | [2, 4, 8, 16, 32] |
 
 
 ### Run
