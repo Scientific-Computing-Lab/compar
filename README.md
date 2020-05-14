@@ -58,6 +58,22 @@ Then, you should install and load the supported compilers (i.e. Cetus, Par4All a
   * If the user use this flag, the NAS Benchmark will be the input code to be parallelized.
 * -t (or --time_limit): Time limit for runtime execution.
   * Default = None.
+* -extra (or --extra_files): List of relative extra files to parallelize in addition to current ones.
+  * Default = None.
+* -partition (or --slurm_partition): Slurm partition name.
+  * Default = grid.
+* -v (or --verbose): Get more verbose output.
+  * Default = logger.BASIC.
+* -vv (or --debug): Get debug output.
+  * Default = logger.BASIC.
+* -test_file (or --test_file_path): Unit test file path.
+  * Default = "".
+* -jobs_quantity (or --jobs_quantity_at_once): The number of jobs to be executed at once.
+  * Default = num_of_jobs_at_once.
+* -mode (or --mode): Compar working mode.
+  * Default = ComparConfig.DEFAULT_MODE.
+* -with_markers (or --code_with_markers): Mark that the code was parallelized with Compar before.
+* -clear_db (or --clear_db): Delete the results from database.
     
 ### Compliation Parameters
 
