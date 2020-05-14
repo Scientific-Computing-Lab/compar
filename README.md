@@ -88,7 +88,7 @@ You can see an example for such a file in *compilation_params.json* under *asset
 | AutoPar (essential)  | <ul><li>--keep_going</li></ul>|
 | AutoPar (optional)  | <ul><li>--enable_modeling</li><li>**--no_aliasing:** assuming no pointer aliasing exists</li><li>**--unique_indirect_index:** assuming all arrays used as indirect indices have unique elements (no overlapping)</li></ul>|
 | Par4All (essential)  | <ul><li>-O</li></ul>|
-| Par4All (optional)  | <ul><li>--fine-grain</li><li>--com-optimization</li><li>--no-pointer-aliasing</li></ul>|
+| Par4All (optional)  | <ul><li>**--fine-grain:** use a fine-grain parallelization algorithm instead of a coarse-grain parallelization.</li><li>**--com-optimization:** enable memory transfert optimizations (one should not use this flag on a code with pointer aliasing).</li><li>**--no-pointer-aliasing:** assume there is no aliasing in input program.</li></ul>|
 
 
 ### OpenMP Directives
