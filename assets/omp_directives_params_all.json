@@ -1,0 +1,24 @@
+{
+  "parallel": {
+    "valued": [],
+    "toggle": []
+  },
+  "for": {
+    "valued": [
+      {
+        "pragma": "schedule",
+        "values": [
+          {
+            "val": "static",
+            "related": [2, 4, 8, 16, 32]
+          },
+          {
+            "val": "dynamic",
+            "related": []
+          }
+        ]
+      }
+    ],
+    "toggle": []
+  }
+}

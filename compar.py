@@ -413,6 +413,7 @@ class Compar:
         except Exception as ex:
             msg = f'Exception in Compar: {ex}\ngenerate_optimal_code: cannot compile compar combination'
             self.save_combination_as_failure(Database.COMPAR_COMBINATION_ID, msg, compar_combination_folder_path)
+        logger.info(f'Working on {Database.FINAL_RESULTS_COMBINATION_ID} combination')
         # Check for best total runtime
         best_runtime_combination_id = self.db.get_total_runtime_best_combination()
         best_combination_obj = None
@@ -455,6 +456,8 @@ class Compar:
                              self.make_absolute_file_list(final_folder_path)])
         self.db.remove_unused_data(Database.COMPAR_COMBINATION_ID)
         self.db.remove_unused_data(Database.FINAL_RESULTS_COMBINATION_ID)
+        final_result_speedup = self.db.get_final_result_speedup()
+        logger.info(f'final results speedup is {final_result_speedup}')
         if self.clear_db:
             self.clear_related_collections()
         self.db.close_connection()
@@ -545,7 +548,7 @@ class Compar:
         self.parallel_jobs_pool_executor.create_jobs_pool()
         for combination_json in self.db.combinations_iterator():
             combination_obj = Combination.json_to_obj(combination_json)
-            logger.info(f'Working on combination #{combination_obj.combination_id}')
+            logger.info(f'Working on {combination_obj.combination_id} combination')
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
             try:
                 self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
@@ -604,7 +607,7 @@ class Compar:
         self.binary_compiler.compile()
 
     def run_serial(self):
-        logger.info('Start to work on serial combination')
+        logger.info(f'Working on {Database.SERIAL_COMBINATION_ID} combination')
         serial_dir_path = os.path.join(self.combinations_dir, Database.SERIAL_COMBINATION_ID)
         if self.mode == ComparMode.CONTINUE and self.db.combination_has_results(Database.SERIAL_COMBINATION_ID):
             job_results = self.db.get_combination_results(Database.SERIAL_COMBINATION_ID)['run_time_results']
