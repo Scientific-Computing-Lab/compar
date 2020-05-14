@@ -75,7 +75,7 @@ class Compar:
             with open(file_path, 'r') as input_file:
                 return input_file.read()
         except FileNotFoundError:
-            raise FileError(f'File {file_path} not exist')
+            raise FileError(f'File {file_path} dose not exist')
 
     @staticmethod
     def add_to_loop_details_about_comp_and_combination(file_path: str, start_label: str, combination_id: str,
@@ -527,7 +527,7 @@ class Compar:
         try:
             job_obj = self.execute_job(job_obj, self.serial_run_time)
         except Exception as ex:
-            logger.info_error(f'Exception at {Compar.__name__}: {ex}')
+            logger.info_error(f'Exception at {Compar.__name__}:: {ex}')
             logger.debug_error(f'{traceback.format_exc()}')
         finally:
             if not self.save_combinations_folders:
@@ -548,13 +548,13 @@ class Compar:
         self.parallel_jobs_pool_executor.create_jobs_pool()
         for combination_json in self.db.combinations_iterator():
             combination_obj = Combination.json_to_obj(combination_json)
-            logger.info(f'Working on {combination_obj.combination_id} combination')
+            logger.info(f'Working on combination #{combination_obj.combination_id}')
             combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
             try:
                 self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
                 self.compile_combination_to_binary(combination_folder_path)
             except Exception as ex:
-                logger.info_error(f'Exception at {Compar.__name__}: {ex}')
+                logger.info_error(f'Exception at {Compar.__name__}:: {ex}')
                 logger.debug_error(f'{traceback.format_exc()}')
                 self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
                 continue
@@ -607,7 +607,7 @@ class Compar:
         self.binary_compiler.compile()
 
     def run_serial(self):
-        logger.info(f'Working on {Database.SERIAL_COMBINATION_ID} combination')
+        logger.info('Start to work on serial combination')
         serial_dir_path = os.path.join(self.combinations_dir, Database.SERIAL_COMBINATION_ID)
         if self.mode == ComparMode.CONTINUE and self.db.combination_has_results(Database.SERIAL_COMBINATION_ID):
             job_results = self.db.get_combination_results(Database.SERIAL_COMBINATION_ID)['run_time_results']

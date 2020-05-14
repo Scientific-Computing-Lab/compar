@@ -127,7 +127,7 @@ class Database:
             self.dynamic_db[self.collection_name].insert_one(combination_result)
             return True
         except Exception as e:
-            logger.info_error(f'{Database.__name__} cannot update dynamic DB: {e}')
+            logger.info_error(f'{Database.__name__}: cannot update dynamic DB: {e}')
             logger.debug_error(f'{traceback.format_exc()}')
             return False
 

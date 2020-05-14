@@ -25,23 +25,23 @@ class CombinationValidator:
             stdout, stderr, exit_code = run_subprocess(command)
         except CalledProcessError as e:
             if e.returncode is None or e.returncode not in [code for code in ExitCode]:
-                logger.info_error(f"{CombinationValidator.__name__}: "
+                logger.info_error(f"{CombinationValidator.__name__}:: "
                                   f"pytest operation failed. could not run the test.\n{e}")
                 return ExitCode.INTERNAL_ERROR
             stdout = e.stdout
             stderr = e.stderr
             exit_code = e.returncode
         except Exception as ex:
-            logger.info_error(f"{CombinationValidator.__name__}: exception thrown during pytest operation."
+            logger.info_error(f"{CombinationValidator.__name__}:: exception thrown during pytest operation."
                               f" could not run the test.\n{ex}")
             return ExitCode.INTERNAL_ERROR
         if not check_for_existence:
             if exit_code == ExitCode.OK:
-                logger.verbose(f"{CombinationValidator.__name__}: test '{CombinationValidator.UNIT_TEST_NAME}' passed.")
+                logger.verbose(f"{CombinationValidator.__name__}:: test '{CombinationValidator.UNIT_TEST_NAME}' passed.")
             else:
-                logger.info_error(f"{CombinationValidator.__name__}: "
+                logger.info_error(f"{CombinationValidator.__name__}:: "
                                   f"test '{CombinationValidator.UNIT_TEST_NAME}' failed.")
-            logger.debug(f"{CombinationValidator.__name__}: {stdout}\n{stderr}.")
+            logger.debug(f"{CombinationValidator.__name__}:: {stdout}\n{stderr}.")
         return exit_code
 
     @staticmethod
