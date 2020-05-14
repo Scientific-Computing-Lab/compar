@@ -57,8 +57,9 @@ class SingleFileForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
-    multiple_combinations = h5fields.IntegerField('multiple_combinations', widget=h5widgets.NumberInput(min=0, max=100, step=1),
-                                       validators=[InputRequired(), positive_number_validator], default=1)
+    multiple_combinations = h5fields.IntegerField('multiple_combinations',
+                                                  widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                                  validators=[InputRequired(), positive_number_validator], default=1)
     with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
@@ -86,8 +87,9 @@ class MultipleFilesForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
-    multiple_combinations = h5fields.IntegerField('multiple_combinations', widget=h5widgets.NumberInput(min=0, max=100, step=1),
-                                       validators=[InputRequired(), positive_number_validator], default=1)
+    multiple_combinations = h5fields.IntegerField('multiple_combinations',
+                                                  widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                                  validators=[InputRequired(), positive_number_validator], default=1)
     with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
@@ -116,8 +118,9 @@ class MakefileForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
-    multiple_combinations = h5fields.IntegerField('multiple_combinations', widget=h5widgets.NumberInput(min=0, max=100, step=1),
-                                       validators=[InputRequired(), positive_number_validator], default=1)
+    multiple_combinations = h5fields.IntegerField('multiple_combinations',
+                                                  widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                                  validators=[InputRequired(), positive_number_validator], default=1)
     with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
@@ -190,6 +193,7 @@ def single_file_submit():
             session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                       form.minutes_field.data, form.seconds_field.data)
             session['compar_mode'] = form.compar_mode.data
+            session['multiple_combinations'] = form.multiple_combinations.data
         else:
             return jsonify(errors=form.errors)
         return jsonify(data={'message': 'The form is valid.'})
@@ -222,6 +226,7 @@ def multiple_files_submit():
         session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                   form.minutes_field.data, form.seconds_field.data)
         session['compar_mode'] = form.compar_mode.data
+        session['multiple_combinations'] = form.multiple_combinations.data
         return jsonify(data={'message': 'The form is valid.'})
     return jsonify(errors=form.errors)
 
@@ -255,6 +260,7 @@ def makefile_submit():
         session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                   form.minutes_field.data, form.seconds_field.data)
         session['compar_mode'] = form.compar_mode.data
+        session['multiple_combinations'] = form.multiple_combinations.data
         return jsonify(data={'message': 'The form is valid.'})
     return jsonify(errors=form.errors)
 
@@ -481,6 +487,9 @@ def generate_compar_command_without_makefile():
     # compar_mode
     if session['compar_mode']:
         command += [f"-mode {session['compar_mode']}"]
+    # multiple_combinations
+    if session['multiple_combinations']:
+        command += [f"-multiple_combinations {session['multiple_combinations']}"]
     return ' '.join(command)
 
 
@@ -547,6 +556,9 @@ def generate_compar_command_with_makefile():
     # compar_mode
     if session['compar_mode']:
         command += [f"-mode {session['compar_mode']}"]
+    # multiple_combinations
+    if session['multiple_combinations']:
+        command += [f"-multiple_combinations {session['multiple_combinations']}"]
     return ' '.join(command)
 
 
