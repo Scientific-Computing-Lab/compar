@@ -72,8 +72,8 @@ You will also need to install SLURM before running ComPar.
   * Default = "".
 * -jobs_quantity (or --jobs_quantity_at_once): The number of jobs to be executed at once.
   * Default = num_of_jobs_at_once.
-* -mode (or --mode): Compar working mode.
-  * Default = ComparConfig.DEFAULT_MODE.
+* -mode (or --mode): ComPar working mode.
+  * Default = ComParConfig.DEFAULT_MODE.
 * -with_markers (or --code_with_markers): Mark that the code was parallelized with ComPar before (i.e. the source code was already parallelized by ComPar). Using this flag, user can run only runtime libraries and omp directives.
 * -clear_db (or --clear_db): Delete the results from database.
     
@@ -141,19 +141,19 @@ Moreover, Compar is able to perform one more optimization: If the user works in 
 ### Single File Mode Options
 In this mode you can choose your preferable binary compiler. Currently, ComPar supports both gcc and icc.
 For additional options, please click on `Advanced options >>`. After clicking on it, you will see the following options:
-* `Binary compiler flags`: specify desired flags of the compiler (press the `+` button after every single flag).
-* `Binary compiler version`: specify your compiler's version.
-* `Slurm partition`: specify your SLURM partition (the default partition is `grid`).
-* `Save combination folders`: check this field if you wish to save the combination folder.
-* `Clear database data`: check this field if you want to clear the database.
-* `Using ComPar output`: check this field if your source code is an output of ComPar.
-* `Slurm parameters`: specify your SLURM parameters (press the `+` button after each and every parameter).
-* `Maximum job count`: specify the maximum number of jobs running simultaneously (the default is 4).
-* `Execution time limit`: specify the time limit for each combination.
-* `Main file parameters`: specify the parameters to the main file (if there are any).
-* `Log level`: choose your desired log level (basic/verbose/debug).
-* `ComPar mode`: select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
-* `Validation file path`: specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
+* `Binary compiler flags`: Specify desired flags of the compiler (press the `+` button after every single flag).
+* `Binary compiler version`: Specify your compiler's version.
+* `Slurm partition`: Specify your SLURM partition (the default partition is `grid`).
+* `Save combination folders`: Check this field if you wish to save the combination folder.
+* `Clear database data`: Check this field if you want to clear the database.
+* `Using ComPar output`: Check this field if your source code is an output of ComPar.
+* `Slurm parameters`: Specify your SLURM parameters (press the `+` button after each and every parameter).
+* `Maximum job count`: Specify the maximum number of jobs running simultaneously (the default is 4).
+* `Execution time limit`: Specify the time limit for each combination.
+* `Main file parameters`: Specify the parameters to the main file (if there are any).
+* `Log level`: Choose your desired log level (basic/verbose/debug).
+* `ComPar mode`: Select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
+* `Validation file path`: Specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
 
 At the end, press the `START` button.
 
@@ -161,24 +161,24 @@ At the end, press the `START` button.
 
 ### Multiple Files Mode Options
 At the `ComPar Parameters` window, you can specify the following parameters:
-* `Input directory`: specify the absolute path to the input directory.
-* `Output directory`: specify the absolute path to the output directory.
-* `Main C file`: specify the relative path to the main C file (relative to input directory).
-* `Binary compiler`: you can choose between the currently supported binary compilers (gcc/icc).
+* `Input directory`: Specify the absolute path to the input directory.
+* `Output directory`: Specify the absolute path to the output directory.
+* `Main C file`: Specify the relative path to the main C file (relative to input directory).
+* `Binary compiler`: You can choose between the currently supported binary compilers (gcc/icc).
 After cliking on `Advanced options >>` the following parameters will be editable:
-* `Binary compiler flags`: specify desired flags of the compiler (press the `+` button after every single flag).
-* `Binary compiler version`: specify your compiler's version.
-* `Slurm partition`: specify your SLURM partition (the default partition is `grid`).
-* `Save combination folders`: check this field if you wish to save the combination folder.
-* `Clear database data`: check this field if you want to clear the database.
-* `Using ComPar output`: check this field if your source code is an output of ComPar.
-* `Slurm parameters`: specify your SLURM parameters (press the `+` button after each and every parameter).
-* `Maximum job count`: specify the maximum number of jobs running simultaneously (the default is 4).
-* `Execution time limit`: specify the time limit for each combination.
-* `Main file parameters`: specify the parameters to the main file (if there are any).
+* `Binary compiler flags`: Specify desired flags of the compiler (press the `+` button after every single flag).
+* `Binary compiler version`: Specify your compiler's version.
+* `Slurm partition`: Specify your SLURM partition (the default partition is `grid`).
+* `Save combination folders`: Check this field if you wish to save the combination folder.
+* `Clear database data`: Check this field if you want to clear the database.
+* `Using ComPar output`: Check this field if your source code is an output of ComPar.
+* `Slurm parameters`: Specify your SLURM parameters (press the `+` button after each and every parameter).
+* `Maximum job count`: Specify the maximum number of jobs running simultaneously (the default is 4).
+* `Execution time limit`: Specify the time limit for each combination.
+* `Main file parameters`: Specify the parameters to the main file (if there are any).
 * `Log level`: choose your desired log level (basic/verbose/debug).
-* `ComPar mode`: select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
-* `Validation file path`: specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
+* `ComPar mode`: Select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
+* `Validation file path`: Specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
 
 At the end, press the `START` button.
 
@@ -186,28 +186,28 @@ At the end, press the `START` button.
 
 ### Make File Mode Options
 In this mode, you can specify the following parameters at the `ComPar Parameters` window:
-* `Input directory`: specify the absolute path to the input directory.
-* `Output directory`: specify the absolute path to the output directory.
-* `Main C file`: specify the relative path to the main C file (relative to input directory).
-* `Makefile commands`: add the makefile commands to be run (press the `+` button after each command).
-* `Executable relative path`: specify the relative path (relative to input directory) of the directory that contains the executable file (if the executable is in the main folder, leave this field empty).
-* `Executable file name`: specify the name of the executable file created by the makefile.
+* `Input directory`: Specify the absolute path to the input directory.
+* `Output directory`: Specify the absolute path to the output directory.
+* `Main C file`: Specify the relative path to the main C file (relative to input directory).
+* `Makefile commands`: Add the makefile commands to be run (press the `+` button after each command).
+* `Executable relative path`: Specify the relative path (relative to input directory) of the directory that contains the executable file (if the executable is in the main folder, leave this field empty).
+* `Executable file name`: Specify the name of the executable file created by the makefile.
 
 After cliking on `Advanced options >>` the following parameters will be editable:
-* `Folders to ignore`: add relative paths (relative to input directory) to the folders that need to be included for parallelization (press the `+` button after every path).
-* `Folders to include`: add relative paths (relative to input directory) to the folders that do not need to be parallelized (press the `+` button after every path).
-* `Extra files`: specify extra files' relative paths (relative to input directory) that need to be added for parallelization process.
-* `Slurm partition`: specify your SLURM partition (the default partition is `grid`).
-* `Save combination folders`: check this field if you wish to save the combination folder.
-* `Clear database data`: check this field if you want to clear the database.
-* `Using ComPar output`: check this field if your source code is an output of ComPar.
-* `Slurm parameters`: specify your SLURM parameters (press the `+` button after each and every parameter).
-* `Maximum job count`: specify the maximum number of jobs running simultaneously (the default is 4).
-* `Execution time limit`: specify the time limit for each combination.
-* `Main file parameters`: specify the parameters to the main file (if there are any).
-* `Log level`: choose your desired log level (basic/verbose/debug).
-* `ComPar mode`: select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
-* `Validation file path`: specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
+* `Folders to ignore`: Add relative paths (relative to input directory) to the folders that need to be included for parallelization (press the `+` button after every path).
+* `Folders to include`: Add relative paths (relative to input directory) to the folders that do not need to be parallelized (press the `+` button after every path).
+* `Extra files`: Specify extra files' relative paths (relative to input directory) that need to be added for parallelization process.
+* `Slurm partition`: Specify your SLURM partition (the default partition is `grid`).
+* `Save combination folders`: Check this field if you wish to save the combination folder.
+* `Clear database data`: Check this field if you want to clear the database.
+* `Using ComPar output`: Check this field if your source code is an output of ComPar.
+* `Slurm parameters`: Specify your SLURM parameters (press the `+` button after each and every parameter).
+* `Maximum job count`: Specify the maximum number of jobs running simultaneously (the default is 4).
+* `Execution time limit`: Specify the time limit for each combination.
+* `Main file parameters`: Specify the parameters to the main file (if there are any).
+* `Log level`: Choose your desired log level (basic/verbose/debug).
+* `ComPar mode`: Select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
+* `Validation file path`: Specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
 
 At the end, press the `START` button.
 
