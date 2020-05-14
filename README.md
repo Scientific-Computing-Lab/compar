@@ -69,10 +69,10 @@ You can see an example for such a file in *compilation_params.json* under *asset
 | ------------- | ------------- |
 | Cetus (essential)  |  None |
 | Cetus (optional)  | <ul><li>**-parallelize-loops:** annotate loops with parallelization decisions, such as which level of loops will be parallelized</li><li>**-reduction:** perform reduction variable analysis</li><li>**-privatize:** perform scalar/array privatization analysis</li><li>**-alias:** specify level of alias analysis</li></ul>|
-| AutoPar (essential)  | --keep_going  |
-| AutoPar (optional)  | --enable_modeling <br> --no_aliasing <br> --unique_indirect_index|
-| Par4All (essential)  | -O  |
-| Par4All (optional)  | --fine-grain <br> --com-optimization <br> --no-pointer-aliasing|
+| AutoPar (essential)  | <ul><li>--keep_going</li></ul>|
+| AutoPar (optional)  | <ul><li>--enable_modeling</li><li>**--no_aliasing:** assuming no pointer aliasing exists</li><li>**--unique_indirect_index:** assuming all arrays used as indirect indices have unique elements (no overlapping)</li></ul>|
+| Par4All (essential)  | <ul><li>-O</li></ul>|
+| Par4All (optional)  | <ul><li>--fine-grain</li><li>--com-optimization</li><li>--no-pointer-aliasing</li></ul>|
 
 ### Environment Parameters
 
