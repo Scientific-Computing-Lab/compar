@@ -27,6 +27,7 @@ Bootstrap(app)
 
 TEMP_FILES_DIRECTORY = 'temp'
 COMPAR_PROGRAM_FILE = 'program.py'
+FINAL_RESULTS_FOLDER_NAME = 'final_results'
 SUMMARY_FILE_NAME = 'summary.csv'
 LOG_FILE_NAME = 'compar_output.log'
 GUI_DIR_NAME = 'GUI'
@@ -300,25 +301,25 @@ def stream():
 
 @app.route('/checkComparStatus', methods=['get', 'post'])
 def check_compar_status():
-    print(session.get('pid'))
     working_dir = session.get('working_dir')
     data = request.get_json()
-    action = ""
     if 'action' not in data.keys():
         abort(400, "Action must be specified.")
-    else:
-        action = data['action']
-    if action == 'downloadLogFile':
+    action = data['action']
+    if action in ['downloadLogFile', 'downloadSummaryFile']:
+        if action == 'downloadLogFile':
+            relative_file_path = LOG_FILE_NAME
+        elif action == 'downloadSummaryFile':
+            relative_file_path = os.path.join(FINAL_RESULTS_FOLDER_NAME, SUMMARY_FILE_NAME)
         if working_dir:
-            log_file_path = os.path.join(session['working_dir'], LOG_FILE_NAME)
-        if not working_dir or not os.path.exists(log_file_path):
+            full_file_path = os.path.join(session['working_dir'], relative_file_path)
+        if not working_dir or not os.path.exists(full_file_path):
             return jsonify({"success": 0})
         else:
             return jsonify({"success": 1})
-    else:
-
+    elif action == 'downloadResultFile':
         if working_dir:
-            result_file_path = os.path.join(working_dir, 'final_results', session['main_file_rel_path'])
+            result_file_path = os.path.join(working_dir, FINAL_RESULTS_FOLDER_NAME, session['main_file_rel_path'])
         return_code = session.get('return_code')
         if return_code is None:
             return_code = 0
@@ -326,11 +327,13 @@ def check_compar_status():
                 not os.path.exists(result_file_path):
             return jsonify({"success": 0})
         return jsonify({"success": 1})
+    else:
+        return jsonify({"success": 0})
 
 
 @app.route('/result_file', methods=['get'])
 def result_file():
-    result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
+    result_file_path = os.path.join(session['working_dir'], FINAL_RESULTS_FOLDER_NAME, session['main_file_rel_path'])
     return_code = session.get('return_code')
     if return_code is None:
         return_code = 0
@@ -346,7 +349,7 @@ def result_file():
 
 @app.route('/downloadResultFile', methods=['get'])
 def download_result_file():
-    result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
+    result_file_path = os.path.join(session['working_dir'], FINAL_RESULTS_FOLDER_NAME, session['main_file_rel_path'])
     if not os.path.exists(result_file_path):
         return abort(400, "Cannot find result file.")
     with open(result_file_path, 'r') as fp:
@@ -360,7 +363,7 @@ def download_result_file():
 
 @app.route('/downloadSummaryFile', methods=['get'])
 def download_summary_file():
-    summary_file_path = os.path.join(session['working_dir'], 'final_results', SUMMARY_FILE_NAME)
+    summary_file_path = os.path.join(session['working_dir'], FINAL_RESULTS_FOLDER_NAME, SUMMARY_FILE_NAME)
     if not os.path.exists(summary_file_path):
         return abort(400, "Cannot find summary file.")
     with open(summary_file_path, 'r') as fp:
@@ -388,7 +391,7 @@ def download_log_file():
 
 @app.route('/showFilesStructure', methods=['get'])
 def show_files_structure():
-    result_file_path = os.path.join(session['working_dir'], 'final_results')
+    result_file_path = os.path.join(session['working_dir'], FINAL_RESULTS_FOLDER_NAME)
     return_code = session.get('return_code')
     if return_code is None:
         return_code = 0
@@ -444,28 +447,28 @@ def generate_compar_command_without_makefile():
     # compiler type
     command += [f"-comp {session['compiler']}"]
     # save combinations
-    if session['save_combinations']:
+    if session.get('save_combinations'):
         command += [f"-save_folders"]
     # main file parameters
-    if session['main_file_parameters']:
+    if session.get('main_file_parameters'):
         command += [f"-main_file_p {session['main_file_parameters']}"]
     # compiler flags
-    if session['compiler_flags']:
+    if session.get('compiler_flags'):
         command += [f"-comp_f {session['compiler_flags']}"]
     # compiler version
-    if session['compiler_version']:
+    if session.get('compiler_version'):
         command += [f"-comp_v {session['compiler_version']}"]
     # slurm_parameters
-    if session['slurm_parameters']:
+    if session.get('slurm_parameters'):
         command += [f"-slurm_p {session['slurm_parameters']}"]
     # slurm partition
-    if session['slurm_partition']:
+    if session.get('slurm_partition'):
         command += [f"-partition {session['slurm_partition']}"]
     # job count
-    if session['job_count']:
+    if session.get('job_count'):
         command += [f"-jobs_quantity {session['job_count']}"]
     # log level
-    if session['log_level'] and session['log_level'] != 'basic':
+    if session.get('log_level') and session.get('log_level') != 'basic':
         level = ""
         if session['log_level'] == 'verbose':
             level = "v"
@@ -473,23 +476,23 @@ def generate_compar_command_without_makefile():
             level = "vv"
         command += [f"-{level}"]
     # test file path
-    if session['test_path']:
+    if session.get('test_path'):
         command += [f"-test_file {session['test_path']}"]
     # time limit
-    if session['time_limit']:
+    if session.get('time_limit'):
         command += [f"-t {session['time_limit']}"]
     # clear database
-    if session['clear_database']:
+    if session.get('clear_database'):
         command += [f"-clear_db"]
     # with markers
-    if session['with_markers']:
+    if session.get('with_markers'):
         command += [f"-with_markers"]
     # compar_mode
-    if session['compar_mode']:
+    if session.get('compar_mode'):
         command += [f"-mode {session['compar_mode']}"]
-    # multiple_combinations
-    if session['multiple_combinations']:
-        command += [f"-multiple_combinations {session['multiple_combinations']}"]
+    # multiple_combinations #TODO: for now this field is disabled
+    #if session.get('multiple_combinations') is not None:
+    #    command += [f"-multiple_combinations {session['multiple_combinations']}"]
     return ' '.join(command)
 
 
@@ -507,34 +510,34 @@ def generate_compar_command_with_makefile():
     # executable file name
     command += [f"-make_on {session['executable_file_name']}"]
     # executable path
-    if session['executable_path']:
+    if session.get('executable_path'):
         command += [f"-make_op {session['executable_path']}"]
     # folders to ignore
-    if session['ignore_folder_paths']:
+    if session.get('ignore_folder_paths'):
         command += [f"-ignore {session['ignore_folder_paths']}"]
     # folders to include
-    if session['include_folder_paths']:
+    if session.get('include_folder_paths'):
         command += [f"-include {session['include_folder_paths']}"]
     # extra files to include (mainly used by Par4all)
-    if session['extra_files_paths']:
+    if session.get('extra_files_paths'):
         command += [f"-extra {session['extra_files_paths']}"]
     # save combinations
-    if session['save_combinations']:
+    if session.get('save_combinations'):
         command += [f"-save_folders"]
     # main file parameters
-    if session['main_file_parameters']:
+    if session.get('main_file_parameters'):
         command += [f"-main_file_p {session['main_file_parameters']}"]
     # slurm_parameters
-    if session['slurm_parameters']:
+    if session.get('slurm_parameters'):
         command += [f"-slurm_p {session['slurm_parameters']}"]
     # slurm partition
-    if session['slurm_partition']:
+    if session.get('slurm_partition'):
         command += [f"-partition {session['slurm_partition']}"]
     # job count
-    if session['job_count']:
+    if session.get('job_count'):
         command += [f"-jobs_quantity {session['job_count']}"]
     # log level
-    if session['log_level'] and session['log_level'] != 'basic':
+    if session.get('log_level') and session.get('log_level') != 'basic':
         level = ""
         if session['log_level'] == 'verbose':
             level = "v"
@@ -542,23 +545,23 @@ def generate_compar_command_with_makefile():
             level = "vv"
         command += [f"-{level}"]
     # test file path
-    if session['test_path']:
+    if session.get('test_path'):
         command += [f"-test_file {session['test_path']}"]
     # time limit
-    if session['time_limit']:
+    if session.get('time_limit'):
         command += [f"-t {session['time_limit']}"]
     # clear database
-    if session['clear_database']:
+    if session.get('clear_database'):
         command += [f"-clear_db"]
     # with markers
-    if session['with_markers']:
+    if session.get('with_markers'):
         command += [f"-with_markers"]
     # compar_mode
-    if session['compar_mode']:
+    if session.get('compar_mode'):
         command += [f"-mode {session['compar_mode']}"]
-    # multiple_combinations
-    if session['multiple_combinations']:
-        command += [f"-multiple_combinations {session['multiple_combinations']}"]
+    # multiple_combinations #TODO: for now this field is disabled
+    #if session.get('multiple_combinations'):
+    #    command += [f"-multiple_combinations {session['multiple_combinations']}"]
     return ' '.join(command)
 
 
