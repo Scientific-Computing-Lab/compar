@@ -65,10 +65,21 @@ The compilation parameters are divided into 2 main groups: essential and optiona
 The essential parameters are the ones to appear in all combinations, while the optional parameter might be excluded from one or more combinations (depends on ComPar choice).
 You can see an example for such a file in *compilation_params.json* under *assets* directory.
 
+| Compiler  | Flags |
+| ------------- | ------------- |
+| Cetus (essential)  |   |
+| Cetus (optional)  | -parallelize-loops <br> -reduction <br> -privatize <br> -alias|
+| AutoPar (essential)  | --keep_going  |
+| AutoPar (optional)  | --enable_modeling <br> --no_aliasing <br> --unique_indirect_index|
+| Par4All (essential)  | -O  |
+| Par4All (optional)  | --fine-grain <br> --com-optimization <br> --no-pointer-aliasing|
+
 ### Environment Parameters
 
 The parameters of the OpenMP environment, e.g. the number of threads to be used.
 You can see an example for such a file in *assets/env_params.json*.
+
+
 
 ### Run
 You should run *program.py* using Python3 with the relevant flags (as was described in [here](https://github.com/Mosseridan/compar/blob/master/README.md#know-your-flags)).
