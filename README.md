@@ -76,25 +76,20 @@ You can see an example for such a file in *compilation_params.json* under *asset
 
 
 ### OpenMP Directives
+The fashion of OMP's directives should be specified in *assets/omp_directives_params.json*
 
 | Pragma  | Supported Options |
 | ------------- | ------------- |
 | schedule  | <ul> <li>static ([2, 4, 8, 16, 32])</li> <li>dynamic</li> </ul> |
 
+
 ### OpenMP Runtime Libraries Routines (RTL)
-One should specify th desired RTLs of ComPar in *assets/omp_rtl_params.json*.
+The parameters of the OpenMP environment, e.g. the number of threads to be used. One should specify th desired RTLs of ComPar in *assets/omp_rtl_params.json*.
 The table below presented currently supported OpenMP runtime libraries routines.
 
 | RTL  | Supported Options |
 | ------------- | ------------- |
 | omp_set_num_threads  | <ul> <li>[2, 4, 8, 16, 32]</li> </ul> |
-
-
-### Environment Parameters
-
-The parameters of the OpenMP environment, e.g. the number of threads to be used.
-You can see an example for such a file in *assets/env_params.json*.
-
 
 
 ### Run
