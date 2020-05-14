@@ -13,9 +13,23 @@ ComPar is a source-to-source compiler that generates the best parallelized code 
 ### Prerequisites
 
 First, clone the ComPar code provided here.
+```
+clone https://github.com/Mosseridan/compar.git
+```
+Create new conda environment (see [this](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html)).
 Then, you should install and load the supported compilers (i.e. Cetus, Par4All and AutoPar) to your environment, as well as Python3.
 You will also need to install SLURM before running ComPar.
-
+In addition, run the following commands in your conda environment:
+```
+pip install wtforms
+pip install flask
+pip install flask-wtf
+pip install python-doten
+pip install flask-bootstrap
+pip install pymongo
+pip install pytest
+pip install jsonschema
+```
 
 ### Know Your Flags
 
@@ -44,20 +58,12 @@ You will also need to install SLURM before running ComPar.
   * Default = "".
 * -ignore (or --ignored_rel_path): List of relative folder paths to be ignored while parallelizing.
   * Default = None.
-* -p4a_f (or --par4all_flags): List of Par4all flags.
-  * Default = None.
-* -autopar_f (or --autopar_flags): List of Autopar flags.
-  * Default = None.
-* -cetus_f (or --cetus_flags): List of Cetus flags.
-  * Default = None.
 * -include (or --include_dirs_list): List of relative paths to be included in compilation.
   * Default = None.
 * -main_file_p (or --main_file_parameters): List of main C file parameters.
   * Default = None.
 * -slurm_p (or --slurm_parameters): List of SLURM parameters.
   * Default = None.
-* -nas (or --is_nas): Is NAS Benchmark (binary flag).
-  * If the user use this flag, the NAS Benchmark will be the input code to be parallelized.
 * -t (or --time_limit): Time limit for runtime execution.
   * Default = None.
 * -extra (or --extra_files): List of relative extra files to parallelize in addition to current ones.
@@ -74,7 +80,8 @@ You will also need to install SLURM before running ComPar.
   * Default = num_of_jobs_at_once.
 * -mode (or --mode): ComPar working mode.
   * Default = ComParConfig.DEFAULT_MODE.
-* -with_markers (or --code_with_markers): Mark that the code was parallelized with ComPar before (i.e. the source code was already parallelized by ComPar). Using this flag, user can run only runtime libraries and omp directives.
+* -with_markers (or --code_with_markers): Mark that the code was parallelized with ComPar before (i.e. the source code was already parallelized by ComPar). 
+  * By using this flag, a user can run only runtime libraries and omp directives.
 * -clear_db (or --clear_db): Delete the results from database.
     
 ### Compliation Parameters
@@ -206,7 +213,7 @@ After cliking on `Advanced options >>` the following parameters will be editable
 * `Execution time limit`: Specify the time limit for each combination.
 * `Main file parameters`: Specify the parameters to the main file (if there are any).
 * `Log level`: Choose your desired log level (basic/verbose/debug).
-* `ComPar mode`: Select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
+* `ComPar mode`: Select your mode of ComPar (override/new/contine). For more information, please see [this](https://github.com/Mosseridan/compar/blob/master/README.md#run).
 * `Validation file path`: Specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
 
 At the end, press the `START` button.
