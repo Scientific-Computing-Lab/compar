@@ -14,6 +14,8 @@ ComPar is a source-to-source compiler that generates the best parallelized code 
 
 First, clone the ComPar code provided here.
 Then, you should install and load the supported compilers (i.e. Cetus, Par4All and AutoPar) to your environment, as well as Python3.
+You will also need to install SLURM before running ComPar.
+
 
 ### Know Your Flags
 
@@ -72,7 +74,7 @@ Then, you should install and load the supported compilers (i.e. Cetus, Par4All a
   * Default = num_of_jobs_at_once.
 * -mode (or --mode): Compar working mode.
   * Default = ComparConfig.DEFAULT_MODE.
-* -with_markers (or --code_with_markers): Mark that the code was parallelized with Compar before.
+* -with_markers (or --code_with_markers): Mark that the code was parallelized with ComPar before (i.e. the source code was already parallelized by ComPar). Using this flag, user can run only runtime libraries and omp directives.
 * -clear_db (or --clear_db): Delete the results from database.
     
 ### Compliation Parameters
@@ -85,10 +87,10 @@ You can see an example for such a file in *compilation_params.json* under *asset
 | ------------- | ------------- |
 | Cetus (essential)  |  None |
 | Cetus (optional)  | <ul><li>**-parallelize-loops:** annotate loops with parallelization decisions, such as which level of loops will be parallelized</li><li>**-reduction:** perform reduction variable analysis</li><li>**-privatize:** perform scalar/array privatization analysis</li><li>**-alias:** specify level of alias analysis</li></ul>|
-| AutoPar (essential)  | <ul><li>--keep_going</li></ul>|
-| AutoPar (optional)  | <ul><li>--enable_modeling</li><li>**--no_aliasing:** assuming no pointer aliasing exists</li><li>**--unique_indirect_index:** assuming all arrays used as indirect indices have unique elements (no overlapping)</li></ul>|
-| Par4All (essential)  | <ul><li>-O</li></ul>|
-| Par4All (optional)  | <ul><li>**--fine-grain:** use a fine-grain parallelization algorithm instead of a coarse-grain parallelization.</li><li>**--com-optimization:** enable memory transfert optimizations (one should not use this flag on a code with pointer aliasing).</li><li>**--no-pointer-aliasing:** assume there is no aliasing in input program.</li></ul>|
+| AutoPar (essential)  | <ul><li>**--keep_going:** auto parallelization will keep going even if errors occur</li></ul>|
+| AutoPar (optional)  | <ul><li>**--enable_modeling:** enabling cost modeling of loops to guide parallelization</li><li>**--no_aliasing:** assume no pointer aliasing exists</li><li>**--unique_indirect_index:** assuming all arrays used as indirect indices have unique elements (no overlapping)</li></ul>|
+| Par4All (essential)  | <ul><li>-O: </li></ul>|
+| Par4All (optional)  | <ul><li>**--fine-grain:** use a fine-grain parallelization algorithm instead of a coarse-grain parallelization.</li><li>**--com-optimization:** enable memory transfert optimizations (one should not use this flag on a code with pointer aliasing).</li><li>**--no-pointer-aliasing:** assume there is no pointer aliasing.</li></ul>|
 
 
 ### OpenMP Directives
@@ -109,7 +111,12 @@ The table below presented currently supported OpenMP runtime libraries routines.
 
 
 ### Run
-You should run *program.py* using Python3 with the relevant flags (as was described in [here](https://github.com/Mosseridan/compar/blob/master/README.md#know-your-flags)).
+ComPar has 3 modes:
+* **new**: One can specify its working direstory using `-wd` flag. Running on *new* mode, ComPar creates this folder if it does not exist. In case that the specified directory is already exists, ComPar will create a new directory with the same name followed by an integer. For example if the directory *home/gemm* specified by the `wd` flag is already exists, ComPar will create *home/gemm1* directory instead. Thus, the files in *home/gemm* will not be overriden. You can see the name if the new directory at the command line or at the log file.
+* **override**: If the directory that was specified by the `wd` flag is already exists, ComPar will override its files.
+* **continue**: Run only the combinations that are not in the combinations folder of the directory specified by the `wd` flag.
+
+You should run *program.py* using Python3 with the relevant flags (as described in [here](https://github.com/Mosseridan/compar/blob/master/README.md#know-your-flags)).
 
 #### Example
 
@@ -118,3 +125,90 @@ In the following example, the code to be parallelized is in *path_to_source_forl
 ```
 python program.py -dir path_to_source_forlder -wd path_to_output_folder -make -make_c "make clean" "make" -make_op "." -make_on gemm -include includes_used_in_makefile -save_folders -main_file_r_p source_file_containing_main
 ```
+
+
+## ComPar's GUI
+The ComPar graphical user interface is a single window which is composed of four segments: ComPar parameters area, source file area, result file area and output log area.
+* ComPar parameters: this area controls the compilation and runtime parameters. Via this area, one can specify the desired compiler (including compiler's version) and its flags. Note that this compiler does not refer to the automatic paralleliztion compiler, but refers to machine-code compiler such as: gcc, icc, etc. As a result of our application support in SLURM, the user may choose his required SLURM parameters. Furthermore, the user may even choose whether he like to save the combination folder created by ComPar.
+* source file: in this area, the user can upload and view the input files to be parallelized.
+* result file: this area displays the output file generated by ComPar.
+* output log: in this area one can observe the logs from the system.
+
+In addition, ComPar supports three different work modes: working with a single file, working with multiple files and working with makefile. The first and last modes may be combined, as well as the second and last work modes. Nonetheless, the first mode and the second mode can not be combined.
+
+Moreover, Compar is able to perform one more optimization: If the user works in a single file mode without makefile and he does not choose a preferable machine-code compiler, ComPar will choose the most suited compiler for the input code according to the system hardware. For example, for AMD hardware, ComPar will compile the code using GCC. We intend to examine this feature over other ComPar's modes.
+
+### Single File Mode Options
+In this mode you can choose your preferable binary compiler. Currently, ComPar supports both gcc and icc.
+For additional options, please click on `Advanced options >>`. After clicking on it, you will see the following options:
+* `Binary compiler flags`: specify desired flags of the compiler (press the `+` button after every single flag).
+* `Binary compiler version`: specify your compiler's version.
+* `Slurm partition`: specify your SLURM partition (the default partition is `grid`).
+* `Save combination folders`: check this field if you wish to save the combination folder.
+* `Clear database data`: check this field if you want to clear the database.
+* `Using ComPar output`: check this field if your source code is an output of ComPar.
+* `Slurm parameters`: specify your SLURM parameters (press the `+` button after each and every parameter).
+* `Maximum job count`: specify the maximum number of jobs running simultaneously (the default is 4).
+* `Execution time limit`: specify the time limit for each combination.
+* `Main file parameters`: specify the parameters to the main file (if there are any).
+* `Log level`: choose your desired log level (basic/verbose/debug).
+* `ComPar mode`: select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
+* `Validation file path`: specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
+
+At the end, press the `START` button.
+
+![](images/single_file.png)
+
+### Multiple Files Mode Options
+At the `ComPar Parameters` window, you can specify the following parameters:
+* `Input directory`: specify the absolute path to the input directory.
+* `Output directory`: specify the absolute path to the output directory.
+* `Main C file`: specify the relative path to the main C file (relative to input directory).
+* `Binary compiler`: you can choose between the currently supported binary compilers (gcc/icc).
+After cliking on `Advanced options >>` the following parameters will be editable:
+* `Binary compiler flags`: specify desired flags of the compiler (press the `+` button after every single flag).
+* `Binary compiler version`: specify your compiler's version.
+* `Slurm partition`: specify your SLURM partition (the default partition is `grid`).
+* `Save combination folders`: check this field if you wish to save the combination folder.
+* `Clear database data`: check this field if you want to clear the database.
+* `Using ComPar output`: check this field if your source code is an output of ComPar.
+* `Slurm parameters`: specify your SLURM parameters (press the `+` button after each and every parameter).
+* `Maximum job count`: specify the maximum number of jobs running simultaneously (the default is 4).
+* `Execution time limit`: specify the time limit for each combination.
+* `Main file parameters`: specify the parameters to the main file (if there are any).
+* `Log level`: choose your desired log level (basic/verbose/debug).
+* `ComPar mode`: select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
+* `Validation file path`: specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
+
+At the end, press the `START` button.
+
+![](images/multi_files.png)
+
+### Make File Mode Options
+In this mode, you can specify the following parameters at the `ComPar Parameters` window:
+* `Input directory`: specify the absolute path to the input directory.
+* `Output directory`: specify the absolute path to the output directory.
+* `Main C file`: specify the relative path to the main C file (relative to input directory).
+* `Makefile commands`: add the makefile commands to be run (press the `+` button after each command).
+* `Executable relative path`: specify the relative path (relative to input directory) of the directory that contains the executable file (if the executable is in the main folder, leave this field empty).
+* `Executable file name`: specify the name of the executable file created by the makefile.
+
+After cliking on `Advanced options >>` the following parameters will be editable:
+* `Folders to ignore`: add relative paths (relative to input directory) to the folders that need to be included for parallelization (press the `+` button after every path).
+* `Folders to include`: add relative paths (relative to input directory) to the folders that do not need to be parallelized (press the `+` button after every path).
+* `Extra files`: specify extra files' relative paths (relative to input directory) that need to be added for parallelization process.
+* `Slurm partition`: specify your SLURM partition (the default partition is `grid`).
+* `Save combination folders`: check this field if you wish to save the combination folder.
+* `Clear database data`: check this field if you want to clear the database.
+* `Using ComPar output`: check this field if your source code is an output of ComPar.
+* `Slurm parameters`: specify your SLURM parameters (press the `+` button after each and every parameter).
+* `Maximum job count`: specify the maximum number of jobs running simultaneously (the default is 4).
+* `Execution time limit`: specify the time limit for each combination.
+* `Main file parameters`: specify the parameters to the main file (if there are any).
+* `Log level`: choose your desired log level (basic/verbose/debug).
+* `ComPar mode`: select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
+* `Validation file path`: specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
+
+At the end, press the `START` button.
+
+![](images/makefile_mode.png)
