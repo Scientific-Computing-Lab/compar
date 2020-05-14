@@ -67,8 +67,8 @@ You can see an example for such a file in *compilation_params.json* under *asset
 
 | Compiler  | Flags |
 | ------------- | ------------- |
-| Cetus (essential)  |   |
-| Cetus (optional)  | -parallelize-loops <br> -reduction <br> -privatize <br> -alias|
+| Cetus (essential)  |  None |
+| Cetus (optional)  | <ul><li>**-parallelize-loops:** annotate loops with parallelization decisions, such as which level of loops will be parallelized</li><li>**-reduction:** perform reduction variable analysis</li><li>**-privatize:** perform scalar/array privatization analysis</li><li>**-alias:** specify level of alias analysis</li></ul>|
 | AutoPar (essential)  | --keep_going  |
 | AutoPar (optional)  | --enable_modeling <br> --no_aliasing <br> --unique_indirect_index|
 | Par4All (essential)  | -O  |
