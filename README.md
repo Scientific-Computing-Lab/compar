@@ -74,6 +74,22 @@ You can see an example for such a file in *compilation_params.json* under *asset
 | Par4All (essential)  | <ul><li>-O</li></ul>|
 | Par4All (optional)  | <ul><li>--fine-grain</li><li>--com-optimization</li><li>--no-pointer-aliasing</li></ul>|
 
+
+### OpenMP Directives
+
+| Pragma  | Supported Options |
+| ------------- | ------------- |
+| schedule  | <ul> <li>static ([2, 4, 8, 16, 32])</li> <li>dynamic</li> </ul> |
+
+### OpenMP Runtime Libraries Routines (RTL)
+One should specify th desired RTLs of ComPar in *assets/omp_rtl_params.json*.
+The table below presented currently supported OpenMP runtime libraries routines.
+
+| RTL  | Supported Options |
+| ------------- | ------------- |
+| omp_set_num_threads  | <ul> <li>[2, 4, 8, 16, 32]</li> </ul> |
+
+
 ### Environment Parameters
 
 The parameters of the OpenMP environment, e.g. the number of threads to be used.
