@@ -1,6 +1,2 @@
 [
-  {
-    "param": "omp_set_num_threads",
-    "vals": [2, 4, 8, 16, 32]
-  }
 ]

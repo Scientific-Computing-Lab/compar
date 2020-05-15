@@ -12,7 +12,7 @@ class Makefile:
 
     def __init__(self, working_directory: str, exe_folder_relative_path: str, exe_file_name: str, commands: list):
         if not os.path.exists(working_directory):
-            raise MakefileError(f'{working_directory} is not exist!')
+            raise MakefileError(f'{working_directory} dose not exist!')
         if len(commands) < 1:
             raise MakefileError('Makefile requires at least one command!')
         self.working_directory = working_directory
@@ -31,12 +31,12 @@ class Makefile:
             raise CompilationError("Makefile failed \n" + str(e))
 
     def run_makefile(self):
-        logger.info(f'{Makefile.__name__} start to running makefile')
+        logger.info(f'{Makefile.__name__}: started running makefile')
         command = ' && '.join(self.commands)
         stdout, stderr, ret_code = run_subprocess(command, self.working_directory)
-        logger.debug(f'{Makefile.__name__} {stdout}')
-        logger.debug_error(f'{Makefile.__name__} {stderr}')
-        logger.info(f'{Makefile.__name__} finish to running makefile')
+        logger.debug(f'{Makefile.__name__}: {stdout}')
+        logger.debug_error(f'{Makefile.__name__}: {stderr}')
+        logger.info(f'{Makefile.__name__}: finished running makefile')
 
     def get_exe_full_path(self):
         working_dir_name = os.path.basename(os.path.dirname(self.working_directory + os.path.sep))
@@ -47,7 +47,7 @@ class Makefile:
         exe_folder_full_path = os.path.join(self.working_directory, self.exe_folder_relative_path)
         exe_path = os.path.join(exe_folder_full_path, self.exe_file_name)
         if not os.path.exists(exe_path):
-            raise MakefileError(f'{exe_path} is not exist!')
+            raise MakefileError(f'{exe_path} dose not exist!')
         working_dir_name = os.path.basename(os.path.dirname(self.working_directory + os.path.sep))
         exe_new_name = f'{working_dir_name}{MakefileConfig.EXE_FILE_EXTENSION}'
         exe_type_x_path = os.path.join(exe_folder_full_path, exe_new_name)

@@ -76,7 +76,7 @@ class Compar:
             with open(file_path, 'r') as input_file:
                 return input_file.read()
         except FileNotFoundError:
-            raise FileError(f'File {file_path} not exist')
+            raise FileError(f'File {file_path} dose not exist')
 
     @staticmethod
     def add_to_loop_details_about_comp_and_combination(file_path: str, start_label: str, combination_id: str,
