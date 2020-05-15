@@ -42,7 +42,7 @@
                         <div class="flex-row-spaced">
                             <div class="form-title">Input directory:</div>
                             <div class="tooltip informationButton">i
-                                <span class="tooltiptext">Absolute path to the input directory</span>
+                                <span class="tooltiptext">Absolute path to the input directory (e.g. /home/user/program)</span>
                             </div>
                         </div>
                         {{ form.input_directory }}
@@ -51,7 +51,7 @@
                         <div class="flex-row-spaced">
                             <div class="form-title">Output directory:</div>
                             <div class="tooltip informationButton">i
-                                <span class="tooltiptext">Absolute path to the output directory</span>
+                                <span class="tooltiptext">Absolute path to the output directory (e.g. /home/user/output)</span>
                             </div>
                         </div>
                         {{ form.output_directory }}
@@ -60,7 +60,7 @@
                         <div class="flex-row-spaced">
                             <div class="form-title">Main c file:</div>
                             <div class="tooltip informationButton">i
-                                <span class="tooltiptext">Relative path to the main c file</span>
+                                <span class="tooltiptext">Relative path to the main c file (e.g. source/main.c)</span>
                             </div>
                         </div>
                         {{ form.main_file_path }}
@@ -69,7 +69,7 @@
                         <div class="flex-row-spaced">
                             <div class="form-title">Makefile commands:</div>
                             <div class="tooltip informationButton">i
-                                <span class="tooltiptext">Commands that will be passed to the makefile script</span>
+                                <span class="tooltiptext">Commands that will be passed to the makefile script (e.g make veryclean)</span>
                             </div>
                         </div>
                         <div style="align-items: center" class="flex-row">
@@ -82,7 +82,7 @@
                         <div class="flex-row-spaced">
                             <div class="form-title">Executable relative path:</div>
                             <div class="tooltip informationButton">i
-                                <span class="tooltiptext">Relative path to the directory containing the executable file (Relative to input directory - leave empty in case the executable located in the main folder)</span>
+                                <span class="tooltiptext">Relative path to the directory containing the executable file (Relative to input directory - leave empty in case the executable located in the main folder, e.g. bin)</span>
                             </div>
                         </div>
                         {{ form.executable_path }}
@@ -91,7 +91,7 @@
                         <div class="flex-row-spaced">
                             <div class="form-title">Executable file name:</div>
                             <div class="tooltip informationButton">i
-                                <span class="tooltiptext">Name of executable file created by makefile</span>
+                                <span class="tooltiptext">Name of executable file created by makefile (e.g. program.x)</span>
                             </div>
                         </div>
                         {{ form.executable_file_name }}
@@ -102,7 +102,7 @@
                                 <div class="flex-row-spaced">
                                     <div class="form-title">Folders to ignore:</div>
                                     <div class="tooltip informationButton">i
-                                        <span class="tooltiptext">Folders paths that do not need to be parallelized. (Relative to input directory)</span>
+                                        <span class="tooltiptext">Folders paths that do not need to be parallelized. (Relative to input directory. e.g sys)</span>
                                     </div>
                                 </div>
                                 <div style="align-items: center" class="flex-row">
@@ -114,7 +114,7 @@
                                 <div class="flex-row-spaced">
                                     <div class="form-title">Folders to include:</div>
                                     <div class="tooltip informationButton">i
-                                        <span class="tooltiptext">Folders paths that need to be included for parallelization. (Relative to input directory)</span>
+                                        <span class="tooltiptext">Folders paths that need to be included for parallelization. (Relative to input directory. e.g sys)</span>
                                     </div>
                                 </div>
                                 <div style="align-items: center" class="flex-row">
@@ -126,7 +126,9 @@
                                 <div class="flex-row-spaced">
                                     <div class="form-title">Extra files:</div>
                                     <div class="tooltip informationButton">i
-                                        <span class="tooltiptext">Extra files paths that need to be added for parallelization process. Mainly used by Par4all. (Relative to input directory)</span>
+                                        <span class="tooltiptext">
+                                            Extra files paths that need to be added for parallelization process. Mainly used by Par4all. (Relative to input directory. e.g. common/*.c)
+                                        </span>
                                     </div>
                                 </div>
                                 <div style="align-items: center" class="flex-row">
@@ -138,7 +140,7 @@
                                 <div class="flex-row-spaced">
                                     <div class="form-title">Slurm partition:</div>
                                     <div class="tooltip informationButton">i
-                                        <span class="tooltiptext">Slurm partition (e.g. )</span>
+                                        <span class="tooltiptext">Slurm partition (e.g. grid)</span>
                                     </div>
                                 </div>
                                 {{ form.slurm_partition(id="slurm_part") }}
@@ -186,7 +188,7 @@
                                 <div class="flex-row-spaced">
                                     <div class="form-title">Slurm parameters:</div>
                                     <div class="tooltip informationButton">i
-                                        <span class="tooltiptext">Flags that are passed to the slurm (e.g. )</span>
+                                        <span class="tooltiptext">Flags that are passed to the slurm (e.g. --begin=16:00)</span>
                                     </div>
                                 </div>
                                 <div class="flex-row-centered">
@@ -280,7 +282,7 @@
                         <div class="title">Output</div>
                         <div class="out" id="outputFolder"></div>
                     </div>
-                    <div style="height: 70%; margin-top: 8px" class="flex-row-spaced">
+                    <div style="height: 70%; margin-top: 8px;  overflow: hidden;" class="flex-row-spaced">
                         <div class="output-log flex-col">
                             <div style="padding: 6.5px" class="flex-row-spaced title">
                                 <div>Log</div>
@@ -291,9 +293,9 @@
                                         <div class="menu-icon"></div>
                                     </div>
                                     <div class="menu-context" id="menu">
-                                        <div class="context">Download log file</div>
+                                        <div onclick="downloadFile('downloadLogFile')" class="context">Download log file</div>
                                         <div style="background: black; margin: 0px" class="horizontal-separator"></div>
-                                        <div class="context">Download csv file</div>
+                                        <div onclick="downloadFile('downloadSummaryFile')" class="context">Download summary file</div>
                                     </div>
                                 </div>
                             </div>

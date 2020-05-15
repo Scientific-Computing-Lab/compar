@@ -71,7 +71,7 @@
                             <div class="flex-row-spaced">
                                 <div class="form-title">Slurm partition:</div>
                                 <div class="tooltip informationButton">i
-                                    <span class="tooltiptext">Slurm partition (e.g. )</span>
+                                    <span class="tooltiptext">Slurm partition (e.g. grid)</span>
                                 </div>
                             </div>
                             {{ form.slurm_partition(id="slurm_part") }}
@@ -119,7 +119,7 @@
                             <div class="flex-row-spaced">
                                 <div class="form-title">Slurm parameters:</div>
                                 <div class="tooltip informationButton">i
-                                    <span class="tooltiptext">Flags that are passed to the slurm (e.g. )</span>
+                                    <span class="tooltiptext">Flags that are passed to the slurm (e.g. --begin=16:00)</span>
                                 </div>
                             </div>
                             <div class="flex-row-centered">
@@ -231,7 +231,7 @@
                             {{ form.result_file_area(id="result_editor") }}
                         </div>
                     </div>
-                    <div style="height: 70%; margin-top: 8px" class="flex-row-spaced">
+                    <div style="height: 50%; margin-top: 8px; overflow: hidden" class="flex-row-spaced">
                         <div class="output-log flex-col">
                             <div style="padding: 6.5px" class="flex-row-spaced title">
                                 <div>Log</div>
@@ -242,9 +242,9 @@
                                         <div class="menu-icon"></div>
                                     </div>
                                     <div class="menu-context" id="menu">
-                                        <div class="context">Download log file</div>
+                                        <div onclick="downloadFile('downloadLogFile')" class="context">Download log file</div>
                                         <div style="background: black; margin: 0px" class="horizontal-separator"></div>
-                                        <div class="context">Download summary file</div>
+                                        <div onclick="downloadFile('downloadSummaryFile')" class="context">Download summary file</div>
                                     </div>
                                 </div>
                             </div>
@@ -252,7 +252,7 @@
                                 <div id="output"></div>
                             </div>
                         </div>
-                        <div style="margin-left: 1px" class="output-log flex-col">
+                        <div style="margin-left: 20px" class="output-log flex-col">
                             <div class="flex-row-spaced title">
                                 <div>Progress</div>
                                 <button type="button" class="terminatebtn" onclick="terminateCompar()">Terminate</button>
