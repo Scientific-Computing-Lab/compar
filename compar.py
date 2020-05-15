@@ -553,13 +553,14 @@ class Compar:
         is_multiple_combinations = self.multiple_combinations > 1
         for combination_json in self.db.combinations_iterator():
             original_combination_obj = Combination.json_to_obj(combination_json)
+            logger.info(f'Working on {original_combination_obj.combination_id} combination')
             for i in range(self.multiple_combinations):
                 if is_multiple_combinations:
                     combination_obj = copy.deepcopy(original_combination_obj)
                     combination_obj.combination_id = f'{combination_obj.combination_id}_{i}'
                 else:
                     combination_obj = original_combination_obj
-                logger.info(f'Working on {combination_obj.combination_id} combination')
+                logger.info(f'#{i} repetition of {original_combination_obj.combination_id} combination')
                 combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
                 try:
                     self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
