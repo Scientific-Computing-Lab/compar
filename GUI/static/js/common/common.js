@@ -64,7 +64,7 @@ async function terminateCompar(){
 async function parseLine(line){
     var job_sent_to_slurm_regex = /Job [0-9]+ sent to slurm system/;
     var job_finished_from_slurm_regex = /Job [0-9]+ status is COMPLETE/;
-    var new_combination_regex = /Working on (.)+ combination/;
+    var new_combination_regex = /Working on [^ \t\n]+ combination/;
     var total_combinations_regex = /[0-9]+ combinations in total/;
     var speedup_regex = /final results speedup is [+-]?([0-9]*[.])?[0-9]+/;
     var found_job_sent_to_slurm = line.match(job_sent_to_slurm_regex);

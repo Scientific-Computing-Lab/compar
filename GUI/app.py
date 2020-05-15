@@ -1,5 +1,6 @@
 import errno
 import os
+import re
 import sys
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
@@ -35,6 +36,7 @@ SINGLE_FILE_MODE = 'single-file-mode'
 MULTIPLE_FILES_MODE = 'multiple-files-mode'
 MAKEFILE_MODE = 'makefile-mode'
 COMPAR_APPLICATION_PATH = os.path.dirname(app.root_path)
+sys.path.insert(1, COMPAR_APPLICATION_PATH)
 
 
 def path_validator(form, field):
@@ -584,7 +586,27 @@ def save_source_file(file_path, txt):
         f.write(txt)
 
 
+def assert_GUI_API():
+    from globals import LogPhrases
+    if not re.search('Job [0-9]+ sent to slurm system', LogPhrases.JOB_SENT_TO_SLURM.format(1)):
+        raise Exception("Log phrase for sending new slurm job in compar must has this pattern :"
+                        " 'Job <job_number> sent to slurm system'")
+    if not re.search('Job [0-9]+ status is COMPLETE', LogPhrases.JOB_IS_COMPLETE.format(1)):
+        raise Exception("Log phrase for completed slurm job in compar must has this pattern :"
+                        " 'Job <job_number> status is COMPLETE'")
+    if not re.search('final results speedup is [+-]?([0-9]*[.])?[0-9]+', LogPhrases.FINAL_RESUTLS_SPEEDUP.format(1)):
+        raise Exception("Log phrase for final resutls speedup must has this pattern :"
+                        " 'final results speedup is <speedup>'")
+    if not re.search('Working on [^ \t\n]+ combination', 'Working on 32 combination'):
+        raise Exception("Log phrase for working on ne combination in compar must has this pattern :"
+                        " 'Working on <combination_id> combination'")
+    if not re.search('[0-9]+ combinations in total', LogPhrases.TOTAL_COMBINATIONS.format(1)):
+        raise Exception("Log phrase for total combinations in compar must has this pattern :"
+                        " '<number> combinations in total'")
+
+
 if __name__ == "__main__":
     clean_temp_files()
+    assert_GUI_API()
     app.debug = True
     app.run(port=4445)
