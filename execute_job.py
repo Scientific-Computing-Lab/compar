@@ -95,7 +95,7 @@ class ExecuteJob:
                 job_results.append({'file_id_by_rel_path': file_id, 'dead_code_file': True})
 
     def __run_with_sbatch(self, user_slurm_parameters: list):
-        logger.info(f'Start running combination #{self.get_job().get_combination().get_combination_id()}')
+        logger.info(f'Start running {self.get_job().get_combination().get_combination_id()} combination')
         slurm_parameters = user_slurm_parameters
         dir_path = self.get_job().get_directory_path()
         dir_name = os.path.basename(dir_path)
@@ -180,7 +180,7 @@ class ExecuteJob:
 
     def __analysis_output_file(self):
         combination_id = self.get_job().get_combination().get_combination_id()
-        logger.info(f'{ExecuteJob.__name__}: analyzing job run time results of #{combination_id} combination')
+        logger.info(f'{ExecuteJob.__name__}: analyzing job run time results of {combination_id} combination')
         for root, dirs, files in os.walk(self.get_job().get_directory_path()):
             for file in files:
                 # total run time analysis

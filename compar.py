@@ -558,9 +558,9 @@ class Compar:
                 if is_multiple_combinations:
                     combination_obj = copy.deepcopy(original_combination_obj)
                     combination_obj.combination_id = f'{combination_obj.combination_id}_{i}'
+                    logger.info(f'#{i} repetition of {original_combination_obj.combination_id} combination')
                 else:
                     combination_obj = original_combination_obj
-                logger.info(f'#{i} repetition of {original_combination_obj.combination_id} combination')
                 combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
                 try:
                     self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
@@ -582,6 +582,7 @@ class Compar:
         for combination_json in self.db.combinations_iterator():
             total_results = dict()
             combination_id = Combination.json_to_obj(combination_json).combination_id
+            logger.info(f'Calculating average of {combination_id} combination')
             for i in range(self.multiple_combinations):
                 current_id = f'{combination_id}_{i}'
                 current_results = self.db.get_combination_results(current_id)
@@ -592,7 +593,7 @@ class Compar:
                 else:
                     if 'error' in current_results.keys():
                         total_results['error'] = f"{total_results.get('error', '')}\n{current_results['error']}"
-                    elif 'error' not in total_results['error'].keys():
+                    elif 'error' not in total_results.keys():
                         total_results['total_run_time'] += current_results['total_run_time']
                         for j, file in enumerate(current_results['run_time_results']):
                             if 'dead_code_file' in file.keys():
