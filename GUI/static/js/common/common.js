@@ -86,7 +86,7 @@ async function parseLine(line){
     else if (found_new_combination){
         ranCombination += 1;
         console.log("new combination is running, total:", ranCombination);
-        var percentage = ranCombination / totalCombinationsToRun;
+        var percentage = ((ranCombination / totalCombinationsToRun) * 100).toFixed(2);
         updateProgressBar(percentage);
     }
     else if (found_total_combinations){

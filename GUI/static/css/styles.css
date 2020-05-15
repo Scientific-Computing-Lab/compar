@@ -466,6 +466,7 @@ nav {
     overflow: hidden;
     margin: 20px auto;
     position: relative;
+    display: none;
 }
 
 .progress_run{

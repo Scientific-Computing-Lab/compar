@@ -58,6 +58,8 @@ async function run() {
       startComparButton.disabled = true;
       browse_button.disabled = true;
       download_button.disabled = true;
+      progress_bar = document.getElementById("run-progress");
+      progress_bar.style.display = 'flex';
 
       for await (let line of makeTextFileLineIterator("stream_progress")) {
             parseLine(line);
