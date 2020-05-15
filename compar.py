@@ -168,7 +168,8 @@ class Compar:
                  test_file_path: str = '',
                  mode=ComparConfig.MODES[ComparConfig.DEFAULT_MODE],
                  code_with_markers: bool = False,
-                 clear_db: bool = False):
+                 clear_db: bool = False,
+                 multiple_combinations: int = 1):
 
         e.assert_folder_exist(input_dir)
         e.assert_user_json_structure()
@@ -207,6 +208,7 @@ class Compar:
         self.mode = mode
         self.code_with_markers = code_with_markers
         self.clear_db = clear_db
+        self.multiple_combinations = multiple_combinations
 
         # Unit test
         self.test_file_path = test_file_path
@@ -546,22 +548,65 @@ class Compar:
     def run_parallel_combinations(self):
         logger.info('Start to work on parallel combinations')
         self.parallel_jobs_pool_executor.create_jobs_pool()
+        # if equal to one - we don't need to concatenate the number of repetitions to combination id nor calculate avg
+        is_multiple_combinations = self.multiple_combinations > 1
         for combination_json in self.db.combinations_iterator():
             combination_obj = Combination.json_to_obj(combination_json)
-            logger.info(f'Working on {combination_obj.combination_id} combination')
-            combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
-            try:
-                self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
-                self.compile_combination_to_binary(combination_folder_path)
-            except Exception as ex:
-                logger.info_error(f'Exception at {Compar.__name__}: {ex}')
-                logger.debug_error(f'{traceback.format_exc()}')
-                self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex), combination_folder_path)
-                continue
-            job = Job(combination_folder_path, combination_obj, self.main_file_parameters)
-            self.parallel_jobs_pool_executor.run_job_in_thread(self.run_and_save_job, job)
+            for i in range(self.multiple_combinations):
+                if is_multiple_combinations:
+                    combination_obj.combination_id = f'{combination_obj.combination_id}_{i}'
+                logger.info(f'Working on {combination_obj.combination_id} combination')
+                combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
+                try:
+                    self.parallel_compilation_of_one_combination(combination_obj, combination_folder_path)
+                    self.compile_combination_to_binary(combination_folder_path)
+                except Exception as ex:
+                    logger.info_error(f'Exception at {Compar.__name__}: {ex}')
+                    logger.debug_error(f'{traceback.format_exc()}')
+                    self.save_combination_as_failure(combination_obj.get_combination_id(), str(ex),
+                                                     combination_folder_path)
+                    continue
+                job = Job(combination_folder_path, combination_obj, self.main_file_parameters)
+                self.parallel_jobs_pool_executor.run_job_in_thread(self.run_and_save_job, job)
         self.parallel_jobs_pool_executor.wait_and_finish_pool()
+        if is_multiple_combinations:
+            self.calculate_multiple_combinations_average()
         logger.info('Finish to work on all the parallel combinations')
+
+    def calculate_multiple_combinations_average(self):
+        for combination_json in self.db.combinations_iterator():
+            total_results = dict()
+            combination_id = Combination.json_to_obj(combination_json).combination_id
+            for i in range(self.multiple_combinations):
+                current_id = f'{combination_id}_{i}'
+                current_results = self.db.get_combination_results(current_id)
+                if 'error' in current_results.keys():
+                    current_results['error'] = f"from {current_id}: {current_results['error']}"
+                if not total_results:
+                    total_results = current_results
+                else:
+                    if 'error' in current_results.keys():
+                        total_results['error'] = f"{total_results.get('error', '')}\n{current_results['error']}"
+                    else:
+                        for j, file in enumerate(current_results['run_time_results']):
+                            if 'dead_code_file' in file.keys():
+                                total_results['run_time_results'][j] = file
+                            elif 'dead_code_file' not in total_results['run_time_results'][j].keys():
+                                for k, loop in enumerate(file['loops']):
+                                    if 'dead_code' in loop.keys():
+                                        total_results['run_time_results'][j]['loops'][k] = loop
+                                    elif 'dead_code' not in total_results['run_time_results'][j]['loops'][k].keys():
+                                        total_results['run_time_results'][j]['loops'][k]['run_time'] += loop['run_time']
+                self.db.delete_combination(current_id)
+            if 'error' not in total_results.keys():
+                for file in total_results['run_time_results']:
+                    if 'dead_code_file' not in file.keys():
+                        for loop in file['loops']:
+                            loop['run_time'] /= self.multiple_combinations
+                            key = (file['file_id_by_rel_path'], loop['loop_label'])
+                            avg_speedup = self.serial_run_time[key] / loop['run_time']
+                            loop['speedup'] = avg_speedup
+            self.db.insert_new_combination_results(total_results)
 
     def __create_directories_structure(self, input_dir: str):
         logger.info('Creating Compar directories structure')
