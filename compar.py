@@ -21,7 +21,7 @@ import traceback
 import logger
 from combination_validator import CombinationValidator
 from assets.parallelizers_mapper import parallelizers
-from globals import ComparMode, ComparConfig, CombinatorConfig
+from globals import ComparMode, ComparConfig, CombinatorConfig, LogPhrases
 import copy
 
 
@@ -416,7 +416,7 @@ class Compar:
         except Exception as ex:
             msg = f'Exception in Compar: {ex}\ngenerate_optimal_code: cannot compile compar combination'
             self.save_combination_as_failure(Database.COMPAR_COMBINATION_ID, msg, compar_combination_folder_path)
-        logger.info(f'Working on {Database.FINAL_RESULTS_COMBINATION_ID} combination')
+        logger.info(LogPhrases.NEW_COMBINATION.format(Database.FINAL_RESULTS_COMBINATION_ID))
         # Check for best total runtime
         best_runtime_combination_id = self.db.get_total_runtime_best_combination()
         best_combination_obj = None
@@ -460,7 +460,7 @@ class Compar:
         self.db.remove_unused_data(Database.COMPAR_COMBINATION_ID)
         self.db.remove_unused_data(Database.FINAL_RESULTS_COMBINATION_ID)
         final_result_speedup = self.db.get_final_result_speedup()
-        logger.info(f'final results speedup is {final_result_speedup}')
+        logger.info(LogPhrases.FINAL_RESUTLS_SPEEDUP.format(final_result_speedup))
         if self.clear_db:
             self.clear_related_collections()
         self.db.close_connection()
@@ -553,7 +553,7 @@ class Compar:
         is_multiple_combinations = self.multiple_combinations > 1
         for combination_json in self.db.combinations_iterator():
             original_combination_obj = Combination.json_to_obj(combination_json)
-            logger.info(f'Working on {original_combination_obj.combination_id} combination')
+            logger.info(LogPhrases.NEW_COMBINATION.format(original_combination_obj.combination_id))
             for i in range(self.multiple_combinations):
                 if is_multiple_combinations:
                     combination_obj = copy.deepcopy(original_combination_obj)
@@ -669,7 +669,7 @@ class Compar:
         self.binary_compiler.compile()
 
     def run_serial(self):
-        logger.info(f'Working on {Database.SERIAL_COMBINATION_ID} combination')
+        logger.info(LogPhrases.NEW_COMBINATION.format(Database.SERIAL_COMBINATION_ID))
         serial_dir_path = os.path.join(self.combinations_dir, Database.SERIAL_COMBINATION_ID)
         if self.mode == ComparMode.CONTINUE and self.db.combination_has_results(Database.SERIAL_COMBINATION_ID):
             job_results = self.db.get_combination_results(Database.SERIAL_COMBINATION_ID)['run_time_results']

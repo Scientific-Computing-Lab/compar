@@ -7,7 +7,7 @@ from subprocess_handler import run_subprocess
 import traceback
 import logger
 from combination_validator import CombinationValidator
-from globals import ExecuteJobConfig, MakefileConfig, GlobalsConfig, TimerConfig
+from globals import ExecuteJobConfig, MakefileConfig, GlobalsConfig, TimerConfig, LogPhrases
 
 
 class ExecuteJob:
@@ -125,7 +125,7 @@ class ExecuteJob:
         result = re.findall('[0-9]', str(result))
         result = ''.join(result)
         self.get_job().set_job_id(result)
-        logger.info(f'Job {self.get_job().get_job_id()} sent to slurm system')
+        logger.info(LogPhrases.JOB_SENT_TO_SLURM.format(self.get_job().get_job_id()))
         cmd = f"squeue -j {self.get_job().get_job_id()} --format %t"
         last_status = ''
         is_first_time = True
@@ -162,7 +162,7 @@ class ExecuteJob:
                 logger.debug_error(f'{traceback.format_exc()}')
                 logger.info_error('squeue command not responding (slurm is down?)')
                 time.sleep(ExecuteJobConfig.TRY_SLURM_RECOVERY_AGAIN_SECOND_TIME)
-        logger.info(f'Job {self.get_job().get_job_id()} status is COMPLETE')
+        logger.info(LogPhrases.JOB_IS_COMPLETE.format(self.get_job().get_job_id()))
 
     def __make_sbatch_script_file(self, job_name: str = ''):
         batch_file_path = os.path.join(self.get_job().get_directory_path(), 'batch_job.sh')

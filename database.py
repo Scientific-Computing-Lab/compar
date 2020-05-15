@@ -5,7 +5,7 @@ import logger
 import traceback
 import hashlib
 from combinator import generate_combinations
-from globals import ComparMode, DatabaseConfig, JobConfig
+from globals import ComparMode, DatabaseConfig, JobConfig, LogPhrases
 import os
 import getpass
 
@@ -65,7 +65,7 @@ class Database:
             self.static_db.create_collection(self.collection_name)
             num_of_parallel_combinations = self.initialize_static_db()
             self.num_of_combinations = num_of_parallel_combinations + 2  # serial + parallel + final
-            logger.info(f'{self.num_of_combinations} combinations in total')
+            logger.info(LogPhrases.TOTAL_COMBINATIONS.format(self.num_of_combinations))
 
             if self.mode != ComparMode.CONTINUE:
                 if self.collection_name in self.dynamic_db.list_collection_names():
