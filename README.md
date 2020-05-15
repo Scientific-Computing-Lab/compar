@@ -133,7 +133,7 @@ In addition, one can write a path to scripts to each source-to-source compiler i
   "cetus": ""
 }
 ```
-As one can see, both AutoPar and Par4All have scripts to be run before the processing in */home/autopar_pre_processing_script.sh* and in */home/p4a_pre_processing_script.sh* directories respectivley. Nonetheless, Cetus has no such script. Therefore, Cetus's field in this JSon file remains empty.
+As one can see, both AutoPar and Par4All have scripts to be run before the processing in */home/autopar_pre_processing_script.sh* and in */home/p4a_pre_processing_script.sh* directories respectivley. Nonetheless, Cetus has no such script. Therefore, Cetus's field in this JSON file remains empty.
 The script of AutoPar, for eaxmple, is as follows:
 ```
 make veryclean
