@@ -490,9 +490,9 @@ def generate_compar_command_without_makefile():
     # compar_mode
     if session.get('compar_mode'):
         command += [f"-mode {session['compar_mode']}"]
-    # multiple_combinations #TODO: for now this field is disabled
-    #if session.get('multiple_combinations') is not None:
-    #    command += [f"-multiple_combinations {session['multiple_combinations']}"]
+    # multiple_combinations
+    if session.get('multiple_combinations') is not None:
+        command += [f"-multiple_combinations {session['multiple_combinations']}"]
     return ' '.join(command)
 
 
@@ -559,9 +559,9 @@ def generate_compar_command_with_makefile():
     # compar_mode
     if session.get('compar_mode'):
         command += [f"-mode {session['compar_mode']}"]
-    # multiple_combinations #TODO: for now this field is disabled
-    #if session.get('multiple_combinations'):
-    #    command += [f"-multiple_combinations {session['multiple_combinations']}"]
+    # multiple_combinations
+    if session.get('multiple_combinations'):
+        command += [f"-multiple_combinations {session['multiple_combinations']}"]
     return ' '.join(command)
 
 
