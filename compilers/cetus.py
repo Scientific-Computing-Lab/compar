@@ -38,14 +38,14 @@ class Cetus(ParallelCompiler):
                 Cetus.replace_line_in_code(file["file_full_path"], GlobalsConfig.OMP_HEADER, '')
                 cwd_path = os.path.dirname(file["file_full_path"])
                 self.copy_headers(cwd_path)
-                logger.info(f'{Cetus.__name__} start to parallelizing {file["file_name"]}')
+                logger.info(f'{Cetus.__name__}: start parallelizing {file["file_name"]}')
                 command = [f'cetus {" ".join(self.get_compilation_flags())} {file["file_name"]}']
                 stdout, stderr, ret_code = run_subprocess(command, cwd_path)
                 log_file_path = f'{os.path.splitext(file["file_full_path"])[0]}{CetusConfig.LOG_FILE_SUFFIX}'
                 logger.log_to_file(f'{stdout}\n{stderr}', log_file_path)
-                logger.debug(f'{Cetus.__name__} {stdout}')
-                logger.debug_error(f'{Cetus.__name__} {stderr}')
-                logger.info(f'{Cetus.__name__} finish to parallelizing {file["file_name"]}')
+                logger.debug(f'{Cetus.__name__}: {stdout}')
+                logger.debug_error(f'{Cetus.__name__}: {stderr}')
+                logger.info(f'{Cetus.__name__}: finished parallelizing {file["file_name"]}')
                 # Replace file from cetus output folder into original file folder
                 if os.path.isdir(os.path.join(cwd_path, CetusConfig.OUTPUT_DIR_NAME)):
                     src_file = os.path.join(cwd_path, CetusConfig.OUTPUT_DIR_NAME, file["file_name"])

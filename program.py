@@ -61,6 +61,8 @@ def main():
     parser.add_argument('-with_markers', '--code_with_markers', action='store_true',
                         help='Mark that the code was parallelized with Compar before')
     parser.add_argument('-clear_db', '--clear_db', action='store_true', help='Delete the results from database.')
+    parser.add_argument('-multiple_combinations', '--multiple_combinations', type=positive_int_validation, default=1,
+                        help='Number of times to repeat each combination.')
     args = parser.parse_args()
     args.mode = ComparConfig.MODES[args.mode]
 
@@ -110,7 +112,8 @@ def main():
         test_file_path=args.test_file_path,
         mode=args.mode,
         code_with_markers=args.code_with_markers,
-        clear_db=args.clear_db
+        clear_db=args.clear_db,
+        multiple_combinations=args.multiple_combinations
     )
     try:
         compar_obj.fragment_and_add_timers()

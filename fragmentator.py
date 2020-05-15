@@ -70,7 +70,7 @@ class Fragmentator:
             with open(self.__file_path, 'r') as input_file:
                 self.__file_content = input_file.read()
         except FileNotFoundError:
-            raise FileError(f'File {self.__file_path} not exist')
+            raise FileError(f'File {self.__file_path} dose not exist')
         if not self.__file_content:
             raise FileError(f'The file {self.__file_path} is empty')
 
