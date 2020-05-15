@@ -56,8 +56,9 @@ async function terminateCompar(){
  function showSpeedup (speedup) {
     window = document.getElementById("run-progress");
     var speed = document.createElement('div');
-    path.innerHTML += "Speedup Gained: speedup";
-    path.style.marginTop = '12px';
+    speed.innerHTML += "Speedup Gained: speedup";
+    speed.style.marginTop = '12px';
+    window.appendChild(speed);
  }
 
 async function parseLine(line){
@@ -85,7 +86,7 @@ async function parseLine(line){
     else if (found_new_combination){
         ranCombination += 1;
         console.log("new combination is running, total:", ranCombination);
-        var percentage = totalCombinationsToRun / ranCombination;
+        var percentage = ranCombination / totalCombinationsToRun;
         updateProgressBar(percentage);
     }
     else if (found_total_combinations){
