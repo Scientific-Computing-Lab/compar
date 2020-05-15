@@ -61,7 +61,7 @@ def main():
     parser.add_argument('-with_markers', '--code_with_markers', action='store_true',
                         help='Mark that the code was parallelized with Compar before')
     parser.add_argument('-clear_db', '--clear_db', action='store_true', help='Delete the results from database.')
-    parser.add_argument('-multiple_combinations', '--multiple_combinations', type=int, default=1,
+    parser.add_argument('-multiple_combinations', '--multiple_combinations', type=positive_int_validation, default=1,
                         help='Number of times to repeat each combination.')
     args = parser.parse_args()
     args.mode = ComparConfig.MODES[args.mode]

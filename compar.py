@@ -22,6 +22,7 @@ import logger
 from combination_validator import CombinationValidator
 from assets.parallelizers_mapper import parallelizers
 from globals import ComparMode, ComparConfig, CombinatorConfig
+import copy
 
 
 class Compar:
@@ -551,10 +552,13 @@ class Compar:
         # if equal to one - we don't need to concatenate the number of repetitions to combination id nor calculate avg
         is_multiple_combinations = self.multiple_combinations > 1
         for combination_json in self.db.combinations_iterator():
-            combination_obj = Combination.json_to_obj(combination_json)
+            original_combination_obj = Combination.json_to_obj(combination_json)
             for i in range(self.multiple_combinations):
                 if is_multiple_combinations:
+                    combination_obj = copy.deepcopy(original_combination_obj)
                     combination_obj.combination_id = f'{combination_obj.combination_id}_{i}'
+                else:
+                    combination_obj = original_combination_obj
                 logger.info(f'Working on {combination_obj.combination_id} combination')
                 combination_folder_path = self.create_combination_folder(str(combination_obj.get_combination_id()))
                 try:
@@ -602,10 +606,15 @@ class Compar:
                 for file in total_results['run_time_results']:
                     if 'dead_code_file' not in file.keys():
                         for loop in file['loops']:
-                            loop['run_time'] /= self.multiple_combinations
-                            key = (file['file_id_by_rel_path'], loop['loop_label'])
-                            avg_speedup = self.serial_run_time[key] / loop['run_time']
-                            loop['speedup'] = avg_speedup
+                            if 'dead_code' not in loop.keys():
+                                loop['run_time'] /= self.multiple_combinations
+                                key = (file['file_id_by_rel_path'], loop['loop_label'])
+                                try:
+                                    avg_speedup = self.serial_run_time[key] / loop['run_time']
+                                except ZeroDivisionError:
+                                    avg_speedup = float('inf')
+                                loop['speedup'] = avg_speedup
+            total_results['_id'] = combination_id
             self.db.insert_new_combination_results(total_results)
 
     def __create_directories_structure(self, input_dir: str):
