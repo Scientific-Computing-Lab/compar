@@ -457,3 +457,27 @@ nav {
 .files_button:active{
     background: darkgray;
 }
+
+.progress_bar {
+    border: 8px solid white;
+    width: 80%;
+    height: 50px;
+    border-radius: 30px;
+    overflow: hidden;
+    margin: 20px auto;
+    position: relative;
+}
+
+.progress_run{
+  background: green;
+  width: 50%;
+  height: 100%;
+}
+
+.progress_info {
+  color: white;
+  position: absolute;
+  top: 5px;
+  left: 20px;
+
+}
