@@ -231,7 +231,7 @@
                             {{ form.result_file_area(id="result_editor") }}
                         </div>
                     </div>
-                    <div style="height: 50%; margin-top: 8px; overflow: hidden" class="flex-row-spaced">
+                    <div style="height: 50%; margin-top: 8px; overflow: hidden" class="flex-col">
                         <div class="output-log flex-col">
                             <div style="padding: 6.5px" class="flex-row-spaced title">
                                 <div>Log</div>
@@ -252,13 +252,13 @@
                                 <div id="output"></div>
                             </div>
                         </div>
-                        <div style="margin-left: 20px" class="output-log flex-col">
+                        <div style="margin-top: 8px; height: 40%;" class="output-log flex-col">
                             <div class="flex-row-spaced title">
                                 <div>Progress</div>
                                 <button type="button" class="terminatebtn" onclick="terminateCompar()">Terminate</button>
                             </div>
-                            <div class="out">
-                                <div id="run-progress">
+                            <div style="padding: 12px" class="out">
+                                <div style="height: 100%" id="run-progress">
                                     <div class="progress_bar" id="progress_bar">
                                       <div class="progress_run" id="progress_run"></div>
                                       <div class="progress_info">

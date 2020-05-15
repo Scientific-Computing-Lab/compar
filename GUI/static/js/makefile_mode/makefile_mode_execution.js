@@ -52,6 +52,8 @@ async function run() {
       slurmJobs = new Set();
       document.getElementById("outputFolder").innerHTML = "Compar in progress ...";
       startComparButton.disabled = true;
+      progress_bar = document.getElementById("progress_bar");
+      progress_bar.style.display = 'flex';
 
       for await (let line of makeTextFileLineIterator("stream_progress")) {
                 parseLine(line);
