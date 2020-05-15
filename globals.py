@@ -97,7 +97,8 @@ class FileFormatorConfig:
         'AllowShortIfStatementsOnASingleLine: false',
         'AllowShortBlocksOnASingleLine: false',
         'AllowShortFunctionsOnASingleLine: false',
-        'AllowShortLoopsOnASingleLine: false'
+        'AllowShortLoopsOnASingleLine: false',
+        'SortIncludes: false'
     ]
     COLUMN_LIMIT_STYLE_ARGUMENT = 'ColumnLimit: 0'
 

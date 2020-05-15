@@ -1,3 +1,4 @@
+import errno
 import os
 import sys
 from flask_wtf import FlaskForm
@@ -16,6 +17,7 @@ from datetime import datetime
 import hashlib
 import getpass
 import shutil
+import signal
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -25,6 +27,9 @@ Bootstrap(app)
 
 TEMP_FILES_DIRECTORY = 'temp'
 COMPAR_PROGRAM_FILE = 'program.py'
+FINAL_RESULTS_FOLDER_NAME = 'final_results'
+SUMMARY_FILE_NAME = 'summary.csv'
+LOG_FILE_NAME = 'compar_output.log'
 GUI_DIR_NAME = 'GUI'
 SINGLE_FILE_MODE = 'single-file-mode'
 MULTIPLE_FILES_MODE = 'multiple-files-mode'
@@ -41,9 +46,11 @@ def relative_path_validator(form, field):
     if not form.input_directory.data or not os.path.exists(os.path.join(form.input_directory.data, field.data)):
         raise ValidationError('Relative path is invalid')
 
+
 def positive_number_validator(form, field):
     if int(field.data) < 0:
         raise ValidationError('Positive numbers only')
+
 
 class SingleFileForm(FlaskForm):
     compiler_flags = StringField('compiler_flags')
@@ -51,8 +58,9 @@ class SingleFileForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
-    multiple_combinations = h5fields.IntegerField('multiple_combinations', widget=h5widgets.NumberInput(min=0, max=100, step=1),
-                                       validators=[InputRequired(), positive_number_validator], default=1)
+    multiple_combinations = h5fields.IntegerField('multiple_combinations',
+                                                  widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                                  validators=[InputRequired(), positive_number_validator], default=1)
     with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
@@ -80,8 +88,9 @@ class MultipleFilesForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
-    multiple_combinations = h5fields.IntegerField('multiple_combinations', widget=h5widgets.NumberInput(min=0, max=100, step=1),
-                                       validators=[InputRequired(), positive_number_validator], default=1)
+    multiple_combinations = h5fields.IntegerField('multiple_combinations',
+                                                  widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                                  validators=[InputRequired(), positive_number_validator], default=1)
     with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
@@ -110,8 +119,9 @@ class MakefileForm(FlaskForm):
     slurm_partition = StringField('slurm_partition', validators=[InputRequired()], default='grid')
     save_combinations = BooleanField('save_combinations')
     clear_database = BooleanField('clear_database')
-    multiple_combinations = h5fields.IntegerField('multiple_combinations', widget=h5widgets.NumberInput(min=0, max=100, step=1),
-                                       validators=[InputRequired(), positive_number_validator], default=1)
+    multiple_combinations = h5fields.IntegerField('multiple_combinations',
+                                                  widget=h5widgets.NumberInput(min=0, max=100, step=1),
+                                                  validators=[InputRequired(), positive_number_validator], default=1)
     with_markers = BooleanField('with_markers')
     slurm_parameters = StringField('slurm_parameters')
     jobs_count = h5fields.IntegerField('jobs_count', widget=h5widgets.NumberInput(min=0, max=100, step=1),
@@ -184,6 +194,7 @@ def single_file_submit():
             session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                       form.minutes_field.data, form.seconds_field.data)
             session['compar_mode'] = form.compar_mode.data
+            session['multiple_combinations'] = form.multiple_combinations.data
         else:
             return jsonify(errors=form.errors)
         return jsonify(data={'message': 'The form is valid.'})
@@ -216,6 +227,7 @@ def multiple_files_submit():
         session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                   form.minutes_field.data, form.seconds_field.data)
         session['compar_mode'] = form.compar_mode.data
+        session['multiple_combinations'] = form.multiple_combinations.data
         return jsonify(data={'message': 'The form is valid.'})
     return jsonify(errors=form.errors)
 
@@ -249,6 +261,7 @@ def makefile_submit():
         session['time_limit'] = handle_time_limit(form.days_field.data, form.hours_field.data,
                                                   form.minutes_field.data, form.seconds_field.data)
         session['compar_mode'] = form.compar_mode.data
+        session['multiple_combinations'] = form.multiple_combinations.data
         return jsonify(data={'message': 'The form is valid.'})
     return jsonify(errors=form.errors)
 
@@ -269,13 +282,15 @@ def stream():
     else:
         abort(400, f"Cannot initiate Compar with mode: {compar_mode}.")
 
+    compar_file = COMPAR_PROGRAM_FILE
+    interpreter = sys.executable
+    command = ["exec", interpreter, '-u', compar_file, compar_command]
+    print(command)
+    proc = subprocess.Popen(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            cwd=COMPAR_APPLICATION_PATH)
+    session['pid'] = proc.pid
+
     def generate():
-        compar_file = COMPAR_PROGRAM_FILE
-        interpreter = sys.executable
-        command = [interpreter, '-u', compar_file, compar_command]
-        print(command)
-        proc = subprocess.Popen(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                cwd=COMPAR_APPLICATION_PATH)
         for line in proc.stdout:
             yield line.rstrip() + b'\n'
         proc.communicate()[0]
@@ -284,23 +299,41 @@ def stream():
     return Response(stream_with_context(generate()))
 
 
-@app.route('/checkComparStatus', methods=['get'])
+@app.route('/checkComparStatus', methods=['get', 'post'])
 def check_compar_status():
     working_dir = session.get('working_dir')
-    if working_dir:
-        result_file_path = os.path.join(working_dir, 'final_results', session['main_file_rel_path'])
-    return_code = session.get('return_code')
-    if return_code is None:
-        return_code = 0
-    if return_code != 0 or not working_dir or not os.path.exists(os.path.dirname(result_file_path)) or \
-            not os.path.exists(result_file_path):
+    data = request.get_json()
+    if 'action' not in data.keys():
+        abort(400, "Action must be specified.")
+    action = data['action']
+    if action in ['downloadLogFile', 'downloadSummaryFile']:
+        if action == 'downloadLogFile':
+            relative_file_path = LOG_FILE_NAME
+        elif action == 'downloadSummaryFile':
+            relative_file_path = os.path.join(FINAL_RESULTS_FOLDER_NAME, SUMMARY_FILE_NAME)
+        if working_dir:
+            full_file_path = os.path.join(session['working_dir'], relative_file_path)
+        if not working_dir or not os.path.exists(full_file_path):
+            return jsonify({"success": 0})
+        else:
+            return jsonify({"success": 1})
+    elif action == 'downloadResultFile':
+        if working_dir:
+            result_file_path = os.path.join(working_dir, FINAL_RESULTS_FOLDER_NAME, session['main_file_rel_path'])
+        return_code = session.get('return_code')
+        if return_code is None:
+            return_code = 0
+        if return_code != 0 or not working_dir or not os.path.exists(os.path.dirname(result_file_path)) or \
+                not os.path.exists(result_file_path):
+            return jsonify({"success": 0})
+        return jsonify({"success": 1})
+    else:
         return jsonify({"success": 0})
-    return jsonify({"success": 1})
 
 
 @app.route('/result_file', methods=['get'])
 def result_file():
-    result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
+    result_file_path = os.path.join(session['working_dir'], FINAL_RESULTS_FOLDER_NAME, session['main_file_rel_path'])
     return_code = session.get('return_code')
     if return_code is None:
         return_code = 0
@@ -316,7 +349,7 @@ def result_file():
 
 @app.route('/downloadResultFile', methods=['get'])
 def download_result_file():
-    result_file_path = os.path.join(session['working_dir'], 'final_results', session['main_file_rel_path'])
+    result_file_path = os.path.join(session['working_dir'], FINAL_RESULTS_FOLDER_NAME, session['main_file_rel_path'])
     if not os.path.exists(result_file_path):
         return abort(400, "Cannot find result file.")
     with open(result_file_path, 'r') as fp:
@@ -328,9 +361,37 @@ def download_result_file():
     )
 
 
+@app.route('/downloadSummaryFile', methods=['get'])
+def download_summary_file():
+    summary_file_path = os.path.join(session['working_dir'], FINAL_RESULTS_FOLDER_NAME, SUMMARY_FILE_NAME)
+    if not os.path.exists(summary_file_path):
+        return abort(400, "Cannot find summary file.")
+    with open(summary_file_path, 'r') as fp:
+        result = fp.read()
+    return Response(
+        result,
+        mimetype="text/plain",
+        headers={"Content-disposition": f"attachment; filename={SUMMARY_FILE_NAME}"}
+    )
+
+
+@app.route('/downloadLogFile', methods=['get'])
+def download_log_file():
+    log_file_path = os.path.join(session['working_dir'], LOG_FILE_NAME)
+    if not os.path.exists(log_file_path):
+        return abort(400, "Cannot find log file.")
+    with open(log_file_path, 'r') as fp:
+        result = fp.read()
+    return Response(
+        result,
+        mimetype="text/plain",
+        headers={"Content-disposition": f"attachment; filename={LOG_FILE_NAME}"}
+    )
+
+
 @app.route('/showFilesStructure', methods=['get'])
 def show_files_structure():
-    result_file_path = os.path.join(session['working_dir'], 'final_results')
+    result_file_path = os.path.join(session['working_dir'], FINAL_RESULTS_FOLDER_NAME)
     return_code = session.get('return_code')
     if return_code is None:
         return_code = 0
@@ -348,6 +409,33 @@ def favicon():
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
+@app.route('/terminateCompar', methods=['post'])
+def terminate_compar():
+    data = request.get_json()
+    pid = session.get('pid')
+    jobs = ""
+    if 'jobs' in data.keys():
+        jobs = data['jobs']
+    if pid:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError as err:
+            if err.errno == errno.ESRCH:
+                # ESRCH == No such process
+                pass
+            elif err.errno == errno.EPERM:
+                # EPERM clearly means there's a process to deny access to
+                pass
+    if jobs:
+        for job in jobs:
+            try:
+                subprocess.Popen(f"scancel {job}", stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                 cwd=COMPAR_APPLICATION_PATH, shell=True, env=os.environ, universal_newlines=True)
+            except Exception as e:
+                pass
+    return {"success": 1}
+
+
 def generate_compar_command_without_makefile():
     command = []
     # input dir
@@ -359,28 +447,28 @@ def generate_compar_command_without_makefile():
     # compiler type
     command += [f"-comp {session['compiler']}"]
     # save combinations
-    if session['save_combinations']:
+    if session.get('save_combinations'):
         command += [f"-save_folders"]
     # main file parameters
-    if session['main_file_parameters']:
+    if session.get('main_file_parameters'):
         command += [f"-main_file_p {session['main_file_parameters']}"]
     # compiler flags
-    if session['compiler_flags']:
+    if session.get('compiler_flags'):
         command += [f"-comp_f {session['compiler_flags']}"]
     # compiler version
-    if session['compiler_version']:
+    if session.get('compiler_version'):
         command += [f"-comp_v {session['compiler_version']}"]
     # slurm_parameters
-    if session['slurm_parameters']:
+    if session.get('slurm_parameters'):
         command += [f"-slurm_p {session['slurm_parameters']}"]
     # slurm partition
-    if session['slurm_partition']:
+    if session.get('slurm_partition'):
         command += [f"-partition {session['slurm_partition']}"]
     # job count
-    if session['job_count']:
+    if session.get('job_count'):
         command += [f"-jobs_quantity {session['job_count']}"]
     # log level
-    if session['log_level'] and session['log_level'] != 'basic':
+    if session.get('log_level') and session.get('log_level') != 'basic':
         level = ""
         if session['log_level'] == 'verbose':
             level = "v"
@@ -388,20 +476,23 @@ def generate_compar_command_without_makefile():
             level = "vv"
         command += [f"-{level}"]
     # test file path
-    if session['test_path']:
+    if session.get('test_path'):
         command += [f"-test_file {session['test_path']}"]
     # time limit
-    if session['time_limit']:
+    if session.get('time_limit'):
         command += [f"-t {session['time_limit']}"]
     # clear database
-    if session['clear_database']:
+    if session.get('clear_database'):
         command += [f"-clear_db"]
     # with markers
-    if session['with_markers']:
+    if session.get('with_markers'):
         command += [f"-with_markers"]
     # compar_mode
-    if session['compar_mode']:
+    if session.get('compar_mode'):
         command += [f"-mode {session['compar_mode']}"]
+    # multiple_combinations #TODO: for now this field is disabled
+    #if session.get('multiple_combinations') is not None:
+    #    command += [f"-multiple_combinations {session['multiple_combinations']}"]
     return ' '.join(command)
 
 
@@ -419,34 +510,34 @@ def generate_compar_command_with_makefile():
     # executable file name
     command += [f"-make_on {session['executable_file_name']}"]
     # executable path
-    if session['executable_path']:
+    if session.get('executable_path'):
         command += [f"-make_op {session['executable_path']}"]
     # folders to ignore
-    if session['ignore_folder_paths']:
+    if session.get('ignore_folder_paths'):
         command += [f"-ignore {session['ignore_folder_paths']}"]
     # folders to include
-    if session['include_folder_paths']:
+    if session.get('include_folder_paths'):
         command += [f"-include {session['include_folder_paths']}"]
     # extra files to include (mainly used by Par4all)
-    if session['extra_files_paths']:
+    if session.get('extra_files_paths'):
         command += [f"-extra {session['extra_files_paths']}"]
     # save combinations
-    if session['save_combinations']:
+    if session.get('save_combinations'):
         command += [f"-save_folders"]
     # main file parameters
-    if session['main_file_parameters']:
+    if session.get('main_file_parameters'):
         command += [f"-main_file_p {session['main_file_parameters']}"]
     # slurm_parameters
-    if session['slurm_parameters']:
+    if session.get('slurm_parameters'):
         command += [f"-slurm_p {session['slurm_parameters']}"]
     # slurm partition
-    if session['slurm_partition']:
+    if session.get('slurm_partition'):
         command += [f"-partition {session['slurm_partition']}"]
     # job count
-    if session['job_count']:
+    if session.get('job_count'):
         command += [f"-jobs_quantity {session['job_count']}"]
     # log level
-    if session['log_level'] and session['log_level'] != 'basic':
+    if session.get('log_level') and session.get('log_level') != 'basic':
         level = ""
         if session['log_level'] == 'verbose':
             level = "v"
@@ -454,20 +545,23 @@ def generate_compar_command_with_makefile():
             level = "vv"
         command += [f"-{level}"]
     # test file path
-    if session['test_path']:
+    if session.get('test_path'):
         command += [f"-test_file {session['test_path']}"]
     # time limit
-    if session['time_limit']:
+    if session.get('time_limit'):
         command += [f"-t {session['time_limit']}"]
     # clear database
-    if session['clear_database']:
+    if session.get('clear_database'):
         command += [f"-clear_db"]
     # with markers
-    if session['with_markers']:
+    if session.get('with_markers'):
         command += [f"-with_markers"]
     # compar_mode
-    if session['compar_mode']:
+    if session.get('compar_mode'):
         command += [f"-mode {session['compar_mode']}"]
+    # multiple_combinations #TODO: for now this field is disabled
+    #if session.get('multiple_combinations'):
+    #    command += [f"-multiple_combinations {session['multiple_combinations']}"]
     return ' '.join(command)
 
 

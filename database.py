@@ -63,7 +63,9 @@ class Database:
                 self.static_db.drop_collection(self.collection_name)
 
             self.static_db.create_collection(self.collection_name)
-            self.initialize_static_db()
+            num_of_parallel_combinations = self.initialize_static_db()
+            self.num_of_combinations = num_of_parallel_combinations + 2  # serial + parallel + final
+            logger.info(f'{self.num_of_combinations} combinations in total')
 
             if self.mode != ComparMode.CONTINUE:
                 if self.collection_name in self.dynamic_db.list_collection_names():
@@ -84,6 +86,7 @@ class Database:
     def initialize_static_db(self):
         try:
             combinations = generate_combinations()
+            num_of_parallel_combinations = len(combinations)
             for combination in combinations:
                 curr_combination_id = Database.generate_combination_id(combination)
                 self.static_db[self.collection_name].update_one(
@@ -95,6 +98,7 @@ class Database:
                     },
                     upsert=True
                 )
+            return num_of_parallel_combinations
         except Exception as e:
             logger.info_error(f'Exception at {Database.__name__}: cannot initialize static DB: {e}')
             logger.debug_error(f'{traceback.format_exc()}')
@@ -234,3 +238,8 @@ class Database:
             self.static_db.drop_collection(self.collection_name)
         if self.collection_name in self.dynamic_db.list_collection_names():
             self.dynamic_db.drop_collection(self.collection_name)
+
+    def get_final_result_speedup(self):
+        serial_results = self.get_combination_results(Database.SERIAL_COMBINATION_ID)
+        final_results = self.get_combination_results(Database.FINAL_RESULTS_COMBINATION_ID)
+        return float(serial_results['total_run_time']) / float(final_results['total_run_time'])

@@ -1,4 +1,8 @@
 var comparIsRunning = false;
+var totalCombinationsToRun = 0;
+var ranCombination = 0;
+var speedup = 0;
+var slurmJobs = new Set();
 
 async function* makeTextFileLineIterator(fileURL) {
   const utf8Decoder = new TextDecoder('utf-8');
@@ -42,6 +46,10 @@ async function run() {
   if (!comparIsRunning){
       output.innerHTML = "";
       comparIsRunning = true;
+      totalCombinationsToRun = 0;
+      ranCombination = 0;
+      speedup = 0;
+      slurmJobs = new Set();
       var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
       var codeMirrorSourceEditor = $('.CodeMirror')[0].CodeMirror;
       codeMirrorSourceEditor.setOption("readOnly", true)
@@ -52,9 +60,10 @@ async function run() {
       download_button.disabled = true;
 
       for await (let line of makeTextFileLineIterator("stream_progress")) {
-                var item = document.createElement('li');
-                item.textContent = line;
-                output.appendChild(item);
+            parseLine(line);
+            var item = document.createElement('li');
+            item.textContent = line;
+            output.appendChild(item);
       }
 
       var url = "/result_file"

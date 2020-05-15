@@ -14,6 +14,7 @@
     <script src="{{ url_for('static', filename='js/makefile_mode/dynamic_parameters.js')}}"></script>
     <script src="{{ url_for('static', filename='js/makefile_mode/makefile_mode_execution.js')}}"></script>
     <script src="{{ url_for('static', filename='js/makefile_mode/form_and_errors.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/common/common.js')}}"></script>
 </head>
 
 <body onLoad="init()">
@@ -303,7 +304,7 @@
                         <div style="margin-left: 1px" class="output-log flex-col">
                             <div class="flex-row-spaced title">
                                 <div>Progress</div>
-                                <button type="button" class="terminatebtn">Terminate</button>
+                                <button type="button" class="terminatebtn" onclick="terminateCompar()">Terminate</button>
                             </div>
                             <div class="out">
                                 <div id="run-progress"></div>

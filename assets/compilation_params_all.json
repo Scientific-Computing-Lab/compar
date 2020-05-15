@@ -1,0 +1,69 @@
+[
+  {
+    "compiler": "cetus",
+    "essential_params": {
+      "valued": [],
+      "toggle": []
+    },
+    "optional_params": {
+      "valued": [
+        {
+          "param": "-parallelize-loops",
+          "values": [1, 2],
+          "annotation": "="
+        },
+        {
+          "param": "-reduction",
+          "values": [0, 2],
+          "annotation": "="
+        },
+        {
+          "param": "-privatize",
+          "values": [0, 2],
+          "annotation": "="
+        },
+        {
+          "param": "-alias",
+          "values": [1, 3],
+          "annotation": "="
+        }
+      ],
+      "toggle": []
+    }
+  },
+  {
+    "compiler": "autopar",
+    "essential_params": {
+      "valued": [],
+      "toggle": [
+        "--keep_going"
+      ]
+    },
+    "optional_params": {
+      "valued": [],
+      "toggle": [
+        "--enable_modeling",
+        "--no_aliasing",
+        "--unique_indirect_index"
+      ]
+    }
+  },
+  {
+    "compiler": "par4all",
+    "essential_params": {
+      "valued": [],
+      "toggle": [
+        "-O"
+      ]
+    },
+    "optional_params": {
+      "valued": [],
+      "toggle": [
+        "--fine-grain",
+        "--com-optimization",
+        "--no-pointer-aliasing"
+      ]
+    }
+  }
+]
+
