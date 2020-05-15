@@ -459,12 +459,10 @@ nav {
 }
 
 .progress_bar {
-    border: 8px solid white;
-    width: 80%;
-    height: 50px;
-    border-radius: 30px;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
-    margin: 20px auto;
+    margin: 0px auto;
     position: relative;
     display: none;
 }
@@ -478,7 +476,7 @@ nav {
 .progress_info {
   color: white;
   position: absolute;
-  top: 5px;
+  top: 8px;
   left: 20px;
 
 }

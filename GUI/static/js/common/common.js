@@ -47,18 +47,20 @@ async function terminateCompar(){
 
  function updateProgressBar (percentage) {
     progress = document.getElementById("progress_run");
-    progress.style.width = percentage;
+    progress.style.width = percentage + "%";
 
     info = document.getElementById("percentage");
     info.innerHTML = percentage + "%";
  }
 
  function showSpeedup (speedup) {
-    window = document.getElementById("run-progress");
+    progress = document.getElementById("run-progress");
     var speed = document.createElement('div');
-    speed.innerHTML += "Speedup Gained: speedup";
+    speed.style.color =  'white';
+    speed.style.fontSize = '16px';
+    speed.innerHTML += "Speedup Gained: " + speedup;
     speed.style.marginTop = '12px';
-    window.appendChild(speed);
+    progress.innerHTML = speed;
  }
 
 async function parseLine(line){

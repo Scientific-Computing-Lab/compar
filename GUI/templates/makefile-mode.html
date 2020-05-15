@@ -282,34 +282,45 @@
                         <div class="title">Output</div>
                         <div class="out" id="outputFolder"></div>
                     </div>
-                    <div style="height: 70%; margin-top: 8px;  overflow: hidden;" class="flex-row-spaced">
-                        <div class="output-log flex-col">
-                            <div style="padding: 6.5px" class="flex-row-spaced title">
-                                <div>Log</div>
-                                <div class="menu" onclick="showMenuBar()">
-                                    <div style="width: auto" class="burger">
-                                        <div class="menu-icon"></div>
-                                        <div class="menu-icon"></div>
-                                        <div class="menu-icon"></div>
-                                    </div>
-                                    <div class="menu-context" id="menu">
-                                        <div onclick="downloadFile('downloadLogFile')" class="context">Download log file</div>
-                                        <div style="background: black; margin: 0px" class="horizontal-separator"></div>
-                                        <div onclick="downloadFile('downloadSummaryFile')" class="context">Download summary file</div>
+                    <div style="height: 70%; margin-top: 8px; overflow: hidden" class="flex-col">
+                            <div class="output-log flex-col">
+                                <div style="padding: 6.5px" class="flex-row-spaced title">
+                                    <div>Log</div>
+                                    <div class="menu" onclick="showMenuBar()">
+                                        <div style="width: auto" class="burger">
+                                            <div class="menu-icon"></div>
+                                            <div class="menu-icon"></div>
+                                            <div class="menu-icon"></div>
+                                        </div>
+                                        <div class="menu-context" id="menu">
+                                            <div onclick="downloadFile('downloadLogFile')" class="context">Download log file</div>
+                                            <div style="background: black; margin: 0px" class="horizontal-separator"></div>
+                                            <div onclick="downloadFile('downloadSummaryFile')" class="context">Download summary file</div>
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="out">
+                                    <div id="output"></div>
+                                </div>
                             </div>
-                            <div class="out">
-                                <div id="output"></div>
-                            </div>
-                        </div>
-                        <div style="margin-left: 1px" class="output-log flex-col">
-                            <div class="flex-row-spaced title">
-                                <div>Progress</div>
-                                <button type="button" class="terminatebtn" onclick="terminateCompar()">Terminate</button>
-                            </div>
-                            <div class="out">
-                                <div id="run-progress"></div>
+                            <div style="margin-top: 8px; height: 25%;" class="output-log flex-col">
+                                <div class="flex-row-spaced title">
+                                    <div>Progress</div>
+                                    <button type="button" class="terminatebtn" onclick="terminateCompar()">Terminate</button>
+                                </div>
+                                <div style="padding: 12px" class="out">
+                                    <div style="height: 100%" id="run-progress">
+                                        <div class="progress_bar" id="progress_bar">
+                                          <div class="progress_run" id="progress_run"></div>
+                                          <div class="progress_info">
+                                              <div class="flex-row">
+                                                    <div id="percentage">0%</div>
+                                                    <div style="margin-left: 4px">Complete</div>
+                                              </div>
+                                          </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
