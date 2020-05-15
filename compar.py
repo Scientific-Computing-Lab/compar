@@ -592,7 +592,8 @@ class Compar:
                 else:
                     if 'error' in current_results.keys():
                         total_results['error'] = f"{total_results.get('error', '')}\n{current_results['error']}"
-                    else:
+                    elif 'error' not in total_results['error'].keys():
+                        total_results['total_run_time'] += current_results['total_run_time']
                         for j, file in enumerate(current_results['run_time_results']):
                             if 'dead_code_file' in file.keys():
                                 total_results['run_time_results'][j] = file
@@ -604,6 +605,10 @@ class Compar:
                                         total_results['run_time_results'][j]['loops'][k]['run_time'] += loop['run_time']
                 self.db.delete_combination(current_id)
             if 'error' not in total_results.keys():
+                try:
+                    total_results['total_run_time'] /= self.multiple_combinations
+                except KeyError as ex:
+                    total_results['error'] = str(ex)
                 for file in total_results['run_time_results']:
                     if 'dead_code_file' not in file.keys():
                         for loop in file['loops']:
@@ -611,10 +616,11 @@ class Compar:
                                 loop['run_time'] /= self.multiple_combinations
                                 key = (file['file_id_by_rel_path'], loop['loop_label'])
                                 try:
-                                    avg_speedup = self.serial_run_time[key] / loop['run_time']
+                                    loop['speedup'] = self.serial_run_time[key] / loop['run_time']
                                 except ZeroDivisionError:
-                                    avg_speedup = float('inf')
-                                loop['speedup'] = avg_speedup
+                                    loop['speedup'] = float('inf')
+                                except Exception as ex:  # if serial loop is dead_code and parallel is not, KeyError
+                                    total_results['error'] = str(ex)
             total_results['_id'] = combination_id
             self.db.insert_new_combination_results(total_results)
 
