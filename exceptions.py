@@ -59,7 +59,7 @@ class DeadCodeFile(Exception):
 
 def assert_file_exist(file_path: str):
     if not os.path.exists(file_path):
-        raise FileError(f'File {file_path} not exist')
+        raise FileError(f'File {file_path} dose not exist')
 
 
 def assert_file_from_format(file_path: str, _format: str):
@@ -110,7 +110,7 @@ def assert_original_files_folder_exists(working_directory: str):
 
 def assert_folder_exist(folder_path: str):
     if not os.path.exists(folder_path):
-        raise FolderError(f'Folder {folder_path} not exist')
+        raise FolderError(f'Folder {folder_path} dose not exist')
 
 
 def assert_allowed_directive_type(directive_type: str):

@@ -79,13 +79,13 @@ class Par4all(ParallelCompiler):
             command += ' -I ' + ' -I '.join(map(lambda x: os.path.join(self.get_input_file_directory(), str(x)),
                                                 self.include_dirs_list))
         try:
-            logger.info(f'{Par4all.__name__} start to parallelizing')
+            logger.info(f'{Par4all.__name__}: start parallelizing')
             stdout, stderr, ret_code = run_subprocess([command, ], self.get_input_file_directory())
             log_file_path = os.path.join(self.get_input_file_directory(), Par4allConfig.LOG_FILE_NAME)
             logger.log_to_file(f'{stdout}\n{stderr}', log_file_path)
-            logger.debug(f'{Par4all.__name__} {stdout}')
-            logger.debug_error(f'{Par4all.__name__} {stderr}')
-            logger.info(f'{Par4all.__name__} finish to parallelizing')
+            logger.debug(f'{Par4all.__name__}: {stdout}')
+            logger.debug_error(f'{Par4all.__name__}: {stderr}')
+            logger.info(f'{Par4all.__name__}: finished parallelizing')
         except subprocess.CalledProcessError as e:
             log_file_path = os.path.join(self.get_input_file_directory(), Par4allConfig.LOG_FILE_NAME)
             logger.log_to_file(f'{e.output}\n{e.stderr}', log_file_path)
