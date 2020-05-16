@@ -60,7 +60,7 @@ async function terminateCompar(){
     speed.style.fontSize = '16px';
     speed.innerHTML += "Speedup Gained: " + speedup;
     speed.style.marginTop = '12px';
-    progress.innerHTML = speed;
+    progress.innerHTML = speed.innerHTML;
  }
 
 async function parseLine(line){
