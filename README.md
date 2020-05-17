@@ -16,8 +16,7 @@ First, clone the ComPar code provided here.
 ```
 clone https://github.com/Mosseridan/compar.git
 ```
-Create new conda environment (see [this](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html)).
-Then, you should install and load the supported compilers (i.e. Cetus, Par4All and AutoPar) to your environment, as well as Python3.
+Then, you should install and load the supported compilers (i.e. Cetus, Par4All and AutoPar) to your environment, as well as Python3. For further information, please see [Cetus](https://engineering.purdue.edu/Cetus/) and [AutoPar](https://en.wikibooks.org/wiki/ROSE_Compiler_Framework/autoPar).
 You will also need to install SLURM before running ComPar.
 In addition, run the following commands in your conda environment:
 ```
