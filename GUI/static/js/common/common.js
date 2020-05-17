@@ -35,11 +35,8 @@ async function downloadFile(action){
 
 async function terminateCompar(){
     if (comparIsRunning){
-    progress = document.getElementById("progress_run");
-    progress.style.background = '#ca1426';
-
-    const response = await fetch('/terminateCompar', {
-    method: 'POST',
+     const response = await fetch('/terminateCompar', {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
