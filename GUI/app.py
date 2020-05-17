@@ -597,7 +597,7 @@ def assert_GUI_API():
     if not re.search('final results speedup is [+-]?([0-9]*[.])?[0-9]+', LogPhrases.FINAL_RESUTLS_SPEEDUP.format(1)):
         raise Exception("Log phrase for final resutls speedup must has this pattern :"
                         " 'final results speedup is <speedup>'")
-    if not re.search('Working on [^ \t\n]+ combination', 'Working on 32 combination'):
+    if not re.search('Working on [^ \t\n]+ combination', LogPhrases.NEW_COMBINATION.format("A1B2C3")):
         raise Exception("Log phrase for working on ne combination in compar must has this pattern :"
                         " 'Working on <combination_id> combination'")
     if not re.search('[0-9]+ combinations in total', LogPhrases.TOTAL_COMBINATIONS.format(1)):
