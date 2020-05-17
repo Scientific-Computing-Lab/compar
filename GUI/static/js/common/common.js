@@ -54,23 +54,29 @@ async function terminateCompar(){
  }
 
  function showSpeedup (speedup) {
-    progress_bar = document.getElementById("progress_bar");
-    progress_bar.style.display = 'none';
-
-    run_progress = document.getElementById("run_progress");
-    run_progress.style.height = "0%";
-
+    hideProgressBar();
     speedUp = document.getElementById("speed_up");
     speedUp.style.display = 'inline';
     speedUp.innerHTML = "Speedup Gained: " + speedup;
+ }
 
+ function hideProgressBar(){
+    progress_bar = document.getElementById("progress_bar");
+    progress_bar.style.display = 'none';
+    run_progress = document.getElementById("run_progress");
+    run_progress.style.height = "0%";
     progress = document.getElementById("progress_run");
     progress.style.width =  "0%";
-
     info = document.getElementById("percentage");
     info.innerHTML = "0%";
-
  }
+
+function resetProgressBar(){
+    progress = document.getElementById("progress_run");
+    progress.style.width =  "0%";
+    info = document.getElementById("percentage");
+    info.innerHTML = "0%";
+}
 
 async function parseLine(line){
     var job_sent_to_slurm_regex = /Job [0-9]+ sent to slurm system/;

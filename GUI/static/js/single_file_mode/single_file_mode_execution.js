@@ -64,6 +64,7 @@ async function run() {
       speedup.style.display = 'none';
       run_progress = document.getElementById("run_progress");
       run_progress.style.height = "100%";
+      resetProgressBar();
 
       for await (let line of makeTextFileLineIterator("stream_progress")) {
             parseLine(line);
@@ -82,7 +83,6 @@ async function run() {
         codeMirrorResultEditor.setValue(data.text);
         codeMirrorResultEditor.refresh();
       });
-
       comparIsRunning = false;
       codeMirrorSourceEditor.setOption("readOnly", false)
       startComparButton.disabled = false;
