@@ -35,18 +35,22 @@ async function downloadFile(action){
 
 async function terminateCompar(){
     if (comparIsRunning){
-     const response = await fetch('/terminateCompar', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify ({'jobs': Array.from(slurmJobs)})
-      });
-    }
+        progress = document.getElementById("progress_run");
+        progress.style.background = "red";
+
+        const response = await fetch('/terminateCompar', {
+        method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify ({'jobs': Array.from(slurmJobs)})
+          });
+        }
  }
 
  function updateProgressBar (percentage) {
     progress = document.getElementById("progress_run");
+    progress.style.background = "green";
     progress.style.width = percentage + "%";
 
     info = document.getElementById("percentage");
