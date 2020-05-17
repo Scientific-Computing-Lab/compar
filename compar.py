@@ -460,7 +460,7 @@ class Compar:
         self.db.remove_unused_data(Database.COMPAR_COMBINATION_ID)
         self.db.remove_unused_data(Database.FINAL_RESULTS_COMBINATION_ID)
         final_result_speedup = self.db.get_final_result_speedup()
-        logger.info(LogPhrases.FINAL_RESUTLS_SPEEDUP.format(final_result_speedup))
+        logger.info(LogPhrases.FINAL_RESULTS_SPEEDUP.format(final_result_speedup))
         if self.clear_db:
             self.clear_related_collections()
         self.db.close_connection()

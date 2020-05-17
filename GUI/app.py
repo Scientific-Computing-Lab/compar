@@ -594,7 +594,7 @@ def assert_GUI_API():
     if not re.search('Job [0-9]+ status is COMPLETE', LogPhrases.JOB_IS_COMPLETE.format(1)):
         raise Exception("Log phrase for completed slurm job in compar must has this pattern :"
                         " 'Job <job_number> status is COMPLETE'")
-    if not re.search('final results speedup is [+-]?([0-9]*[.])?[0-9]+', LogPhrases.FINAL_RESUTLS_SPEEDUP.format(1)):
+    if not re.search('final results speedup is [+-]?([0-9]*[.])?[0-9]+', LogPhrases.FINAL_RESULTS_SPEEDUP.format(1)):
         raise Exception("Log phrase for final resutls speedup must has this pattern :"
                         " 'final results speedup is <speedup>'")
     if not re.search('Working on [^ \t\n]+ combination', LogPhrases.NEW_COMBINATION.format("A1B2C3")):
