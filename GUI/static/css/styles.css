@@ -480,3 +480,10 @@ nav {
   left: 20px;
 
 }
+
+.speed_up {
+    color: green;
+    font-size: 20px;
+    margin-top: 12px;
+    display: none;
+}

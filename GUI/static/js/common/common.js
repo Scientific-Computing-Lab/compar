@@ -35,8 +35,11 @@ async function downloadFile(action){
 
 async function terminateCompar(){
     if (comparIsRunning){
-     const response = await fetch('/terminateCompar', {
-      method: 'POST',
+    progress = document.getElementById("progress_run");
+    progress.style.background = '#ca1426';
+
+    const response = await fetch('/terminateCompar', {
+    method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -54,13 +57,16 @@ async function terminateCompar(){
  }
 
  function showSpeedup (speedup) {
-    progress = document.getElementById("run-progress");
-    var speed = document.createElement('div');
-    speed.style.color =  'white';
-    speed.style.fontSize = '16px';
-    speed.innerHTML += "Speedup Gained: " + speedup;
-    speed.style.marginTop = '12px';
-    progress.innerHTML = speed.innerHTML;
+    progress_bar = document.getElementById("progress_bar");
+    progress_bar.style.display = 'none';
+
+    run_progress = document.getElementById("run_progress");
+    run_progress.style.height = "0%";
+
+    speedUp = document.getElementById("speed_up");
+    speedUp.style.display = 'inline';
+    speedUp.innerHTML = "Speedup Gained: " + speedup;
+
  }
 
 async function parseLine(line){
