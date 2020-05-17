@@ -64,6 +64,12 @@ async function terminateCompar(){
     speedUp.style.display = 'inline';
     speedUp.innerHTML = "Speedup Gained: " + speedup;
 
+    progress = document.getElementById("progress_run");
+    progress.style.width =  "0%";
+
+    info = document.getElementById("percentage");
+    info.innerHTML = "0%";
+
  }
 
 async function parseLine(line){
@@ -80,28 +86,23 @@ async function parseLine(line){
 
     if (found_job_sent_to_slurm){
         var job_id = found_job_sent_to_slurm[0].replace(/[^0-9]/g,'');
-        console.log("job sent to slurm:", job_id);
         slurmJobs.add(job_id);
     }
     else if (found_job_finished_from_slurm){
         var job_id = found_job_finished_from_slurm[0].replace(/[^0-9]/g,'');
-        console.log("job finished from slurm:", job_id);
         slurmJobs.delete(job_id);
     }
     else if (found_new_combination){
         ranCombination += 1;
-        console.log("new combination is running, total:", ranCombination);
         var percentage = ((ranCombination / totalCombinationsToRun) * 100).toFixed(2);
         updateProgressBar(percentage);
     }
     else if (found_total_combinations){
         totalCombinationsToRun = found_total_combinations[0].replace(/[^0-9]/g,'');
-        console.log("total combination to run:", totalCombinationsToRun);
         updateProgressBar(0);
     }
     else if (found_speedup){
         speedup = parseFloat(found_speedup[0].split(" ")[found_speedup[0].split(" ").length-1]);
-        console.log("speedup is:", speedup)
         showSpeedup(speedup);
     }
 }

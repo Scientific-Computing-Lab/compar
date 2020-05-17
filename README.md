@@ -213,7 +213,7 @@ In this mode, you can specify the following parameters at the `ComPar Parameters
 * `Output directory`: Specify the absolute path to the output directory.
 * `Main C file`: Specify the relative path to the main C file (relative to input directory).
 * `Makefile commands`: Add the makefile commands to be run (press the `+` button after each command).
-* `Executable relative path`: Specify the relative path (relative to input directory) of the directory that contains the executable file (if the executable is in the main folder, leave this field empty).
+* `Executable folder relative path`: Specify the relative path (relative to input directory) of the directory that contains the executable file (if the executable is in the main folder, leave this field empty).
 * `Executable file name`: Specify the name of the executable file created by the makefile.
 
 After cliking on `Advanced options >>` the following parameters will be editable:
