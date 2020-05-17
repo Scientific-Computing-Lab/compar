@@ -102,7 +102,7 @@ You can see an example for such a file in *compilation_params.json* under *asset
 ### OpenMP Directives
 The fashion of OMP's directives should be specified in *assets/omp_directives_params.json*
 
-| Pragma  | Supported Options |
+| Directive  | Supported Options |
 | ------------- | ------------- |
 | schedule  | <ul> <li>static ([2, 4, 8, 16, 32])</li> <li>dynamic</li> </ul> |
 
@@ -113,7 +113,7 @@ The table below presented currently supported OpenMP runtime libraries routines.
 
 | RTL  | Supported Options |
 | ------------- | ------------- |
-| omp_set_num_threads  | [2, 4, 8, 16, 32] |
+| omp_set_num_threads  | [INTEGER] |
 
 
 ### Run
