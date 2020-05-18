@@ -102,7 +102,7 @@
                             <div class="flex-row-spaced">
                                 <div style="align-items: center" class="flex-row">
                                     <div class="form-title">Save combinations folders:</div>
-                                    {{ form.save_combinations(style='margin-left: 20px')}}
+                                    {{ form.save_combinations(checked=True, style='margin-left: 20px')}}
                                  </div>
                                 <div class="tooltip informationButton">i
                                     <span class="tooltiptext">Mark as "Yes" if you want to preserve all combinations folders</span>
@@ -121,7 +121,7 @@
                             <div class="flex-row-spaced">
                                 <div style="align-items: center" class="flex-row">
                                     <div class="form-title">Clear database data:</div>
-                                    {{ form.clear_database(checked=True, style='margin-left: 30px')}}
+                                    {{ form.clear_database(style='margin-left: 30px')}}
                                 </div>
                                 <div class="tooltip informationButton">i
                                     <span class="tooltiptext">Mark as "Yes" if you want to clear the database after ComPar ends</span>
