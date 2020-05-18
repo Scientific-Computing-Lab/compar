@@ -16,9 +16,18 @@ First, clone the ComPar code provided here.
 ```
 clone https://github.com/Mosseridan/compar.git
 ```
-Then, you should install and load the supported compilers (i.e. Cetus, Par4All and AutoPar) to your environment, as well as Python3. For further information, please see [Cetus](https://engineering.purdue.edu/Cetus/) and [AutoPar](https://en.wikibooks.org/wiki/ROSE_Compiler_Framework/autoPar).
-You will also need to install SLURM before running ComPar.
-In addition, run the following commands in your conda environment:
+Then, you should install and load the supported compilers (i.e. Cetus, Par4All and AutoPar) to your environment. For further information, please see [Cetus](https://engineering.purdue.edu/Cetus/) and [AutoPar](https://en.wikibooks.org/wiki/ROSE_Compiler_Framework/autoPar).
+You will also need to install SLURM as well as MongoDB before running ComPar. Moreover, you should have clang-format version > 5.
+In addition, you should downlowd Python3 with the following packages:
+* wtforms
+* flask >= 1.1
+* flask-wtf
+* python-dotenv
+* flask-bootstrap
+* pymongo
+* pytest
+* jsonschema
+In order to install these packages, you can simply run the following commands in your conda environment:
 ```
 pip install wtforms
 pip install flask
@@ -199,7 +208,7 @@ After cliking on `Advanced options >>` the following parameters will be editable
 * `Execution time limit`: Specify the time limit for each combination.
 * `Main file parameters`: Specify the parameters to the main file (if there are any).
 * `Log level`: choose your desired log level (basic/verbose/debug).
-* `ComPar mode`: Select your mode of ComPar (override/new/contine). For more information, please see [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
+* `ComPar mode`: Select your mode of ComPar (override/new/contine). For more information, please click [here](https://github.com/Mosseridan/compar/blob/master/README.md#run).
 * `Validation file path`: Specify the absolute path to python file named *test_output.py* with test function *test_output*. This file will validate the output of every combination.
 
 At the end, press the `START` button.
