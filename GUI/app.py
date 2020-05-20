@@ -78,7 +78,7 @@ class SingleFileForm(FlaskForm):
     result_file_area = TextAreaField('result_file_area')
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
-    compar_mode = SelectField('mode', choices=[('override', 'Override'), ('new', 'New'), ('continue', 'Continue')])
+    compar_mode = SelectField('mode', choices=[('overwrite', 'Overwrite'), ('new', 'New'), ('continue', 'Continue')])
 
 
 class MultipleFilesForm(FlaskForm):
@@ -105,7 +105,7 @@ class MultipleFilesForm(FlaskForm):
     compiler = SelectField('compiler', choices=[('gcc', 'GCC'), ('icc', 'ICC')])
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
-    compar_mode = SelectField('mode', choices=[('override', 'Override'), ('new', 'New'), ('continue', 'Continue')])
+    compar_mode = SelectField('mode', choices=[('overwrite', 'Overwrite'), ('new', 'New'), ('continue', 'Continue')])
 
 
 class MakefileForm(FlaskForm):
@@ -135,7 +135,7 @@ class MakefileForm(FlaskForm):
     main_file_parameters = StringField('main_file_parameters')
     log_level = SelectField('compiler', choices=[('', 'Basic'), ('verbose', 'Verbose'), ('debug', 'Debug')])
     test_path = StringField('test_file_path', validators=[path_validator])
-    compar_mode = SelectField('mode', choices=[('override', 'Override'), ('new', 'New'), ('continue', 'Continue')])
+    compar_mode = SelectField('mode', choices=[('overwrite', 'Overwrite'), ('new', 'New'), ('continue', 'Continue')])
 
 
 @app.route("/")
