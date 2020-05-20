@@ -11,7 +11,7 @@ for benckmark in $benchmarks; do
 		make veryclean
 		make $bencmark CLASS=C
 		rm -f bin/$bencmark_lower.C.x
-		rm -f common/wtime_sgi64.cft
+		rm -f common/wtime_sgi64.c
 	fi
 done
 
