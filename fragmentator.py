@@ -216,14 +216,41 @@ class Fragmentator:
                 loop_fragment['loop'] = f'{pragma}{loop_fragment["loop"]}'
         self.__write_to_file(self.__file_content)
 
-    def drop_loops_inside_comments(self):
+    def drop_markers_inside_comments(self):
+        # remove markers inside  multi-lines comments
         all_comments = re.findall(r'/\*.*?\*/', self.__file_content, re.DOTALL)
-        start_marker_pattern = rf'[ \t]*{FragmentatorConfig.START_LOOP_LABEL_MARKER}\d\n'
-        end_marker_pattern = rf'[ \t]*{FragmentatorConfig.END_LOOP_LABEL_MARKER}\d\n'
+        start_marker_pattern = rf'[ \t]*{FragmentatorConfig.START_LOOP_LABEL_MARKER}\d+\n'
+        end_marker_pattern = rf'[ \t]*{FragmentatorConfig.END_LOOP_LABEL_MARKER}\d+\n'
         for comment in all_comments:
             new_comment = re.sub(start_marker_pattern, '', comment)
             new_comment = re.sub(end_marker_pattern, '', new_comment)
             self.__file_content = self.__file_content.replace(comment, new_comment)
+        # count again the loops (the loop ids was changed because of the above removal)
+        all_start_markers = re.findall(start_marker_pattern, self.__file_content)
+        all_end_markers = re.findall(end_marker_pattern, self.__file_content)
+        if len(all_start_markers) != len(all_end_markers):
+            raise FragmentError('The amount of start loop markers and end loop markers is not the same')
+        new_amount_of_markers = len(all_start_markers)
+        if new_amount_of_markers == 0:
+            return
+        for marker_index in range(new_amount_of_markers):
+            new_start_marker = f'{FragmentatorConfig.START_LOOP_LABEL_MARKER}{marker_index + 1}\n'
+            new_end_marker = f'{FragmentatorConfig.END_LOOP_LABEL_MARKER}{marker_index + 1}\n'
+            self.__file_content = self.__file_content.replace(all_start_markers[marker_index], new_start_marker)
+            self.__file_content = self.__file_content.replace(all_end_markers[marker_index], new_end_marker)
+        # update self.__fragments list
+        self.__fragments = []
+        for loop_id in range(1, new_amount_of_markers + 1):
+            start_label = f'{FragmentatorConfig.START_LOOP_LABEL_MARKER}{loop_id}'
+            end_label = f'{FragmentatorConfig.END_LOOP_LABEL_MARKER}{loop_id}'
+            pattern = rf'{start_label}\n.*?\n{end_label}'
+            loop_with_markers = re.search(pattern, self.__file_content, re.DOTALL).group()
+            loop_fragment = {
+                'start_label': start_label,
+                'loop': loop_with_markers.replace(f'{start_label}\n', '').replace(f'\n{end_label}', ''),
+                'end_label': end_label
+            }
+            self.__fragments.append(loop_fragment)
 
     def fragment_code(self):
         self.__get_file_content()
@@ -246,7 +273,7 @@ class Fragmentator:
             rest_of_the_content = rest_of_the_content[loop_end_offset:]
         new_content += rest_of_the_content
         self.__file_content = new_content
-        self.drop_loops_inside_comments()
+        self.drop_markers_inside_comments()
         self.__write_to_file(self.__file_content)
         if not self.code_with_markers:
             self.move_omp_directives_into_marker()
