@@ -41,6 +41,12 @@ function handleErrors(errors){
     else {
         document.getElementById('multipleCombinationsAlert').innerHTML = "";
     }
+    if ( errors && errors.project_name){
+        document.getElementById('projectNameAlert').innerHTML = errors.project_name;
+    }
+    else {
+        document.getElementById('projectNameAlert').innerHTML = "";
+    }
 }
 
 $(document).ready(function() {

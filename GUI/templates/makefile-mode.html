@@ -58,6 +58,15 @@
                         <div style="color: red;" id="outputDirectoryAlert"></div>
                         <div class="horizontal-separator"></div>
                         <div class="flex-row-spaced">
+                            <div class="form-title">Project Name:</div>
+                            <div class="tooltip informationButton">i
+                                <span class="tooltiptext">The name of the project (e.g. MG_2)</span>
+                            </div>
+                        </div>
+                        {{ form.project_name }}
+                        <div style="color: red;" id="projectNameAlert"></div>
+                        <div class="horizontal-separator"></div>
+                        <div class="flex-row-spaced">
                             <div class="form-title">Main c file:</div>
                             <div class="tooltip informationButton">i
                                 <span class="tooltiptext">Relative path to the main c file (e.g. source/main.c)</span>
