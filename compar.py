@@ -265,6 +265,8 @@ class Compar:
             self.db.delete_all_related_collections()
 
     def inject_rtl_params_to_loop(self, file_dict: dict, omp_rtl_params: list):
+        if not omp_rtl_params:
+            return
         c_file_path = file_dict['file_full_path']
         e.assert_file_exist(c_file_path)
         with open(c_file_path, 'r') as input_file:
