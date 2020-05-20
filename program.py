@@ -70,7 +70,7 @@ def main():
         assert_original_files_folder_exists(args.working_directory)
 
     if os.path.exists(args.working_directory):
-        if args.mode == ComparMode.OVERRIDE:
+        if args.mode == ComparMode.OVERWRITE:
             shutil.rmtree(args.working_directory)
         elif args.mode == ComparMode.NEW:
             i = 1

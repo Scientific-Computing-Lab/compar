@@ -216,6 +216,15 @@ class Fragmentator:
                 loop_fragment['loop'] = f'{pragma}{loop_fragment["loop"]}'
         self.__write_to_file(self.__file_content)
 
+    def drop_loops_inside_comments(self):
+        all_comments = re.findall(r'/\*.*?\*/', self.__file_content, re.DOTALL)
+        start_marker_pattern = rf'[ \t]*{FragmentatorConfig.START_LOOP_LABEL_MARKER}\d\n'
+        end_marker_pattern = rf'[ \t]*{FragmentatorConfig.END_LOOP_LABEL_MARKER}\d\n'
+        for comment in all_comments:
+            new_comment = re.sub(start_marker_pattern, '', comment)
+            new_comment = re.sub(end_marker_pattern, '', new_comment)
+            self.__file_content = self.__file_content.replace(comment, new_comment)
+
     def fragment_code(self):
         self.__get_file_content()
         if self.code_with_markers:
@@ -237,6 +246,7 @@ class Fragmentator:
             rest_of_the_content = rest_of_the_content[loop_end_offset:]
         new_content += rest_of_the_content
         self.__file_content = new_content
+        self.drop_loops_inside_comments()
         self.__write_to_file(self.__file_content)
         if not self.code_with_markers:
             self.move_omp_directives_into_marker()

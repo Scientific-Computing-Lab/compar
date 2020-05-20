@@ -1,5 +1,5 @@
 {
-  "autopar": "assets/nas_pre_processing.sh",
+  "autopar": "",
   "par4all": "assets/nas_pre_processing.sh",
-  "cetus": "assets/nas_pre_processing.sh"
+  "cetus": ""
 }

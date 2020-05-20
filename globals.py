@@ -50,7 +50,7 @@ class CombinatorConfig:
 class ComparMode(enum.IntEnum):
     NEW = 0
     CONTINUE = 1
-    OVERRIDE = 2
+    OVERWRITE = 2
 
 
 class ComparConfig:

@@ -6,3 +6,4 @@ flask-bootstrap
 pymongo
 pytest
 jsonschema
+werkzeug
