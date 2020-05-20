@@ -136,4 +136,4 @@ class LogPhrases:
     JOB_SENT_TO_SLURM = 'Job {} sent to slurm system'
     JOB_IS_COMPLETE = 'Job {} status is COMPLETE'
     TOTAL_COMBINATIONS = '{} combinations in total'
-    FINAL_RESUTLS_SUMMARY = 'final results speedup is {} and runtime is {}'
+    FINAL_RESULTS_SUMMARY = 'final results speedup is {} and runtime is {}'

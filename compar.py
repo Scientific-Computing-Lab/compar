@@ -461,8 +461,8 @@ class Compar:
                              self.make_absolute_file_list(final_folder_path)])
         self.db.remove_unused_data(Database.COMPAR_COMBINATION_ID)
         self.db.remove_unused_data(Database.FINAL_RESULTS_COMBINATION_ID)
-        final_result_speedup = self.db.get_final_result_speedup()
-        logger.info(LogPhrases.FINAL_RESULTS_SPEEDUP.format(final_result_speedup))
+        final_result_speedup, final_result_runtime = self.db.get_final_result_speedup_and_runtime()
+        logger.info(LogPhrases.FINAL_RESULTS_SUMMARY.format(final_result_speedup, final_result_runtime))
         if self.clear_db:
             self.clear_related_collections()
         self.db.close_connection()
