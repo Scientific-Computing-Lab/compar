@@ -446,11 +446,11 @@ def terminate_compar():
 def generate_compar_command_without_makefile():
     command = []
     # input dir
-    command += [f"-dir {session['input_dir']}"]
+    command += [f"-input_dir {session['input_dir']}"]
     # output dir
-    command += [f"-output_directory_path {session['output_dir']}"]
+    command += [f"-output_dir {session['output_dir']}"]
     # project name
-    command += [f"-project_name {session['project_name']}"]
+    command += [f"-name {session['project_name']}"]
     # main file rel path
     command += [f"-main_file_r_p {session['main_file_rel_path']}"]
     # compiler type
@@ -508,11 +508,11 @@ def generate_compar_command_without_makefile():
 def generate_compar_command_with_makefile():
     command = []
     # input dir
-    command += [f"-dir {session['input_dir']}"]
+    command += [f"-input_dir {session['input_dir']}"]
     # output dir
-    command += [f"-output_directory_path {session['output_dir']}"]
+    command += [f"-output_dir {session['output_dir']}"]
     # project name
-    command += [f"-project_name {session['project_name']}"]
+    command += [f"-name {session['project_name']}"]
     # main file rel path
     command += [f"-main_file_r_p {session['main_file_rel_path']}"]
     # makefile commands
