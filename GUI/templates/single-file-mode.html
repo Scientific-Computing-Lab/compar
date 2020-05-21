@@ -206,6 +206,7 @@
                             <div style="color: red" id="validationPathAlert"></div>
                         </div>
                         <button type="submit" value="Submit" id="startComparButton" class="startbtn">START</button>
+                        <button type="button" class="terminatebtn2" onclick="terminateCompar()" id="terminate_button">Terminate</button>
                     </div>
                 </div>
                 <div class="screen-container">
@@ -225,7 +226,7 @@
                         </div>
                         <div style="margin-left: 20px; direction: rtl; overflow: auto;" class="flex-col resizable">
                             <div style="direction: ltr" class="flex-row-spaced title">
-                                <div>Result File</div>
+                                <div>Output</div>
                                 <button class="files_button" onclick="downloadFile('downloadResultFile')" id="download_button" type="button">Download</button>
                             </div>
                             {{ form.result_file_area(id="result_editor") }}
@@ -255,7 +256,6 @@
                         <div style="margin-top: 8px; height: 31%;" class="output-log flex-col">
                             <div class="flex-row-spaced title">
                                 <div>Progress</div>
-                                <button type="button" class="terminatebtn" onclick="terminateCompar()">Terminate</button>
                             </div>
                             <div style="padding: 12px" class="out">
                                 <div style="height: 100%" id="run_progress">

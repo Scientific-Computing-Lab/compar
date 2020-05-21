@@ -237,6 +237,7 @@
                             <div style="color: red" id="validationPathAlert"></div>
                         </div>
                         <button type="submit" value="Submit" id="startComparButton" class="startbtn">START</button>
+                        <button type="button" class="terminatebtn2" onclick="terminateCompar()" id="terminate_button">Terminate</button>
                         </div>
                     </div>
                     <div class="screen-container">
@@ -268,7 +269,6 @@
                             <div style="margin-top: 8px; height: 20%;" class="output-log flex-col">
                                 <div class="flex-row-spaced title">
                                     <div>Progress</div>
-                                    <button type="button" class="terminatebtn" onclick="terminateCompar()">Terminate</button>
                                 </div>
                                 <div style="padding: 12px" class="out">
                                     <div style="height: 100%" id="run_progress">

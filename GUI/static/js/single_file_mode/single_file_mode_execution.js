@@ -50,6 +50,10 @@ async function run() {
       ranCombination = 0;
       speedup = 0;
       slurmJobs = new Set();
+      terminateButton = document.getElementById("terminate_button");
+      terminateButton.style.display = 'inline';
+      startComparButton = document.getElementById("startComparButton");
+      startComparButton.style.display = 'none';
       var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
       var codeMirrorSourceEditor = $('.CodeMirror')[0].CodeMirror;
       codeMirrorSourceEditor.setOption("readOnly", true)
@@ -84,6 +88,8 @@ async function run() {
         codeMirrorResultEditor.refresh();
       });
       comparIsRunning = false;
+      terminateButton.style.display = 'none';
+      startComparButton.style.display = 'inline';
       codeMirrorSourceEditor.setOption("readOnly", false)
       startComparButton.disabled = false;
       browse_button.disabled = false;

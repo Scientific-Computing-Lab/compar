@@ -50,6 +50,10 @@ async function run() {
       ranCombination = 0;
       speedup = 0;
       slurmJobs = new Set();
+      terminateButton = document.getElementById("terminate_button");
+      terminateButton.style.display = 'inline';
+      startComparButton = document.getElementById("startComparButton");
+      startComparButton.style.display = 'none';
       document.getElementById("outputFolder").innerHTML = "Compar in progress ...";
       startComparButton.disabled = true;
       progress_bar = document.getElementById("progress_bar");
@@ -120,6 +124,8 @@ async function run() {
           }
       });
       comparIsRunning = false;
+      terminateButton.style.display = 'none';
+      startComparButton.style.display = 'inline';
       startComparButton.disabled = false;
   }
 }
