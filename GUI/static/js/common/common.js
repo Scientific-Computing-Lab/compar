@@ -82,6 +82,13 @@ function resetProgressBar(){
     info.innerHTML = "0%";
 }
 
+function updateCombinationsCounter(totalCombination, ranCombinations){
+     var text = ranCombination + " / "+ totalCombination + " combinations ran.";
+     var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
+     codeMirrorResultEditor.setValue(text);
+     codeMirrorResultEditor.refresh();
+}
+
 async function parseLine(line){
     var job_sent_to_slurm_regex = /Job [0-9]+ sent to slurm system/;
     var job_finished_from_slurm_regex = /Job [0-9]+ status is COMPLETE/;
@@ -106,6 +113,7 @@ async function parseLine(line){
         ranCombination += 1;
         var percentage = ((ranCombination / totalCombinationsToRun) * 100).toFixed(2);
         updateProgressBar(percentage);
+        updateCombinationsCounter(totalCombinationsToRun, ranCombination);
     }
     else if (found_total_combinations){
         totalCombinationsToRun = found_total_combinations[0].replace(/[^0-9]/g,'');
