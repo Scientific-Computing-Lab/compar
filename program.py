@@ -1,11 +1,8 @@
 import argparse
 from compar import Compar
 import traceback
-import os
-import shutil
-from exceptions import assert_rel_path_starts_without_sep, assert_original_files_folder_exists
 import logger
-from globals import ComparConfig, ComparMode
+from globals import ComparConfig
 
 
 def positive_int_validation(value):
@@ -21,9 +18,10 @@ def positive_int_validation(value):
 
 def main():
     num_of_jobs_at_once = 4
-    parser = argparse.ArgumentParser(description='Compar')
-    parser.add_argument('-wd', '--working_directory', help='Working directory path', required=True)
-    parser.add_argument('-dir', '--input_dir', help='Input directory path', required=True)
+    parser = argparse.ArgumentParser(description='ComPar')
+    parser.add_argument('-input_dir', '--input_directory_path', help='Input directory path', required=True)
+    parser.add_argument('-output_dir', '--output_directory_path', help='Output directory path', required=True)
+    parser.add_argument('-name', '--project_name', help='Project name', required=True)
     parser.add_argument('-comp', '--binary_compiler_type', help='Binary compiler type', default="")
     parser.add_argument('-comp_v', '--binary_compiler_version', help='Binary compiler version', default=None)
     parser.add_argument('-comp_f', '--binary_compiler_flags', nargs="*", help='Binary compiler flags', default=None)
@@ -66,33 +64,11 @@ def main():
     args = parser.parse_args()
     args.mode = ComparConfig.MODES[args.mode]
 
-    if args.mode == ComparMode.CONTINUE:
-        assert_original_files_folder_exists(args.working_directory)
-
-    if os.path.exists(args.working_directory):
-        if args.mode == ComparMode.OVERWRITE:
-            shutil.rmtree(args.working_directory)
-        elif args.mode == ComparMode.NEW:
-            i = 1
-            while os.path.exists(f"{args.working_directory}_{i}"):
-                i = i + 1
-            args.working_directory = f"{args.working_directory}_{i}"
-    os.makedirs(args.working_directory, exist_ok=True)
-
-    logger.initialize(args.log_level, args.working_directory)
-    logger.info('Starting Compar execution')
-
-    assert_rel_path_starts_without_sep(args.makefile_exe_folder_rel_path)
-    for path in args.makefile_exe_folder_rel_path:
-        assert_rel_path_starts_without_sep(path)
-
-    if args.slurm_parameters and len(args.slurm_parameters) == 1:
-        args.slurm_parameters = str(args.slurm_parameters[0]).split(' ')
-
     Compar.set_num_of_threads(args.jobs_quantity_at_once)
     compar_obj = Compar(
-        working_directory=args.working_directory,
-        input_dir=args.input_dir,
+        input_dir=args.input_directory_path,
+        output_dir=args.output_directory_path,
+        project_name=args.project_name,
         binary_compiler_type=args.binary_compiler_type.lower(),
         binary_compiler_version=args.binary_compiler_version,
         binary_compiler_flags=args.binary_compiler_flags,
@@ -113,7 +89,8 @@ def main():
         mode=args.mode,
         code_with_markers=args.code_with_markers,
         clear_db=args.clear_db,
-        multiple_combinations=args.multiple_combinations
+        multiple_combinations=args.multiple_combinations,
+        log_level=args.log_level
     )
     try:
         compar_obj.fragment_and_add_timers()
