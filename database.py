@@ -1,12 +1,10 @@
 import pymongo
 from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile, NoOptimalCombinationError
-from exceptions import UserInputError
 import logger
 import traceback
 import hashlib
 from combinator import generate_combinations
 from globals import ComparMode, DatabaseConfig, JobConfig, LogPhrases
-import os
 import getpass
 
 
@@ -104,6 +102,7 @@ class Database:
             del ids_in_static, ids_in_dynamic, old_ids
             self.dynamic_db[self.collection_name].delete_one({'_id': Database.COMPAR_COMBINATION_ID})
             self.dynamic_db[self.collection_name].delete_one({'_id': Database.FINAL_RESULTS_COMBINATION_ID})
+            self.dynamic_db[self.collection_name].delete_many({"error": {"$exists": True}})
 
     def is_collection_exists(self, collection_name: str, database: int = RESULTS_DB):
         if database == Database.COMBINATIONS_DB:
