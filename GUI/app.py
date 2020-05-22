@@ -214,7 +214,7 @@ def multiple_files_submit():
     if form.validate_on_submit():
         session['input_dir'] = form.input_directory.data
         session['output_dir'] = form.output_directory.data
-        session['project_name'] = form.project_name
+        session['project_name'] = form.project_name.data
         session['working_dir'] = os.path.join(form.output_directory.data, form.project_name.data)
         session['main_file_rel_path'] = form.main_file_path.data
         # other fields
@@ -246,7 +246,7 @@ def makefile_submit():
     if form.validate_on_submit():
         session['input_dir'] = form.input_directory.data
         session['output_dir'] = form.output_directory.data
-        session['project_name'] = form.project_name
+        session['project_name'] = form.project_name.data
         session['working_dir'] = os.path.join(form.output_directory.data, form.project_name.data)
         session['main_file_rel_path'] = form.main_file_path.data
         # other fields
