@@ -8,8 +8,9 @@ NO_OUTPUT = 0
 BASIC = 1
 VERBOSE = 2
 DEBUG = 3
+DEFAULT_LOG_LEVEL = BASIC
 LOG_FILE_NAME = 'compar_output.log'
-_log_level = BASIC
+_log_level = DEFAULT_LOG_LEVEL
 _output_folder_path = ''
 print_lock = RLock()
 

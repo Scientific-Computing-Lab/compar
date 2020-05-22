@@ -1,12 +1,10 @@
 import pymongo
 from exceptions import DatabaseError, MissingDataError, DeadCodeLoop, DeadCodeFile, NoOptimalCombinationError
-from exceptions import UserInputError
 import logger
 import traceback
 import hashlib
 from combinator import generate_combinations
 from globals import ComparMode, DatabaseConfig, JobConfig, LogPhrases
-import os
 import getpass
 
 
@@ -15,6 +13,7 @@ class Database:
     SERIAL_COMBINATION_ID = DatabaseConfig.SERIAL_COMBINATION_ID
     COMPAR_COMBINATION_ID = DatabaseConfig.COMPAR_COMBINATION_ID
     FINAL_RESULTS_COMBINATION_ID = DatabaseConfig.FINAL_RESULTS_COMBINATION_ID
+    COMBINATIONS_DB, RESULTS_DB = 0, 1
 
     @staticmethod
     def generate_combination_id(combination: dict):
@@ -32,13 +31,8 @@ class Database:
         return hashlib.sha3_384(str(fields).encode()).hexdigest()
 
     @staticmethod
-    def __get_collection_name(working_directory):
-        collection_name = working_directory
-        if not os.path.isdir(collection_name):
-            raise UserInputError(f'{collection_name} is not a directory')
-        if collection_name.endswith(os.path.sep):
-            collection_name = os.path.split(collection_name)[0]  # remove the suffix separator
-        collection_name = f"{getpass.getuser()}_{os.path.basename(collection_name)}"
+    def __get_collection_name(project_name):
+        collection_name = f"{getpass.getuser()}_{project_name}"
         static_namespace = f'{DatabaseConfig.STATIC_DB_NAME}.{collection_name}'
         dynamic_namespace = f'{DatabaseConfig.DYNAMIC_DB_NAME}.{collection_name}'
         longer_namespace = max((static_namespace, dynamic_namespace), key=len)
@@ -49,39 +43,75 @@ class Database:
             collection_name = new_name
         return collection_name
 
-    def __init__(self, working_directory: str, mode):
-        collection_name = Database.__get_collection_name(working_directory)
-        logger.info(f'Initializing {collection_name} databases')
+    def __init__(self, project_name, mode):
         self.mode = mode
+        self.collection_name = Database.__get_collection_name(project_name)
         try:
-            self.collection_name = collection_name
             self.connection = pymongo.MongoClient(DatabaseConfig.SERVER_ADDRESS)
             self.static_db = self.connection[DatabaseConfig.STATIC_DB_NAME]
             self.dynamic_db = self.connection[DatabaseConfig.DYNAMIC_DB_NAME]
+            self.num_of_combinations = 0
+        except Exception as e:
+            raise DatabaseError(str(e) + "\nDatabase connection failed!")
 
-            if self.collection_name in self.static_db.list_collection_names():
-                self.static_db.drop_collection(self.collection_name)
+        if self.mode == ComparMode.OVERWRITE:
+            if self.is_collection_exists(self.collection_name, Database.RESULTS_DB):
+                self.dynamic_db.drop_collection(self.collection_name)
+        elif self.mode == ComparMode.NEW:
+            if self.is_collection_exists(self.collection_name, Database.RESULTS_DB):
+                self.collection_name = self.get_new_collection_name(self.collection_name)
+                logger.info(f'Project name changed from {project_name} to {self.get_project_name()}')
 
-            self.static_db.create_collection(self.collection_name)
-            num_of_parallel_combinations = self.initialize_static_db()
-            self.num_of_combinations = num_of_parallel_combinations + 2  # serial + parallel + final
-            logger.info(LogPhrases.TOTAL_COMBINATIONS.format(self.num_of_combinations))
+    def get_project_name(self):
+        if '_' in self.collection_name:
+            return self.collection_name.split('_', 1)[1]
+        else:
+            return self.collection_name
 
-            if self.mode != ComparMode.CONTINUE:
-                if self.collection_name in self.dynamic_db.list_collection_names():
-                    self.dynamic_db.drop_collection(self.collection_name)
-                self.dynamic_db.create_collection(self.collection_name)
-            else:
-                ids_in_static = [comb['_id'] for comb in self.static_db[self.collection_name].find({}, {"_id": 1})]
-                ids_in_dynamic = [comb['_id'] for comb in self.dynamic_db[self.collection_name].find({}, {"_id": 1})]
-                old_ids = [comb_id for comb_id in ids_in_dynamic if comb_id not in
-                           ids_in_static + [self.SERIAL_COMBINATION_ID]]
-                self.dynamic_db[self.collection_name].delete_many({'_id': {'$in': old_ids}})
-                del ids_in_static, ids_in_dynamic, old_ids
-                self.dynamic_db[self.collection_name].delete_one({'_id': Database.COMPAR_COMBINATION_ID})
-                self.dynamic_db[self.collection_name].delete_one({'_id': Database.FINAL_RESULTS_COMBINATION_ID})
+    def get_new_collection_name(self, original_collection_name: str):
+        i = 1
+        while self.is_collection_exists(f"{original_collection_name}_{i}", Database.RESULTS_DB):
+            i = i + 1
+        return f"{original_collection_name}_{i}"
+
+    def create_collections(self):
+        logger.info(f'Initializing {self.collection_name} databases')
+        try:
+            self.create_static_db()
+            self.create_dynamic_db()
         except Exception as e:
             raise DatabaseError(str(e) + "\nFailed to initialize DB!")
+
+    def create_static_db(self):
+        if self.is_collection_exists(self.collection_name, Database.COMBINATIONS_DB):
+            self.static_db.drop_collection(self.collection_name)
+        self.static_db.create_collection(self.collection_name)
+        num_of_parallel_combinations = self.initialize_static_db()
+        self.num_of_combinations = num_of_parallel_combinations + 2  # serial + parallel + final
+        logger.info(LogPhrases.TOTAL_COMBINATIONS.format(self.num_of_combinations))
+
+    def create_dynamic_db(self):
+        if self.mode != ComparMode.CONTINUE:
+            self.dynamic_db.create_collection(self.collection_name)
+        else:
+            ids_in_static = [comb['_id'] for comb in self.static_db[self.collection_name].find({}, {"_id": 1})]
+            ids_in_dynamic = [comb['_id'] for comb in self.dynamic_db[self.collection_name].find({}, {"_id": 1})]
+            old_ids = [comb_id for comb_id in ids_in_dynamic if comb_id not in
+                       ids_in_static + [self.SERIAL_COMBINATION_ID]]
+            self.dynamic_db[self.collection_name].delete_many({'_id': {'$in': old_ids}})
+            del ids_in_static, ids_in_dynamic, old_ids
+            self.dynamic_db[self.collection_name].delete_one({'_id': Database.COMPAR_COMBINATION_ID})
+            self.dynamic_db[self.collection_name].delete_one({'_id': Database.FINAL_RESULTS_COMBINATION_ID})
+            self.dynamic_db[self.collection_name].delete_many({"error": {"$exists": True}})
+
+    def is_collection_exists(self, collection_name: str, database: int = RESULTS_DB):
+        if database == Database.COMBINATIONS_DB:
+            database_object = self.static_db
+        elif database == Database.RESULTS_DB:
+            database_object = self.dynamic_db
+        else:
+            raise ValueError(f'Unknown value {database}')
+        return collection_name in database_object.list_collection_names()
 
     def initialize_static_db(self):
         try:
