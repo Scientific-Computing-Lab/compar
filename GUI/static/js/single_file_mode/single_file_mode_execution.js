@@ -67,7 +67,7 @@ async function run() {
       speedup = document.getElementById("speed_up");
       speedup.style.display = 'none';
       run_progress = document.getElementById("run_progress");
-      run_progress.style.height = "100%";
+      run_progress.style.height = "auto";
       resetProgressBar();
 
       for await (let line of makeTextFileLineIterator("stream_progress")) {

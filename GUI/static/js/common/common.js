@@ -60,7 +60,7 @@ async function terminateCompar(){
  function showSpeedupAndRuntime (speedup, runtime) {
     hideProgressBar();
     speedUp = document.getElementById("speed_up");
-    speedUp.style.display = 'inline';
+    speedUp.style.display = 'flex';
     speedUp.innerHTML = "Speedup Gained: " + speedup + ", Runtime: " + +runtime
  }
 

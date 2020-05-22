@@ -235,7 +235,7 @@
                     <div style="height: 50%; margin-top: 8px; overflow: hidden" class="flex-col">
                         <div class="output-log flex-col">
                             <div style="padding: 6.5px" class="flex-row-spaced title">
-                                <div>Log</div>
+                                <div>Progress</div>
                                 <div class="menu" onclick="showMenuBar()">
                                     <div style="width: auto" class="burger">
                                         <div class="menu-icon"></div>
@@ -249,16 +249,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="out">
-                                <div id="output"></div>
-                            </div>
-                        </div>
-                        <div style="margin-top: 8px; height: 31%;" class="output-log flex-col">
-                            <div class="flex-row-spaced title">
-                                <div>Progress</div>
-                            </div>
-                            <div style="padding: 12px" class="out">
-                                <div style="height: 100%" id="run_progress">
+                            <div style="padding: 8px;">
+                                <div id="run_progress">
                                     <div class="progress_bar" id="progress_bar">
                                       <div class="progress_run" id="progress_run"></div>
                                       <div class="progress_info">
@@ -270,6 +262,9 @@
                                     </div>
                                 </div>
                                 <div class="speed_up" id="speed_up"></div>
+                            </div>
+                            <div class="out">
+                                <div id="output"></div>
                             </div>
                         </div>
                     </div>

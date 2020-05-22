@@ -73,7 +73,6 @@ div {
     border: 2px solid gray;
     height: 100%;
     width: 100%;
-    overflow: auto;
 }
 
 .output-folder {
@@ -88,8 +87,8 @@ div {
 .out {
     height: 100%;
     width: 100%;
-    padding: 8px;
     color: white;
+    padding: 8px;
     overflow: auto;
 }
 
@@ -475,7 +474,7 @@ nav {
 
 .progress_bar {
     width: 100%;
-    height: 100%;
+    padding: 8px;
     overflow: hidden;
     margin: 0px auto;
     position: relative;
@@ -485,20 +484,22 @@ nav {
 .progress_run{
   background: green;
   width: 0%;
-  height: 100%;
+  height: 35px;
 }
 
 .progress_info {
   color: white;
   position: absolute;
-  top: 3px;
+  top: 10px;
   left: 20px;
 
 }
 
 .speed_up {
+    flex-direction: row;
+    align-items: center;
+    height: 35px;
     color: green;
     font-size: 20px;
-    margin-top: 12px;
     display: none;
 }
