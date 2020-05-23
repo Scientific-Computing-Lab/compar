@@ -273,7 +273,7 @@ def makefile_submit():
     return jsonify(errors=form.errors)
 
 
-@app.route('/stream_progress', methods=['POST'])
+@app.route('/stream_progress', methods=['post'])
 def stream():
     compar_command = ''
     compar_mode = ''
