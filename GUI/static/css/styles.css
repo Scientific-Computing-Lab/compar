@@ -498,8 +498,17 @@ nav {
 .speed_up {
     flex-direction: row;
     align-items: center;
+    font-weight: bold;
     height: 35px;
     color: green;
     font-size: 20px;
     display: none;
+    margin-left: 20px;
+}
+
+#percentage {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    font-size: 16px;
 }
