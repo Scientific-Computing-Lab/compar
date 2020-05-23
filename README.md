@@ -1,12 +1,14 @@
 # ComPar: Optimized Compiler for Automatic OpenMP S2S Parallelization using Code Segmentation and Hyperparameters Tuning
 
-ComPar is a source-to-source compiler that generates the best parallelized code (in terms of performances) which can be achieved from automatic parallelization compilers without any human intervention. This is done by fusing other source-to-source compilers' outputs. The only human intervention in ComPar is by supporting the source code to be parallelized and setting the desired hyperparameters (i.e. the parameters defined by the different compilers and OpenMP) in a JSON format. Afterwards, ComPar divides the source code into loop segments, and from the provided JSON file it creates different combinations of these parameters. The combinations are assembled with the code segments and each segment is run by all of the compilers. Finally, ComPar chooses the best combination for the given code, i.e. the combination with the shortest execution time, while removing unnecessary parallelization pragmas.
+ComPar is a source-to-source compiler that optimizes the parallelizaton of a code (in terms of performances), that can be achieved from automatic parallelization compilers without any human intervention. This is done by fusing other source-to-source compilers' outputs. The only human intervention in ComPar is by supporting the source code to be parallelized and setting the desired hyperparameters (i.e. the parameters defined by the different compilers and OpenMP) in a JSON format. Afterwards, ComPar divides the source code into loop segments, and from the provided JSON file it creates different combinations of these parameters. The combinations are assembled with the code segments and each segment is run by all of the compilers. Finally, ComPar chooses the best combination for the given code, i.e. the combination with the shortest execution time, while removing unnecessary parallelization pragmas.
 
-**Note:** The correctness of the input parameters affects the correctness of the parallelized code. It is the responsibility of the user to provide the right parameters as the user is familiar with the input code's logic and its dependencies.
+**Note:** The correctness of the input parameters affects the correctness of the parallelized code. It is the responsibility of the user to provide the right parameters as the user is familiar with the input code's logic and its dependencies. We suggest two methods to overcome this problem:
+* ComPar's black-box testing functionality, which examines the functionality of an application before and after the parallelization without peering into its internal structures or workings.
+* AutoPar's ability to ensure the correctness of pragmas in a given parallel code. 
 
 ## ComPar Architecture
 
-![](images/ComPar_architecture.png)
+![](images/ComPar_architecture.PNG)
 
 ## Getting Started
 
@@ -185,7 +187,7 @@ If the user works in a single file mode without makefile and he does not choose 
 
 At the end, press the `START` button. At any time, one can cancel ComPar's execution by pressing the `Terminate` button.
 
-![](images/single_file.png)
+![](images/single_file_mode.PNG)
 
 ### Multiple Files Mode Segments
 * *Output*: displays ComPar's progress.
@@ -212,7 +214,7 @@ After cliking on `Advanced options >>` the following parameters will be editable
 
 At the end, press the `START` button. At any time, one can cancel ComPar's execution by pressing the `Terminate` button.
 
-![](images/multi_files.png)
+![](images/multifile_mode.PNG)
 
 ### Make File Mode Segments
 * *Output*: displays ComPar's progress.
@@ -243,4 +245,4 @@ After cliking on `Advanced options >>` the following parameters will be editable
 
 At the end, press the `START` button. At any time, one can cancel ComPar's execution by pressing the `Terminate` button.
 
-![](images/makefile_mode.png)
+![](images/makefile_mode.PNG)
