@@ -1,8 +1,7 @@
 wtforms
 flask >= 1.1
-flask-wtf
-python-dotenv
-flask-bootstrap
+flask_wtf
+flask_bootstrap
 pymongo
 pytest
 jsonschema

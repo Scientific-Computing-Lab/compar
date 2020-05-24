@@ -1,16 +1,15 @@
 #!/usr/bin/bash
 
-#!/usr/bin/bash
 combination_folder_path="$1"
 benchmarks="BT LU SP EP MG CG"
 
 cd $combination_folder_path
-for benckmark in $benchmarks; do
-	if [ -d $benckmark ]; then
-		bencmark_lower=$(echo "$bencmark" | tr '[:upper:]' '[:lower:]')
+for bench in $benchmarks; do
+	if [ -d $bench ]; then
+		bench_lower=$(echo "$bench" | tr '[:upper:]' '[:lower:]')
 		make veryclean
-		make $bencmark CLASS=C
-		rm -f bin/$bencmark_lower.C.x
+		make $bench CLASS=C
+		rm -f bin/$bench_lower.C.x
 		rm -f common/wtime_sgi64.c
 	fi
 done
