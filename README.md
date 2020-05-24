@@ -1,4 +1,4 @@
-# ComPar: Optimized Compiler for Automatic OpenMP S2S Parallelization using Code Segmentation and Hyperparameters Tuning
+# ComPar: Optimized Multi-Compiler for Automatic OpenMP S2S Parallelization
 
 ComPar is a source-to-source compiler that optimizes the parallelizaton of a code (in terms of performances), that can be achieved from automatic parallelization compilers without any human intervention. This is done by fusing other source-to-source compilers' outputs. The only human intervention in ComPar is by supporting the source code to be parallelized and setting the desired hyperparameters (i.e. the parameters defined by the different compilers and OpenMP) in a JSON format. Afterwards, ComPar divides the source code into loop segments, and from the provided JSON file it creates different combinations of these parameters. The combinations are assembled with the code segments and each segment is run by all of the compilers. Finally, ComPar chooses the best combination for the given code, i.e. the combination with the shortest execution time, while removing unnecessary parallelization pragmas.
 
