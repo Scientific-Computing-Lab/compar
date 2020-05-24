@@ -48,20 +48,26 @@ async function terminateCompar(){
         }
  }
 
- function updateProgressBar (percentage) {
+ function updateProgressBar (percentage, totalCombination, ranCombination) {
     progress = document.getElementById("progress_run");
     progress.style.background = "green";
     progress.style.width = percentage + "%";
 
+    var text = ranCombination + " / "+ totalCombination + " combinations completed";
     info = document.getElementById("percentage");
-    info.innerHTML = percentage + "%";
+    info.innerHTML = text;
  }
 
  function showSpeedupAndRuntime (speedup, runtime) {
     hideProgressBar();
     speedUp = document.getElementById("speed_up");
     speedUp.style.display = 'flex';
-    speedUp.innerHTML = "Speedup Gained: " + speedup + ", Runtime: " + +runtime
+    var runtimeDiv = document.createElement('div');
+    runtimeDiv.innerHTML = "Runtime: " + runtime + ' seconds';
+    runtimeDiv.style.marginLeft = '30px';
+
+    speedUp.innerHTML = "Speedup Gained: " + speedup;
+    speedUp.appendChild(runtimeDiv);
  }
 
  function hideProgressBar(){
@@ -72,21 +78,14 @@ async function terminateCompar(){
     progress = document.getElementById("progress_run");
     progress.style.width =  "0%";
     info = document.getElementById("percentage");
-    info.innerHTML = "0%";
+    info.innerHTML = "";
  }
 
 function resetProgressBar(){
     progress = document.getElementById("progress_run");
     progress.style.width =  "0%";
     info = document.getElementById("percentage");
-    info.innerHTML = "0%";
-}
-
-function updateCombinationsCounter(totalCombination, ranCombinations){
-     var text = ranCombination + " / "+ totalCombination + " combinations ran.";
-     var codeMirrorResultEditor = $('.CodeMirror')[1].CodeMirror;
-     codeMirrorResultEditor.setValue(text);
-     codeMirrorResultEditor.refresh();
+    info.innerHTML = "";
 }
 
 async function parseLine(line){
@@ -112,12 +111,11 @@ async function parseLine(line){
     else if (found_new_combination){
         ranCombination += 1;
         var percentage = ((ranCombination / totalCombinationsToRun) * 100).toFixed(2);
-        updateProgressBar(percentage);
-        updateCombinationsCounter(totalCombinationsToRun, ranCombination);
+        updateProgressBar(percentage, totalCombinationsToRun, ranCombination );
     }
     else if (found_total_combinations){
         totalCombinationsToRun = found_total_combinations[0].replace(/[^0-9]/g,'');
-        updateProgressBar(0);
+        updateProgressBar(0, totalCombinationsToRun, ranCombination);
     }
     else if (found_final_results){
         var words = found_final_results[0].split(" ");
