@@ -758,6 +758,8 @@ class Compar:
         if not base_dir:
             base_dir = self.combinations_dir
         combination_folder_path = os.path.join(base_dir, combination_folder_name)
+        if os.path.exists(combination_folder_path):
+            shutil.rmtree(combination_folder_path)
         os.mkdir(combination_folder_path)
         self.__copy_folder_content(self.original_files_dir, combination_folder_path)
         if not os.path.isdir(combination_folder_path):
