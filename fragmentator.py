@@ -33,7 +33,10 @@ class Fragmentator:
             content = fp.read()
         all_markers = re.findall(rf'.*{FragmentatorConfig.LOOP_LABEL_MARKER}\d+', content)
         loop_labels = list(set([int(re.search(r'\d+$', marker).group(0)) for marker in all_markers if marker]))
-        num_of_loops = max(loop_labels)
+        try:
+            num_of_loops = max(loop_labels)
+        except ValueError:  # in case of max on empty list
+            num_of_loops = 0
         if num_of_loops != len(loop_labels):
             raise UserInputError(f'Error in {file_path}: the file must contains #{num_of_loops} loop markers!')
         return num_of_loops
@@ -200,7 +203,10 @@ class Fragmentator:
                 'end_label': end_marker
             }
             self.__fragments.append(loop_and_markers)
-        num_of_loops = max([int(re.search(r'\d+', loop['start_label']).group()) for loop in self.__fragments])
+        try:
+            num_of_loops = max([int(re.search(r'\d+', loop['start_label']).group()) for loop in self.__fragments])
+        except ValueError:  # in case of max on empty list
+            num_of_loops = 0
         if num_of_loops != len(loops_with_markers):
             raise UserInputError(f'Error in {self.__file_path}: the file must contains #{num_of_loops} loop markers!')
         return self.__fragments
