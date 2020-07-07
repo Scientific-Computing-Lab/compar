@@ -22,7 +22,8 @@ def get_format_command(c_files_path_list: list, column_limit: bool):
     if column_limit:
         style_arguments += f', {FileFormatorConfig.COLUMN_LIMIT_STYLE_ARGUMENT}'
     style_arguments = f'\"{{{style_arguments}}}\"'
-    format_command = ['source', 'scl_source', 'enable', 'llvm-toolset-7', '&&']
+    # format_command = ['source', 'scl_source', 'enable', 'llvm-toolset-7', '&&']
+    format_command = []
     format_command += ['clang-format', '-i'] + c_files_path_list + ['-style', style_arguments]
     return format_command
 
