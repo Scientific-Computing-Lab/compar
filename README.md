@@ -95,7 +95,7 @@ pip install jsonschema
   * By using this flag, a user can run only runtime libraries and omp directives.
 * -clear_db (or --clear_db): Delete the results from database.
 * -multiple_combinations (or --multiple_combinations): Number of times to repeat each combination (positive integer).
- * Default = 1
+  * Default = 1
     
 ### Compliation Parameters
 
