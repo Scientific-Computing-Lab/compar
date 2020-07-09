@@ -44,8 +44,9 @@ pip install jsonschema
 ### Know Your Flags
 
 **Required Flags:**
-* -wd (or --working_directory): Specify the working directory path to your code.
-* -dir (or --input_dir): Specify the path to the directory of your input files.
+* -input_dir (or --input_directory_path): Specify the path to your input files' directory.
+* -output_dir (or --output_directory_path): Specify the path to the directory that will contain the output files.
+* -name (or --project_name): Specify the name of your project.
 * -main_file_r_p (or --main_file_rel_path): Relative path to the main C file.
   * Default = "".
 
@@ -93,6 +94,8 @@ pip install jsonschema
 * -with_markers (or --code_with_markers): Mark that the code was parallelized with ComPar before (i.e. the source code was already parallelized by ComPar). 
   * By using this flag, a user can run only runtime libraries and omp directives.
 * -clear_db (or --clear_db): Delete the results from database.
+* -multiple_combinations (or --multiple_combinations): Number of times to repeat each combination (positive integer).
+ * Default = 1
     
 ### Compliation Parameters
 
